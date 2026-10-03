@@ -1,0 +1,13 @@
+# Three-point estimates (weeks) for building each capability from scratch.
+# P6: build-sso (e = 20) vs integrating via oidc-broker (6): integrate.
+#     build-billing-ledger (e = 14) vs billing-ledger-integration (13): review.
+- { id: build-sso, delivers: sso, weeks: [16, 20, 28], confidence: 0.7, source: Harborline identity team estimate }
+- { id: build-mfa, delivers: mfa, weeks: [4, 6, 9], confidence: 0.75, source: Harborline identity team estimate }
+- { id: build-user-provisioning, delivers: user-provisioning, weeks: [6, 8, 12], confidence: 0.65, source: Harborline identity team estimate }
+- { id: build-audit-logging, delivers: audit-logging, weeks: [10, 14, 20], confidence: 0.6, source: Harborline security team estimate }
+- { id: build-api-gateway, delivers: api-gateway, weeks: [10, 13, 18], confidence: 0.6, source: Harborline platform team estimate }
+- { id: build-event-streaming, delivers: event-streaming, weeks: [12, 16, 24], confidence: 0.55, source: Harborline platform team estimate }
+- { id: build-billing-ledger, delivers: billing-ledger, weeks: [10, 14, 22], confidence: 0.5, source: Harborline finance systems estimate }
+- { id: build-secrets-management, delivers: secrets-management, weeks: [5, 7, 10], confidence: 0.7, source: Harborline security team estimate }
+- { id: build-observability, delivers: observability, weeks: [8, 11, 16], confidence: 0.6, source: Harborline platform team estimate }
+- { id: build-data-warehouse, delivers: data-warehouse, weeks: [14, 18, 26], confidence: 0.5, source: Harborline data team estimate }

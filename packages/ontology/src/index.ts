@@ -3,7 +3,7 @@ import { buildSchemaCypher, buildSchemaStatements } from './ddl.js';
 import { checkConsistency, ontologyFileSchema, type LabelDef, type OntologyFile } from './schema.js';
 
 export { checkConsistency, ontologyFileSchema };
-export type { LabelDef, OntologyFile, RelationshipDef } from './schema.js';
+export type { LabelDef, OntologyFile, PropertyType, RelationshipDef } from './schema.js';
 export { snake } from './ddl.js';
 
 function load(): OntologyFile {

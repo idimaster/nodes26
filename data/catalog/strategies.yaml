@@ -1,0 +1,5 @@
+# Integration strategies. A pattern APPLIES_TO one or both.
+- id: bridge
+  description: Keep the target's systems running and connect them to the acquirer's platform through integrations.
+- id: transform
+  description: Move the target onto the acquirer's platform and retire the target's own systems.

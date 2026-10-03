@@ -1,0 +1,32 @@
+# Completed integrations (fictional). The generator expands each into a committed plan
+# (Iteration, FramedUseCase, Selection, PlanTask, approved commit GateDecision, committed Roadmap)
+# with jittered Actual durations. Reusing a pattern for two use cases in one deal gives its
+# tasks several observations, so estimate provenance has >= 3 data points for >= 5 tasks.
+deals:
+  - code: tidewater
+    target_company: Tidewater Analytics
+    acquirer: Harborline Software
+    strategy: bridge
+    started_at: "2025-03-03T00:00:00Z"
+    selections:
+      - { use_case: identity-federation-trust, pattern: idp-trust-establishment }
+      - { use_case: workforce-sso, pattern: oidc-broker }
+      - { use_case: customer-sso, pattern: oidc-broker }
+      - { use_case: user-provisioning, pattern: scim-provisioning }
+      - { use_case: api-consolidation, pattern: api-gateway-facade }
+      - { use_case: partner-api-access, pattern: api-gateway-facade }
+      - { use_case: cloud-account-consolidation, pattern: landing-zone-onboarding }
+
+  - code: quarry
+    target_company: Quarry Capture
+    acquirer: Harborline Software
+    strategy: transform
+    started_at: "2025-09-01T00:00:00Z"
+    selections:
+      - { use_case: identity-federation-trust, pattern: idp-trust-establishment }
+      - { use_case: workforce-sso, pattern: oidc-broker }
+      - { use_case: api-consolidation, pattern: api-gateway-facade }
+      - { use_case: legacy-api-retirement, pattern: strangler-fig }
+      - { use_case: cloud-account-consolidation, pattern: landing-zone-onboarding }
+      - { use_case: data-migration, pattern: bulk-migration }
+      - { use_case: incident-management, pattern: incident-process-merge }

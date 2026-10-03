@@ -4,12 +4,17 @@ const name = z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/);
 const prop = z.string().regex(/^[a-z][a-z0-9_]*$/);
 const relType = z.string().regex(/^[A-Z][A-Z0-9_]*$/);
 
+export const propertyType = z.enum(['string', 'integer', 'float', 'boolean', 'datetime', 'json']);
+export type PropertyType = z.infer<typeof propertyType>;
+
 export const labelSchema = z
   .object({
     name,
     subgraph: z.enum(['knowledge', 'evidence', 'plan', 'decisions', 'meta']),
     key: z.array(prop).min(1),
     required: z.array(prop),
+    /** Type of every key and required property (DESIGN §1.4). */
+    types: z.record(prop, propertyType),
     enums: z.record(prop, z.array(z.string()).min(1)),
     perDeal: z.boolean(),
     /** Property holding the deal code on per-deal labels (`code` on Deal, `deal_code` elsewhere). */
@@ -50,6 +55,12 @@ export function checkConsistency(o: OntologyFile): string[] {
     if (props.size !== l.key.length + l.required.length) problems.push(`${l.name}: a property is listed twice`);
     for (const p of Object.keys(l.enums)) {
       if (!props.has(p)) problems.push(`${l.name}: enum on ${p}, which is not a key or required property`);
+    }
+    const typed = Object.keys(l.types);
+    for (const p of props) if (!typed.includes(p)) problems.push(`${l.name}: no type for ${p}`);
+    for (const p of typed) if (!props.has(p)) problems.push(`${l.name}: type for ${p}, which is not a key or required property`);
+    for (const p of Object.keys(l.enums)) {
+      if (l.types[p] !== 'string') problems.push(`${l.name}: enum on ${p}, which is not a string`);
     }
     if (l.perDeal !== (l.dealProperty !== undefined)) {
       problems.push(`${l.name}: dealProperty must be set exactly when perDeal is true`);

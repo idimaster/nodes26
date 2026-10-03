@@ -11,6 +11,10 @@
       "required": [
         "description"
       ],
+      "types": {
+        "id": "string",
+        "description": "string"
+      },
       "enums": {},
       "perDeal": false,
       "reserved": false
@@ -25,6 +29,11 @@
         "name",
         "order"
       ],
+      "types": {
+        "id": "string",
+        "name": "string",
+        "order": "integer"
+      },
       "enums": {},
       "perDeal": false,
       "reserved": false
@@ -39,6 +48,11 @@
         "display",
         "description"
       ],
+      "types": {
+        "id": "string",
+        "display": "string",
+        "description": "string"
+      },
       "enums": {},
       "perDeal": false,
       "reserved": false
@@ -54,6 +68,12 @@
         "description",
         "reference"
       ],
+      "types": {
+        "id": "string",
+        "name": "string",
+        "description": "string",
+        "reference": "string"
+      },
       "enums": {},
       "perDeal": false,
       "reserved": false
@@ -71,7 +91,24 @@
         "weeks_p",
         "skill"
       ],
-      "enums": {},
+      "types": {
+        "id": "string",
+        "summary": "string",
+        "weeks_o": "float",
+        "weeks_e": "float",
+        "weeks_p": "float",
+        "skill": "string"
+      },
+      "enums": {
+        "skill": [
+          "identity",
+          "platform",
+          "data",
+          "security",
+          "frontend",
+          "ops"
+        ]
+      },
       "perDeal": false,
       "reserved": false
     },
@@ -84,6 +121,10 @@
       "required": [
         "name"
       ],
+      "types": {
+        "id": "string",
+        "name": "string"
+      },
       "enums": {},
       "perDeal": false,
       "reserved": false
@@ -101,6 +142,14 @@
         "confidence",
         "source"
       ],
+      "types": {
+        "id": "string",
+        "weeks_o": "float",
+        "weeks_e": "float",
+        "weeks_p": "float",
+        "confidence": "float",
+        "source": "string"
+      },
       "enums": {},
       "perDeal": false,
       "reserved": false
@@ -114,6 +163,10 @@
       "required": [
         "name"
       ],
+      "types": {
+        "id": "string",
+        "name": "string"
+      },
       "enums": {},
       "perDeal": false,
       "reserved": false
@@ -130,10 +183,27 @@
         "strategy",
         "status"
       ],
-      "enums": {},
+      "types": {
+        "code": "string",
+        "target_company": "string",
+        "acquirer": "string",
+        "strategy": "string",
+        "status": "string"
+      },
+      "enums": {
+        "strategy": [
+          "pending",
+          "bridge",
+          "transform"
+        ],
+        "status": [
+          "active",
+          "completed"
+        ]
+      },
       "perDeal": true,
-      "reserved": false,
-      "dealProperty": "code"
+      "dealProperty": "code",
+      "reserved": false
     },
     {
       "name": "Finding",
@@ -149,6 +219,15 @@
         "confidence",
         "evidence_type"
       ],
+      "types": {
+        "deal_code": "string",
+        "id": "string",
+        "kind": "string",
+        "text": "string",
+        "severity": "string",
+        "confidence": "float",
+        "evidence_type": "string"
+      },
       "enums": {
         "kind": [
           "capability",
@@ -156,11 +235,24 @@
           "risk",
           "assumption",
           "service"
+        ],
+        "severity": [
+          "critical",
+          "high",
+          "medium",
+          "low"
+        ],
+        "evidence_type": [
+          "code_inspection",
+          "vendor_docs",
+          "rfi",
+          "interview",
+          "assumption"
         ]
       },
       "perDeal": true,
-      "reserved": false,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": false
     },
     {
       "name": "Source",
@@ -173,10 +265,16 @@
         "type",
         "uri"
       ],
+      "types": {
+        "deal_code": "string",
+        "id": "string",
+        "type": "string",
+        "uri": "string"
+      },
       "enums": {},
       "perDeal": true,
-      "reserved": false,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": false
     },
     {
       "name": "Iteration",
@@ -189,10 +287,16 @@
         "started_at",
         "status"
       ],
+      "types": {
+        "deal_code": "string",
+        "n": "integer",
+        "started_at": "datetime",
+        "status": "string"
+      },
       "enums": {},
       "perDeal": true,
-      "reserved": false,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": false
     },
     {
       "name": "FramedUseCase",
@@ -206,10 +310,17 @@
         "framing_rationale",
         "use_case_id"
       ],
+      "types": {
+        "deal_code": "string",
+        "iteration": "integer",
+        "id": "string",
+        "framing_rationale": "string",
+        "use_case_id": "string"
+      },
       "enums": {},
       "perDeal": true,
-      "reserved": false,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": false
     },
     {
       "name": "Candidate",
@@ -225,10 +336,19 @@
         "band",
         "signal_snapshot"
       ],
+      "types": {
+        "deal_code": "string",
+        "iteration": "integer",
+        "uc": "string",
+        "pattern": "string",
+        "fit_score": "float",
+        "band": "string",
+        "signal_snapshot": "json"
+      },
       "enums": {},
       "perDeal": true,
-      "reserved": false,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": false
     },
     {
       "name": "Selection",
@@ -244,6 +364,15 @@
         "rationale",
         "status"
       ],
+      "types": {
+        "deal_code": "string",
+        "iteration": "integer",
+        "uc": "string",
+        "pattern": "string",
+        "fit_score": "float",
+        "rationale": "string",
+        "status": "string"
+      },
       "enums": {
         "status": [
           "draft",
@@ -251,8 +380,8 @@
         ]
       },
       "perDeal": true,
-      "reserved": false,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": false
     },
     {
       "name": "PlanTask",
@@ -272,10 +401,32 @@
         "earliest_start",
         "wave"
       ],
-      "enums": {},
+      "types": {
+        "deal_code": "string",
+        "iteration": "integer",
+        "id": "string",
+        "task_id": "string",
+        "weeks_o": "float",
+        "weeks_e": "float",
+        "weeks_p": "float",
+        "skill": "string",
+        "on_critical_path": "boolean",
+        "earliest_start": "float",
+        "wave": "integer"
+      },
+      "enums": {
+        "skill": [
+          "identity",
+          "platform",
+          "data",
+          "security",
+          "frontend",
+          "ops"
+        ]
+      },
       "perDeal": true,
-      "reserved": false,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": false
     },
     {
       "name": "Roadmap",
@@ -289,6 +440,13 @@
         "status",
         "gate_id"
       ],
+      "types": {
+        "deal_code": "string",
+        "version": "integer",
+        "iteration": "integer",
+        "status": "string",
+        "gate_id": "string"
+      },
       "enums": {
         "status": [
           "draft",
@@ -296,8 +454,8 @@
         ]
       },
       "perDeal": true,
-      "reserved": false,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": false
     },
     {
       "name": "CapabilityDecision",
@@ -314,10 +472,20 @@
         "coverage",
         "rule_version"
       ],
+      "types": {
+        "deal_code": "string",
+        "iteration": "integer",
+        "capability_id": "string",
+        "outcome": "string",
+        "integrate_effort": "float",
+        "build_effort": "float",
+        "coverage": "float",
+        "rule_version": "string"
+      },
       "enums": {},
       "perDeal": true,
-      "reserved": false,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": false
     },
     {
       "name": "GateDecision",
@@ -334,6 +502,16 @@
         "by",
         "at"
       ],
+      "types": {
+        "id": "string",
+        "deal_code": "string",
+        "iteration": "integer",
+        "gate": "string",
+        "status": "string",
+        "comment": "string",
+        "by": "string",
+        "at": "datetime"
+      },
       "enums": {
         "status": [
           "pending",
@@ -342,8 +520,8 @@
         ]
       },
       "perDeal": true,
-      "reserved": true,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": true
     },
     {
       "name": "Feedback",
@@ -356,6 +534,12 @@
         "text",
         "status"
       ],
+      "types": {
+        "id": "string",
+        "deal_code": "string",
+        "text": "string",
+        "status": "string"
+      },
       "enums": {
         "status": [
           "open",
@@ -363,8 +547,8 @@
         ]
       },
       "perDeal": true,
-      "reserved": true,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": true
     },
     {
       "name": "Override",
@@ -378,6 +562,13 @@
         "subject",
         "active"
       ],
+      "types": {
+        "id": "string",
+        "deal_code": "string",
+        "kind": "string",
+        "subject": "string",
+        "active": "boolean"
+      },
       "enums": {
         "kind": [
           "exclude_pattern",
@@ -389,8 +580,8 @@
         ]
       },
       "perDeal": true,
-      "reserved": true,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": true
     },
     {
       "name": "Actual",
@@ -404,10 +595,17 @@
         "weeks_actual",
         "completed_at"
       ],
+      "types": {
+        "deal_code": "string",
+        "plan_task_id": "string",
+        "task_id": "string",
+        "weeks_actual": "float",
+        "completed_at": "datetime"
+      },
       "enums": {},
       "perDeal": true,
-      "reserved": true,
-      "dealProperty": "deal_code"
+      "dealProperty": "deal_code",
+      "reserved": true
     },
     {
       "name": "OntologyTerm",
@@ -423,6 +621,15 @@
         "example",
         "version"
       ],
+      "types": {
+        "kind": "string",
+        "name": "string",
+        "scope": "string",
+        "status": "string",
+        "definition": "string",
+        "example": "string",
+        "version": "integer"
+      },
       "enums": {
         "status": [
           "proposed",

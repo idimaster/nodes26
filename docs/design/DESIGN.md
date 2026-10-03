@@ -22,18 +22,18 @@ Everything else is deterministic code or Cypher.
 | | `Track` | `id` | `name`, `order` |
 | | `UseCase` | `id` | `display`, `description` |
 | | `Pattern` | `id` | `name`, `description`, `reference` (public source) |
-| | `Task` | `id` (format `<pattern_id>.<task>`) | `summary`, `weeks_o`, `weeks_e`, `weeks_p`, `skill` |
+| | `Task` | `id` (format `<pattern_id>.<task>`) | `summary`, `weeks_o`, `weeks_e`, `weeks_p`, `skill` ∈ {identity, platform, data, security, frontend, ops} |
 | | `CapabilityType` | `id` | `name` |
 | | `BuildOption` | `id` | `weeks_o`, `weeks_e`, `weeks_p`, `confidence`, `source` |
 | | `PlatformCapability` | `id` | `name` |
-| Evidence (per deal) | `Deal` | `code` | `target_company`, `acquirer`, `strategy`, `status` |
-| | `Finding` | `(deal_code, id)` | `kind` ∈ {capability, gap, risk, assumption, service}, `text`, `severity`, `confidence`, `evidence_type` |
+| Evidence (per deal) | `Deal` | `code` | `target_company`, `acquirer`, `strategy` ∈ {pending, bridge, transform}, `status` ∈ {active, completed} |
+| | `Finding` | `(deal_code, id)` | `kind` ∈ {capability, gap, risk, assumption, service}, `text`, `severity` ∈ {critical, high, medium, low}, `confidence`, `evidence_type` ∈ {code_inspection, vendor_docs, rfi, interview, assumption} |
 | | `Source` | `(deal_code, id)` | `type`, `uri` |
 | Plan (per deal) | `Iteration` | `(deal_code, n)` | `started_at`, `status` |
 | | `FramedUseCase` | `(deal_code, iteration, id)` | `framing_rationale`, `use_case_id` |
 | | `Candidate` | `(deal_code, iteration, uc, pattern)` | `fit_score`, `band`, `signal_snapshot` (JSON string) |
 | | `Selection` | `(deal_code, iteration, uc)` | `pattern`, `fit_score`, `rationale`, `status` ∈ {draft, committed} |
-| | `PlanTask` | `(deal_code, iteration, id)` | `task_id`, `weeks_o/e/p`, `skill`, `on_critical_path`, `earliest_start`, `wave` |
+| | `PlanTask` | `(deal_code, iteration, id)` | `task_id`, `weeks_o/e/p`, `skill` ∈ {identity, platform, data, security, frontend, ops}, `on_critical_path`, `earliest_start`, `wave` |
 | | `Roadmap` | `(deal_code, version)` | `iteration`, `status` ∈ {draft, committed}, `gate_id` |
 | | `CapabilityDecision` | `(deal_code, iteration, capability_id)` | `outcome`, `integrate_effort`, `build_effort`, `coverage`, `rule_version` |
 | Decisions (per deal, **reserved**) | `GateDecision` | `id` | `deal_code`, `iteration`, `gate`, `status` ∈ {pending, approved, rejected}, `comment`, `by`, `at` |
@@ -111,7 +111,9 @@ A change to §1.1 or §1.2 must change `config/ontology.json` in the same commit
 - one uniqueness constraint per label key, named `<label_snake>_key` (23);
 - one range index on `deal_code`, named `<label_snake>_deal_code`, for every per-deal label that carries a `deal_code` property (13: every Evidence, Plan, and Decisions label except `Deal`, whose `code` constraint already indexes it).
 
-All statements use `IF NOT EXISTS`, so applying the file is idempotent. Property types are not yet part of the ontology file; they are added with the data schemas (T1.3).
+All statements use `IF NOT EXISTS`, so applying the file is idempotent.
+
+**Property types** live only in `config/ontology.json` (`types`: one of `string`, `integer`, `float`, `boolean`, `datetime` (ISO-8601 string in data files), `json` (a string holding JSON)), for every key and required property. Labels may carry extra, optional properties (e.g. `Pattern.not_recommended_when`); those are typed by the data-file schemas, not by the ontology.
 
 ---
 
@@ -130,7 +132,7 @@ All statements use `IF NOT EXISTS`, so applying the file is idempotent. Property
 | Tool | Input | Output |
 |---|---|---|
 | `recommend_strategy` | `deal_context` | Ranked strategies with `fit_score` and rationale |
-| `classify_finding` | finding with evidence | `gap` \| `assumption` \| `capability`. Gap needs strong evidence (code inspection, vendor docs, or RFI) at confidence ≥ 0.7 |
+| `classify_finding` | finding with evidence | `gap` \| `assumption` \| `capability`. Gap needs strong evidence (`evidence_type` ∈ {code_inspection, vendor_docs, rfi}) at confidence ≥ 0.7 |
 | `analyze_pattern_fit` | `use_case`, `deal_context`, `candidates[]` (retrieved by Cypher) | Ranked `FitAnalysis[]`: score, band, signal breakdown, reuse penalty, anti-applicability flags |
 | `instantiate_tasks` | `deal`, `iteration`, `selections[]` | `plan_tasks[]` + `depends_on[]` (intra- and cross-pattern via `REQUIRES`) |
 | `compute_schedule` | `plan_tasks[]`, `depends_on[]` | Critical path, `earliest_start`, waves, PERT band. Kahn longest path; **errors with a cycle witness on cyclic input** |
@@ -209,7 +211,10 @@ Rules:
 ### 5.2 Scheduling
 1. Run V3 first. If V3 finds a cycle, do **not** schedule; return the witness.
 2. Project with GDS from **prerequisite → dependent**, weighted by the prerequisite's `weeks_e`. Run `gds.dag.longestPath`. Verify the procedure exists in the installed GDS version at startup; otherwise fall back to `compute_schedule` (Kahn). A parity test asserts both produce identical results on fixtures.
-3. Write back `on_critical_path`, `earliest_start`, and `wave`.
+3. Write back `on_critical_path`, `earliest_start`, and `wave`, defined over the PlanTask DAG (durations are `weeks_e`):
+   - `earliest_start` = 0 for a task with no prerequisites, else max over prerequisites of (`earliest_start` + `weeks_e`);
+   - `wave` = 1 for a task with no prerequisites, else 1 + max over prerequisites of `wave`;
+   - `on_critical_path` = true when the task has zero slack: its latest start (computed backward from the plan's finish, max of `earliest_start` + `weeks_e`) equals its `earliest_start` (compared with a 1e-9 tolerance).
 4. Compute resource load as `sum(weeks_e)` grouped by `skill` and `wave`.
 
 ### 5.3 Other queries

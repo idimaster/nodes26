@@ -42,6 +42,16 @@ describe('consistency checks', () => {
     expect(checkConsistency(bad)).toContainEqual(expect.stringContaining('enum on ghost'));
   });
 
+  it('rejects a property without a type, and a type without a property', () => {
+    const bad = structuredClone(base);
+    const track = bad.labels.find((l) => l.name === 'Track')!;
+    delete track.types.order;
+    track.types.ghost = 'string';
+    const problems = checkConsistency(bad);
+    expect(problems).toContainEqual(expect.stringContaining('Track: no type for order'));
+    expect(problems).toContainEqual(expect.stringContaining('Track: type for ghost'));
+  });
+
   it('rejects a per-deal label whose dealProperty is not a property', () => {
     const bad = structuredClone(base);
     const finding = bad.labels.find((l) => l.name === 'Finding')!;

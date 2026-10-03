@@ -1,0 +1,103 @@
+# ~30 use cases, grouped by the track they usually belong to (5 per track).
+
+# identity
+- id: workforce-sso
+  display: Workforce single sign-on
+  description: Target employees sign in to internal and target tools with the acquirer's corporate identity provider.
+- id: customer-sso
+  display: Customer single sign-on
+  description: Customers use one login across the target's and the acquirer's products.
+- id: user-provisioning
+  display: User lifecycle provisioning
+  description: Accounts are created, changed, and removed automatically when people join, move, or leave.
+- id: mfa-enforcement
+  display: MFA enforcement
+  description: Multi-factor authentication is required for all workforce and privileged access.
+- id: identity-federation-trust
+  display: Identity federation trust
+  description: The acquirer's and the target's identity domains trust each other's assertions through managed metadata and certificates.
+
+# security
+- id: audit-logging
+  display: Centralized audit logging
+  description: Security-relevant events from the target land in the acquirer's audit pipeline with agreed retention.
+- id: secrets-management
+  display: Secrets management
+  description: Credentials and keys are stored, rotated, and accessed through a managed secrets service.
+- id: vulnerability-remediation
+  display: Vulnerability remediation
+  description: The target's code and images are scanned and remediated to the acquirer's service levels.
+- id: access-reviews
+  display: Periodic access reviews
+  description: Access to sensitive systems is reviewed and recertified on a fixed schedule.
+- id: encryption-at-rest
+  display: Encryption at rest
+  description: Stored customer data is encrypted with keys managed to the acquirer's standard.
+
+# api
+- id: api-consolidation
+  display: API consolidation
+  description: The target's public APIs are exposed through the acquirer's gateway with shared authentication and limits.
+- id: api-versioning
+  display: API versioning alignment
+  description: Versioning and deprecation of the target's APIs follow the acquirer's policy.
+- id: partner-api-access
+  display: Partner API access
+  description: Partners call the target's APIs with credentials issued by the acquirer.
+- id: webhook-delivery
+  display: Webhook delivery
+  description: Customers receive reliable, signed event notifications from the target's systems.
+- id: legacy-api-retirement
+  display: Legacy API retirement
+  description: Old target endpoints are replaced incrementally and then switched off.
+
+# data
+- id: ledger-data-sync
+  display: Ledger data sync
+  description: The target's ledger postings reach the acquirer's finance systems within minutes.
+- id: reporting-consolidation
+  display: Reporting consolidation
+  description: The target's figures appear in the acquirer's consolidated financial reporting.
+- id: customer-master-data
+  display: Customer master data
+  description: One customer record is shared across the target's and the acquirer's systems.
+- id: data-migration
+  display: Data migration
+  description: The target's operational data is moved onto the acquirer's data platform.
+- id: billing-consolidation
+  display: Billing consolidation
+  description: The target's subscriptions are billed through, or reconciled with, the acquirer's billing platform.
+
+# infrastructure
+- id: cloud-account-consolidation
+  display: Cloud account consolidation
+  description: The target's cloud accounts are governed by the acquirer's landing zone and policies.
+- id: network-connectivity
+  display: Private network connectivity
+  description: The target's and the acquirer's networks are connected privately with managed routing.
+- id: ci-cd-alignment
+  display: CI/CD alignment
+  description: The target builds and deploys through the acquirer's pipeline templates and controls.
+- id: container-platform-migration
+  display: Container platform migration
+  description: The target's workloads run on the acquirer's shared container platform.
+- id: dr-alignment
+  display: Disaster recovery alignment
+  description: Recovery objectives and tested restores meet the acquirer's tiering.
+
+# operations
+- id: observability-integration
+  display: Observability integration
+  description: The target's metrics, logs, and traces are visible in the acquirer's observability tools.
+- id: incident-management
+  display: Incident management
+  description: Incidents follow one process, severity scale, and on-call rotation.
+- id: support-tooling
+  display: Support tooling
+  description: Customer support for the target runs in the acquirer's support desk.
+- id: service-catalog
+  display: Service catalog
+  description: Every target service has an owner and an entry in the acquirer's service catalog.
+- id: cost-management
+  display: Cost management
+  description: The target's cloud spend is allocated and reported with the acquirer's tagging and budgets.

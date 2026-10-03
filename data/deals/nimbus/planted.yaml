@@ -1,0 +1,57 @@
+# Which data realizes each planted situation in DATA.md, and the outcome each must produce.
+# packages/data/test/planted.test.ts checks the data-level preconditions; M3 tests check behavior.
+
+P1:
+  finding: f-no-scim
+  use_case: user-provisioning
+  pattern: scim-provisioning
+  requires: idp-trust-establishment
+
+P2:
+  use_cases:
+    - { use_case: ledger-data-sync, finding: f-ledger-sync, top: cdc-replication, near_miss: event-bus-bridge }
+    - { use_case: reporting-consolidation, finding: f-reporting, top: batch-etl-export, near_miss: cdc-replication }
+
+P3:
+  finding: f-eu-residency
+  concept: DataResidencyRequirement
+
+P4:
+  note: Runtime only. The architect rejects one selection with a comment; nothing is planted in the data.
+
+P5:
+  finding: f-vm-hosting
+  use_case: container-platform-migration
+  pattern: container-replatform-fastpath
+
+P6:
+  - capability: sso
+    finding: f-customer-sso
+    use_case: customer-sso
+    pattern: oidc-broker
+    integrate_weeks: 6
+    build_option: build-sso
+    build_weeks: 20
+    platform_capability: corporate-idp
+    coverage: 0.7
+    expected: integrate
+  - capability: audit-logging
+    finding: f-audit-store
+    use_case: audit-logging
+    pattern: central-audit-pipeline
+    integrate_weeks: 4.5
+    build_option: build-audit-logging
+    build_weeks: 14
+    platform_capability: audit-pipeline
+    coverage: 0.85
+    expected: retire
+  - capability: billing-ledger
+    finding: f-billing-ledger
+    use_case: billing-consolidation
+    pattern: billing-ledger-integration
+    integrate_weeks: 13
+    build_option: build-billing-ledger
+    build_weeks: 14
+    platform_capability: billing-platform
+    coverage: 0.5
+    expected: review

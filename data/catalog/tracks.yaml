@@ -1,0 +1,7 @@
+# Workstreams. Every pattern is IN_TRACK exactly one track.
+- { id: identity, name: Identity and access, order: 1 }
+- { id: security, name: Security and compliance, order: 2 }
+- { id: api, name: APIs and integration, order: 3 }
+- { id: data, name: Data and finance systems, order: 4 }
+- { id: infrastructure, name: Infrastructure, order: 5 }
+- { id: operations, name: Operations, order: 6 }

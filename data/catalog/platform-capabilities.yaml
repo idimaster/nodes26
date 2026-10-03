@@ -1,0 +1,37 @@
+# Harborline (acquirer) platform capabilities, with coverage per capability type (0-1).
+# P6: audit-pipeline covers audit-logging at 0.85 (>= 0.8, so the target's own is retired);
+#     billing-platform covers billing-ledger at only 0.5 (review).
+- id: corporate-idp
+  name: Harborline corporate identity provider
+  provides:
+    - { capability: sso, coverage: 0.7 }
+    - { capability: mfa, coverage: 0.9 }
+    - { capability: user-provisioning, coverage: 0.75 }
+- id: api-gateway
+  name: Harborline API gateway
+  provides:
+    - { capability: api-gateway, coverage: 0.9 }
+- id: audit-pipeline
+  name: Harborline audit-log pipeline
+  provides:
+    - { capability: audit-logging, coverage: 0.85 }
+- id: event-bus
+  name: Harborline event bus
+  provides:
+    - { capability: event-streaming, coverage: 0.8 }
+- id: billing-platform
+  name: Harborline billing platform
+  provides:
+    - { capability: billing-ledger, coverage: 0.5 }
+- id: secrets-vault
+  name: Harborline secrets vault
+  provides:
+    - { capability: secrets-management, coverage: 0.9 }
+- id: observability-stack
+  name: Harborline observability stack
+  provides:
+    - { capability: observability, coverage: 0.8 }
+- id: analytics-warehouse
+  name: Harborline analytics warehouse
+  provides:
+    - { capability: data-warehouse, coverage: 0.75 }

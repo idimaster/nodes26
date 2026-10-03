@@ -1,0 +1,617 @@
+{
+  "nodes": {
+    "Source": [
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-01",
+        "type": "vendor_doc",
+        "uri": "dataroom://nimbus/vendor_doc/s-gen-01"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-02",
+        "type": "rfi_response",
+        "uri": "dataroom://nimbus/rfi_response/s-gen-02"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-03",
+        "type": "vendor_doc",
+        "uri": "dataroom://nimbus/vendor_doc/s-gen-03"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-04",
+        "type": "interview_notes",
+        "uri": "dataroom://nimbus/interview_notes/s-gen-04"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-05",
+        "type": "vendor_doc",
+        "uri": "dataroom://nimbus/vendor_doc/s-gen-05"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-06",
+        "type": "interview_notes",
+        "uri": "dataroom://nimbus/interview_notes/s-gen-06"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-07",
+        "type": "interview_notes",
+        "uri": "dataroom://nimbus/interview_notes/s-gen-07"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-08",
+        "type": "vendor_doc",
+        "uri": "dataroom://nimbus/vendor_doc/s-gen-08"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-09",
+        "type": "vendor_doc",
+        "uri": "dataroom://nimbus/vendor_doc/s-gen-09"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-10",
+        "type": "interview_notes",
+        "uri": "dataroom://nimbus/interview_notes/s-gen-10"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "s-gen-11",
+        "type": "interview_notes",
+        "uri": "dataroom://nimbus/interview_notes/s-gen-11"
+      }
+    ],
+    "Finding": [
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-01",
+        "kind": "assumption",
+        "text": "Nimbus customers are assumed to accept a login-page change with one month of notice.",
+        "severity": "medium",
+        "confidence": 0.91,
+        "evidence_type": "vendor_docs"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-02",
+        "kind": "risk",
+        "text": "The primary database runs a major version that leaves vendor support next year.",
+        "severity": "low",
+        "confidence": 0.51,
+        "evidence_type": "rfi"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-03",
+        "kind": "gap",
+        "text": "Customer webhooks are delivered without retries or payload signing.",
+        "severity": "high",
+        "confidence": 0.92,
+        "evidence_type": "vendor_docs"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-04",
+        "kind": "risk",
+        "text": "An invoice-capture OCR component is licensed per server, not per tenant.",
+        "severity": "high",
+        "confidence": 0.55,
+        "evidence_type": "assumption"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-05",
+        "kind": "capability",
+        "text": "Nimbus maintains a small reporting warehouse fed by nightly batch jobs.",
+        "severity": "medium",
+        "confidence": 0.56,
+        "evidence_type": "vendor_docs"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-06",
+        "kind": "assumption",
+        "text": "Customer churn is assumed to stay flat through the integration.",
+        "severity": "high",
+        "confidence": 0.57,
+        "evidence_type": "interview"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-07",
+        "kind": "capability",
+        "text": "Nimbus runs its own API gateway in front of public endpoints, with per-tenant rate limits.",
+        "severity": "low",
+        "confidence": 0.42,
+        "evidence_type": "assumption"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-08",
+        "kind": "risk",
+        "text": "Two senior engineers hold most of the knowledge of the ledger reconciliation code.",
+        "severity": "high",
+        "confidence": 0.81,
+        "evidence_type": "vendor_docs"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-09",
+        "kind": "assumption",
+        "text": "Finance assumes Nimbus revenue-recognition rules already match Harborline's.",
+        "severity": "high",
+        "confidence": 0.77,
+        "evidence_type": "vendor_docs"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-10",
+        "kind": "gap",
+        "text": "Production infrastructure is defined partly in scripts and partly by hand; configuration drift is common.",
+        "severity": "medium",
+        "confidence": 0.42,
+        "evidence_type": "interview"
+      },
+      {
+        "deal_code": "nimbus",
+        "id": "f-gen-11",
+        "kind": "capability",
+        "text": "Nimbus keeps secrets for its newest services in a self-hosted vault.",
+        "severity": "low",
+        "confidence": 0.93,
+        "evidence_type": "assumption"
+      }
+    ]
+  },
+  "relationships": {
+    "HAS_FINDING": [
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-01"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-02"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-03"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-04"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-05"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-06"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-07"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-08"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-09"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-10"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_FINDING",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "nimbus"
+          }
+        },
+        "to": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-11"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "SUPPORTED_BY": [
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-01"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-01"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-02"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-02"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-03"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-03"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-04"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-04"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-05"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-05"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-06"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-06"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-07"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-07"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-08"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-08"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-09"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-09"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-10"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-10"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SUPPORTED_BY",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-11"
+          }
+        },
+        "to": {
+          "label": "Source",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "s-gen-11"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "IS_A": [
+      {
+        "type": "IS_A",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-05"
+          }
+        },
+        "to": {
+          "label": "CapabilityType",
+          "key": {
+            "id": "data-warehouse"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IS_A",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-07"
+          }
+        },
+        "to": {
+          "label": "CapabilityType",
+          "key": {
+            "id": "api-gateway"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IS_A",
+        "from": {
+          "label": "Finding",
+          "key": {
+            "deal_code": "nimbus",
+            "id": "f-gen-11"
+          }
+        },
+        "to": {
+          "label": "CapabilityType",
+          "key": {
+            "id": "secrets-management"
+          }
+        },
+        "props": {}
+      }
+    ]
+  }
+}

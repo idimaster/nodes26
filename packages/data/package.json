@@ -1,0 +1,15 @@
+{
+  "name": "@planner/data",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Demo data: authoring schemas, seeded generator, normalized dataset, validation against the ontology.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@planner/ontology": "0.0.0",
+    "yaml": "2.9.1",
+    "zod": "4.6.5"
+  }
+}

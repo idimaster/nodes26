@@ -15,6 +15,7 @@
     "lint": "eslint .",
     "schema:gen": "tsx scripts/gen-schema.ts",
     "schema": "tsx graph/apply-schema.ts",
+    "generate": "tsx scripts/generate-data.ts",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down"
   },

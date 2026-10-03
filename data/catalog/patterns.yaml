@@ -1,0 +1,415 @@
+# Integration patterns. Each has a task DAG with three-point estimates (weeks: [o, e, p]).
+# Task ids are local here; in the graph a Task id is "<pattern_id>.<task>".
+#
+# Planted structure (see data/deals/nimbus/planted.yaml and DATA.md):
+#   P1  every pattern solving user-provisioning REQUIRES idp-trust-establishment,
+#       which solves only identity-federation-trust.
+#   P2  cdc-replication CONFLICTS batch-etl-export; each use case has a near-miss.
+#   P5  container-replatform-fastpath has a task cycle; every other pattern is a DAG.
+#   P6  oidc-broker (6 wk), central-audit-pipeline (4.5 wk) and billing-ledger-integration
+#       (13 wk) are linear chains, so their total equals their critical path.
+
+# ---------------------------------------------------------------- identity
+- id: idp-trust-establishment
+  name: Identity federation trust
+  description: Establish a managed trust between the acquirer's and the target's identity domains through metadata exchange, signing certificates, and rollover procedures.
+  track: identity
+  reference: SAML 2.0 metadata and OpenID Connect Discovery 1.0
+  strategies: [bridge, transform]
+  solves: [identity-federation-trust]
+  tasks:
+    - { id: exchange-metadata, summary: "Exchange and validate federation metadata between both identity domains", weeks: [0.5, 1, 2], skill: identity }
+    - { id: certificate-rollover, summary: "Set up signing-certificate rotation and rollover monitoring", weeks: [0.5, 1, 1.5], skill: security, depends_on: [exchange-metadata] }
+    - { id: trust-runbook, summary: "Write and rehearse the trust-break recovery runbook", weeks: [0.5, 0.5, 1], skill: ops, depends_on: [certificate-rollover] }
+
+- id: saml-federation
+  name: SAML workforce federation
+  description: Federate the target's workforce applications to the acquirer's corporate identity provider over SAML 2.0.
+  track: identity
+  reference: SAML 2.0 Web Browser SSO Profile
+  strategies: [bridge]
+  solves: [workforce-sso]
+  requires: [idp-trust-establishment]
+  tasks:
+    - { id: app-inventory, summary: "Inventory the target's workforce applications and their login methods", weeks: [0.5, 1, 2], skill: identity }
+    - { id: attribute-mapping, summary: "Map identity attributes and group claims to the acquirer's schema", weeks: [1, 1.5, 2.5], skill: identity, depends_on: [app-inventory] }
+    - { id: app-federation, summary: "Configure SAML federation for each application", weeks: [1, 2, 4], skill: identity, depends_on: [attribute-mapping] }
+    - { id: password-retirement, summary: "Disable local passwords once federation is verified", weeks: [0.5, 1, 1.5], skill: security, depends_on: [app-federation] }
+
+- id: oidc-broker
+  name: OIDC identity broker
+  description: Put an OpenID Connect broker between the target's applications and the acquirer's identity provider so customers and staff use one login.
+  track: identity
+  reference: OpenID Connect Core 1.0
+  strategies: [bridge, transform]
+  solves: [customer-sso, workforce-sso]
+  requires: [idp-trust-establishment]
+  augments: [mfa-step-up]
+  tasks:
+    - { id: register-clients, summary: "Register the target's applications as OIDC clients", weeks: [0.5, 1, 1.5], skill: identity }
+    - { id: claims-mapping, summary: "Map tenant, role, and entitlement claims", weeks: [1, 2, 3], skill: identity, depends_on: [register-clients] }
+    - { id: login-flow, summary: "Switch the login flow to the broker behind a feature flag", weeks: [1, 2, 3.5], skill: frontend, depends_on: [claims-mapping] }
+    - { id: tenant-cutover, summary: "Cut tenants over in waves and retire the old login", weeks: [0.5, 1, 2], skill: ops, depends_on: [login-flow] }
+
+- id: scim-provisioning
+  name: SCIM user provisioning
+  description: Provision and deprovision target accounts automatically from the acquirer's identity provider over SCIM 2.0.
+  track: identity
+  reference: SCIM 2.0 (RFC 7643, RFC 7644)
+  strategies: [bridge, transform]
+  solves: [user-provisioning]
+  requires: [idp-trust-establishment]
+  augments: [saml-federation]
+  tasks:
+    - { id: scim-endpoint, summary: "Expose or enable a SCIM endpoint in the target's user store", weeks: [1, 2, 3], skill: identity }
+    - { id: lifecycle-mapping, summary: "Map joiner, mover, and leaver events to account operations", weeks: [0.5, 1, 2], skill: identity, depends_on: [scim-endpoint] }
+    - { id: deprovisioning-test, summary: "Prove that a leaver loses access within the agreed window", weeks: [0.5, 1, 1.5], skill: security, depends_on: [lifecycle-mapping] }
+
+- id: mfa-step-up
+  name: MFA step-up at the identity provider
+  description: Enforce multi-factor authentication centrally and step up for privileged actions.
+  track: identity
+  reference: NIST SP 800-63B authenticator assurance levels
+  strategies: [bridge, transform]
+  solves: [mfa-enforcement]
+  tasks:
+    - { id: policy-definition, summary: "Define MFA and step-up policy per role and action", weeks: [0.5, 1, 1.5], skill: security }
+    - { id: enforcement, summary: "Enforce the policy at the identity provider", weeks: [0.5, 1, 2], skill: identity, depends_on: [policy-definition] }
+    - { id: break-glass, summary: "Set up and test break-glass accounts", weeks: [0.5, 0.5, 1], skill: ops, depends_on: [enforcement] }
+
+- id: identity-cutover
+  name: Directory cutover
+  description: Move all target identities into the acquirer's directory in one planned cutover and decommission the target's user store.
+  track: identity
+  reference: Directory consolidation with a parallel-run window
+  strategies: [transform]
+  solves: [workforce-sso, user-provisioning]
+  requires: [idp-trust-establishment]
+  conflicts: [saml-federation]
+  supersedes: [saml-federation]
+  not_recommended_when:
+    - The target's customers log in through more than one branded login domain.
+    - The target's user store holds customer identities that cannot move before contracts are amended.
+  tasks:
+    - { id: identity-export, summary: "Export and cleanse identities and group memberships", weeks: [1, 2, 3], skill: identity }
+    - { id: dry-run, summary: "Run a full dry-run migration into a staging directory", weeks: [1, 1.5, 2.5], skill: identity, depends_on: [identity-export] }
+    - { id: cutover-weekend, summary: "Execute the cutover and verify every application login", weeks: [0.5, 1, 2], skill: ops, depends_on: [dry-run] }
+    - { id: store-decommission, summary: "Decommission the target's user store", weeks: [0.5, 1, 1.5], skill: platform, depends_on: [cutover-weekend] }
+
+- id: access-review-automation
+  name: Automated access reviews
+  description: Run periodic access recertification for target systems from the acquirer's identity governance process.
+  track: identity
+  reference: NIST SP 800-53 AC-2 account management
+  strategies: [bridge, transform]
+  solves: [access-reviews]
+  requires: [scim-provisioning]
+  tasks:
+    - { id: entitlement-catalog, summary: "Catalog entitlements in the target's sensitive systems", weeks: [1, 1.5, 2.5], skill: security }
+    - { id: review-campaign, summary: "Configure and run the first review campaign", weeks: [0.5, 1, 2], skill: security, depends_on: [entitlement-catalog] }
+    - { id: revocation-loop, summary: "Automate revocation of rejected access", weeks: [0.5, 1, 1.5], skill: identity, depends_on: [review-campaign] }
+
+# ---------------------------------------------------------------- security
+- id: central-audit-pipeline
+  name: Central audit pipeline
+  description: Forward the target's security-relevant events to the acquirer's audit-log pipeline in its schema and retention.
+  track: security
+  reference: OWASP Logging Cheat Sheet
+  strategies: [bridge, transform]
+  solves: [audit-logging]
+  tasks:
+    - { id: event-schema-mapping, summary: "Map the target's audit events to the acquirer's event schema", weeks: [1, 1.5, 2.5], skill: security }
+    - { id: forwarder-deploy, summary: "Deploy forwarders and verify delivery guarantees", weeks: [1, 2, 3], skill: platform, depends_on: [event-schema-mapping] }
+    - { id: retention-alignment, summary: "Align retention and access controls on forwarded events", weeks: [0.5, 1, 1.5], skill: security, depends_on: [forwarder-deploy] }
+
+- id: secrets-vault-migration
+  name: Secrets vault migration
+  description: Move the target's credentials and keys into the acquirer's secrets service and rotate them.
+  track: security
+  reference: OWASP Secrets Management Cheat Sheet
+  strategies: [bridge, transform]
+  solves: [secrets-management]
+  requires: [landing-zone-onboarding]
+  tasks:
+    - { id: secret-discovery, summary: "Discover secrets in config files, scripts, and CI variables", weeks: [0.5, 1, 2], skill: security }
+    - { id: vault-onboarding, summary: "Onboard target services to the secrets service", weeks: [1, 2, 3], skill: platform, depends_on: [secret-discovery] }
+    - { id: rotation, summary: "Rotate every migrated secret and remove plaintext copies", weeks: [0.5, 1, 2], skill: security, depends_on: [vault-onboarding] }
+
+- id: encryption-baseline
+  name: Encryption baseline
+  description: Bring storage encryption and key management for customer data up to the acquirer's baseline.
+  track: security
+  reference: NIST SP 800-57 key management recommendations
+  strategies: [bridge, transform]
+  solves: [encryption-at-rest]
+  augments: [secrets-vault-migration]
+  tasks:
+    - { id: data-store-inventory, summary: "Inventory data stores holding customer data", weeks: [0.5, 1, 1.5], skill: data }
+    - { id: key-management, summary: "Move encryption keys under managed key policies", weeks: [1, 1.5, 2.5], skill: security, depends_on: [data-store-inventory] }
+    - { id: re-encryption, summary: "Re-encrypt stores that use unmanaged keys", weeks: [1, 2, 4], skill: platform, depends_on: [key-management] }
+
+- id: vuln-scanning-onboarding
+  name: Vulnerability scanning onboarding
+  description: Onboard the target's repositories and images to the acquirer's scanning and remediation service levels.
+  track: security
+  reference: CVSS v3.1 severity with remediation service levels
+  strategies: [bridge, transform]
+  solves: [vulnerability-remediation]
+  requires: [pipeline-template-adoption]
+  tasks:
+    - { id: scanner-enablement, summary: "Enable dependency and image scanning in the target's pipelines", weeks: [0.5, 1, 1.5], skill: security }
+    - { id: baseline-triage, summary: "Triage the initial findings backlog", weeks: [1, 2, 4], skill: security, depends_on: [scanner-enablement] }
+    - { id: sla-tracking, summary: "Track remediation against service levels", weeks: [0.5, 0.5, 1], skill: ops, depends_on: [baseline-triage] }
+
+# ---------------------------------------------------------------- api
+- id: api-gateway-facade
+  name: API gateway facade
+  description: Put the acquirer's API gateway in front of the target's public APIs for shared authentication, limits, and analytics.
+  track: api
+  reference: API gateway facade pattern
+  strategies: [bridge, transform]
+  solves: [api-consolidation, partner-api-access]
+  tasks:
+    - { id: route-inventory, summary: "Inventory the target's public routes and their consumers", weeks: [0.5, 1, 1.5], skill: platform }
+    - { id: gateway-routes, summary: "Configure gateway routes, authentication, and rate limits", weeks: [1, 2, 3], skill: platform, depends_on: [route-inventory] }
+    - { id: dns-switch, summary: "Switch public DNS to the gateway with rollback ready", weeks: [0.5, 0.5, 1], skill: ops, depends_on: [gateway-routes] }
+
+- id: oauth-client-credentials
+  name: OAuth client credentials for partners
+  description: Issue partner credentials from the acquirer's authorization server and accept them at the gateway.
+  track: api
+  reference: OAuth 2.0 client credentials grant (RFC 6749)
+  strategies: [bridge, transform]
+  solves: [partner-api-access]
+  requires: [api-gateway-facade]
+  tasks:
+    - { id: partner-registry, summary: "Register partners and their scopes", weeks: [0.5, 1, 1.5], skill: identity }
+    - { id: token-validation, summary: "Validate partner tokens at the gateway", weeks: [0.5, 1, 2], skill: platform, depends_on: [partner-registry] }
+    - { id: key-retirement, summary: "Retire the target's static partner API keys", weeks: [0.5, 1, 2], skill: security, depends_on: [token-validation] }
+
+- id: strangler-fig
+  name: Strangler fig API replacement
+  description: Replace the target's legacy endpoints one by one behind the gateway until the old service can be switched off.
+  track: api
+  reference: Strangler fig pattern
+  strategies: [transform]
+  solves: [legacy-api-retirement, api-consolidation]
+  requires: [api-gateway-facade]
+  not_recommended_when:
+    - The legacy service has no stable routing seam in front of it.
+    - Fewer than three endpoints remain to replace.
+  tasks:
+    - { id: seam-definition, summary: "Define routing seams and the replacement order", weeks: [0.5, 1, 2], skill: platform }
+    - { id: first-slice, summary: "Replace the first endpoint slice end to end", weeks: [2, 3, 5], skill: platform, depends_on: [seam-definition] }
+    - { id: remaining-slices, summary: "Replace the remaining slices", weeks: [3, 5, 8], skill: platform, depends_on: [first-slice] }
+    - { id: legacy-shutdown, summary: "Switch off the legacy service", weeks: [0.5, 1, 1.5], skill: ops, depends_on: [remaining-slices] }
+
+- id: api-version-mediation
+  name: API version mediation
+  description: Map the target's API versions onto the acquirer's versioning and deprecation policy at the gateway.
+  track: api
+  reference: Semantic Versioning 2.0.0 with gateway-level version mediation
+  strategies: [bridge]
+  solves: [api-versioning]
+  requires: [api-gateway-facade]
+  tasks:
+    - { id: version-audit, summary: "Audit live API versions and their consumers", weeks: [0.5, 1, 1.5], skill: platform }
+    - { id: mediation-rules, summary: "Add gateway mediation for deprecated versions", weeks: [1, 1.5, 2.5], skill: platform, depends_on: [version-audit] }
+    - { id: deprecation-notices, summary: "Publish deprecation notices and sunset dates", weeks: [0.5, 0.5, 1], skill: frontend, depends_on: [mediation-rules] }
+
+- id: webhook-relay
+  name: Webhook relay
+  description: Deliver the target's customer webhooks through a relay with retries, signing, and replay.
+  track: api
+  reference: CloudEvents 1.0 with signed webhook delivery
+  strategies: [bridge, transform]
+  solves: [webhook-delivery]
+  requires: [event-bus-bridge]
+  tasks:
+    - { id: event-catalog, summary: "Catalog webhook events and payloads", weeks: [0.5, 1, 1.5], skill: platform }
+    - { id: relay-deploy, summary: "Deploy the relay with retries and signing", weeks: [1, 1.5, 2.5], skill: platform, depends_on: [event-catalog] }
+    - { id: customer-migration, summary: "Move customer endpoints to the relay", weeks: [0.5, 1, 2], skill: ops, depends_on: [relay-deploy] }
+
+# ---------------------------------------------------------------- data
+- id: cdc-replication
+  name: CDC replication
+  description: Stream committed changes from the target's ledger database to the acquirer's finance systems using log-based change data capture.
+  track: data
+  reference: Log-based change data capture
+  strategies: [bridge]
+  solves: [ledger-data-sync, reporting-consolidation]
+  conflicts: [batch-etl-export]
+  tasks:
+    - { id: log-access, summary: "Enable change-log access on the target's ledger database", weeks: [0.5, 1, 2], skill: data }
+    - { id: connector-deploy, summary: "Deploy and tune the change-capture connector", weeks: [1, 2, 3], skill: data, depends_on: [log-access] }
+    - { id: schema-contract, summary: "Agree the change-event schema with consumers", weeks: [0.5, 1, 1.5], skill: data }
+    - { id: consumer-wiring, summary: "Wire finance consumers and reconcile totals", weeks: [1, 1.5, 2.5], skill: data, depends_on: [connector-deploy, schema-contract] }
+
+- id: batch-etl-export
+  name: Batch ETL export
+  description: Export the target's financial data in scheduled batches into the acquirer's reporting warehouse.
+  track: data
+  reference: Batch extract-transform-load
+  strategies: [bridge]
+  solves: [reporting-consolidation]
+  tasks:
+    - { id: extract-jobs, summary: "Build scheduled extracts from the target's ledger", weeks: [0.5, 1, 2], skill: data }
+    - { id: transform-mapping, summary: "Map the target's chart of accounts for reporting", weeks: [1, 1.5, 2.5], skill: data, depends_on: [extract-jobs] }
+    - { id: load-validation, summary: "Load into the warehouse and validate monthly totals", weeks: [0.5, 1, 1.5], skill: data, depends_on: [transform-mapping] }
+
+- id: event-bus-bridge
+  name: Event bus bridge
+  description: Publish the target's business events onto the acquirer's event bus through a bridge service.
+  track: data
+  reference: Publish-subscribe messaging with CloudEvents 1.0 envelopes
+  strategies: [bridge]
+  solves: [ledger-data-sync, webhook-delivery]
+  tasks:
+    - { id: event-design, summary: "Design business events and their ownership", weeks: [0.5, 1, 2], skill: data }
+    - { id: bridge-service, summary: "Build the bridge service with outbox delivery", weeks: [1.5, 2.5, 4], skill: platform, depends_on: [event-design] }
+    - { id: consumer-onboarding, summary: "Onboard the first consumers", weeks: [0.5, 1, 2], skill: data, depends_on: [bridge-service] }
+
+- id: mdm-golden-record
+  name: Customer golden record
+  description: Match and merge customer records from both companies into one master record with stewardship.
+  track: data
+  reference: Master data management (golden record)
+  strategies: [transform]
+  solves: [customer-master-data]
+  requires: [cdc-replication]
+  not_recommended_when:
+    - Fewer than 5% of customers overlap between the two companies.
+    - No data steward is assigned on either side.
+  tasks:
+    - { id: match-rules, summary: "Define match and survivorship rules", weeks: [1, 1.5, 2.5], skill: data }
+    - { id: initial-merge, summary: "Run the initial match and merge", weeks: [1, 2, 4], skill: data, depends_on: [match-rules] }
+    - { id: stewardship, summary: "Set up stewardship for match exceptions", weeks: [0.5, 1, 1.5], skill: ops, depends_on: [initial-merge] }
+
+- id: bulk-migration
+  name: Bulk data migration
+  description: Move the target's operational data onto the acquirer's platform with a parallel-run window, then switch over.
+  track: data
+  reference: Expand-and-contract migration with a parallel run
+  strategies: [transform]
+  solves: [data-migration, billing-consolidation]
+  not_recommended_when:
+    - The target's data model changes weekly.
+    - Contracts require customer data to stay in a region the acquirer's platform does not serve.
+  tasks:
+    - { id: mapping-spec, summary: "Write the source-to-target mapping specification", weeks: [1, 1.5, 2.5], skill: data }
+    - { id: migration-tooling, summary: "Build and test migration tooling", weeks: [1, 2, 3], skill: data, depends_on: [mapping-spec] }
+    - { id: parallel-run, summary: "Run both systems in parallel and reconcile", weeks: [2, 3, 5], skill: data, depends_on: [migration-tooling] }
+    - { id: switchover, summary: "Switch over and archive the source", weeks: [0.5, 1, 1.5], skill: ops, depends_on: [parallel-run] }
+
+- id: billing-ledger-integration
+  name: Billing ledger integration
+  description: Reconcile the target's subscription ledger with the acquirer's billing platform, then run both in parallel before moving billing over.
+  track: data
+  reference: Double-entry ledger reconciliation
+  strategies: [bridge]
+  solves: [billing-consolidation]
+  requires: [event-bus-bridge]
+  tasks:
+    - { id: chart-of-accounts-mapping, summary: "Map plans, proration rules, and accounts", weeks: [2, 3, 5], skill: data }
+    - { id: reconciliation-jobs, summary: "Build daily reconciliation between both ledgers", weeks: [3, 4, 6], skill: data, depends_on: [chart-of-accounts-mapping] }
+    - { id: parallel-billing, summary: "Bill in parallel for one cycle and resolve differences", weeks: [3, 4, 6], skill: data, depends_on: [reconciliation-jobs] }
+    - { id: billing-cutover, summary: "Move invoicing to the acquirer's platform", weeks: [1, 2, 3], skill: ops, depends_on: [parallel-billing] }
+
+# ---------------------------------------------------------------- infrastructure
+- id: landing-zone-onboarding
+  name: Landing zone onboarding
+  description: Bring the target's cloud accounts under the acquirer's landing zone guardrails, identity, and billing.
+  track: infrastructure
+  reference: Cloud landing zone with policy guardrails
+  strategies: [bridge, transform]
+  solves: [cloud-account-consolidation, network-connectivity]
+  tasks:
+    - { id: account-inventory, summary: "Inventory the target's cloud accounts and owners", weeks: [0.5, 1, 1.5], skill: platform }
+    - { id: guardrails, summary: "Apply guardrail policies in audit mode, then enforce", weeks: [1, 2, 3], skill: security, depends_on: [account-inventory] }
+    - { id: account-move, summary: "Move accounts into the acquirer's organization", weeks: [0.5, 1, 2], skill: platform, depends_on: [guardrails] }
+    - { id: cloud-billing, summary: "Consolidate cloud billing and budgets", weeks: [0.5, 0.5, 1], skill: ops, depends_on: [account-move] }
+
+- id: private-connectivity
+  name: Private connectivity
+  description: Connect both networks privately through the acquirer's hub with managed routing and inspection.
+  track: infrastructure
+  reference: Hub-and-spoke network topology
+  strategies: [bridge]
+  solves: [network-connectivity]
+  requires: [landing-zone-onboarding]
+  tasks:
+    - { id: address-plan, summary: "Resolve overlapping address ranges", weeks: [0.5, 1, 2], skill: platform }
+    - { id: hub-attachment, summary: "Attach the target's networks to the hub", weeks: [0.5, 1, 1.5], skill: platform, depends_on: [address-plan] }
+    - { id: routing-validation, summary: "Validate routing, inspection, and failover", weeks: [0.5, 1, 1.5], skill: ops, depends_on: [hub-attachment] }
+
+- id: pipeline-template-adoption
+  name: Pipeline template adoption
+  description: Move the target's builds and deployments onto the acquirer's pipeline templates and release controls.
+  track: infrastructure
+  reference: Continuous delivery with standardized pipeline templates
+  strategies: [bridge, transform]
+  solves: [ci-cd-alignment]
+  tasks:
+    - { id: pipeline-inventory, summary: "Inventory the target's build and deploy pipelines", weeks: [0.5, 1, 1.5], skill: platform }
+    - { id: template-migration, summary: "Migrate pipelines to the templates", weeks: [1, 2, 3], skill: platform, depends_on: [pipeline-inventory] }
+    - { id: release-controls, summary: "Turn on release approvals and audit trails", weeks: [0.5, 0.5, 1], skill: security, depends_on: [template-migration] }
+
+- id: container-replatform
+  name: Container replatform
+  description: Rebuild the target's services as containers and run them on the acquirer's shared container platform.
+  track: infrastructure
+  reference: Twelve-Factor App methodology
+  strategies: [transform]
+  solves: [container-platform-migration, dr-alignment]
+  requires: [landing-zone-onboarding]
+  augments: [pipeline-template-adoption]
+  not_recommended_when:
+    - Services keep local state on disk that cannot be externalized.
+    - The target runs fewer than three services.
+  tasks:
+    - { id: service-assessment, summary: "Assess services for container readiness", weeks: [1, 1.5, 2.5], skill: platform }
+    - { id: image-build, summary: "Build hardened images for each service", weeks: [1, 2, 3], skill: platform, depends_on: [service-assessment] }
+    - { id: cluster-onboarding, summary: "Onboard namespaces, quotas, and policies on the platform", weeks: [0.5, 1, 2], skill: platform, depends_on: [service-assessment] }
+    - { id: workload-cutover, summary: "Deploy workloads and shift traffic", weeks: [1, 2, 3], skill: ops, depends_on: [image-build, cluster-onboarding] }
+
+# P5: a "fast path" variant whose task graph contains a cycle
+# (image-build -> deploy-manifests -> cluster-onboarding -> image-build). Scheduling must refuse it.
+- id: container-replatform-fastpath
+  name: Container replatform (fast path)
+  description: A shortened container replatform that onboards the cluster, images, and manifests together to save time.
+  track: infrastructure
+  reference: Twelve-Factor App methodology
+  strategies: [bridge, transform]
+  solves: [container-platform-migration]
+  tasks:
+    - { id: image-build, summary: "Build images using the platform's base images", weeks: [1, 1.5, 2.5], skill: platform, depends_on: [cluster-onboarding] }
+    - { id: deploy-manifests, summary: "Write deployment manifests from the built images", weeks: [0.5, 1, 1.5], skill: platform, depends_on: [image-build] }
+    - { id: cluster-onboarding, summary: "Onboard namespaces sized from the deployment manifests", weeks: [0.5, 1, 1.5], skill: platform, depends_on: [deploy-manifests] }
+    - { id: traffic-shift, summary: "Shift traffic to the platform", weeks: [0.5, 1, 2], skill: ops, depends_on: [deploy-manifests] }
+
+# ---------------------------------------------------------------- operations
+- id: observability-federation
+  name: Observability federation
+  description: Send the target's metrics, logs, and traces to the acquirer's observability stack with shared conventions.
+  track: operations
+  reference: OpenTelemetry semantic conventions
+  strategies: [bridge]
+  solves: [observability-integration]
+  augments: [central-audit-pipeline]
+  tasks:
+    - { id: telemetry-conventions, summary: "Agree naming and resource attributes", weeks: [0.5, 1, 1.5], skill: ops }
+    - { id: collector-rollout, summary: "Roll out collectors to the target's services", weeks: [1, 1.5, 2.5], skill: platform, depends_on: [telemetry-conventions] }
+    - { id: dashboards-alerts, summary: "Rebuild key dashboards and alerts", weeks: [0.5, 1, 2], skill: ops, depends_on: [collector-rollout] }
+
+- id: incident-process-merge
+  name: Incident process merge
+  description: Merge incident handling into one severity scale, on-call rotation, and support desk.
+  track: operations
+  reference: Incident management with shared severity levels and one on-call rotation
+  strategies: [bridge, transform]
+  solves: [incident-management, support-tooling]
+  augments: [observability-federation]
+  tasks:
+    - { id: severity-mapping, summary: "Map severity levels and escalation paths", weeks: [0.5, 0.5, 1], skill: ops }
+    - { id: on-call-merge, summary: "Merge on-call rotations and paging", weeks: [0.5, 1, 1.5], skill: ops, depends_on: [severity-mapping] }
+    - { id: support-desk-move, summary: "Move support queues into the acquirer's desk", weeks: [1, 1.5, 2.5], skill: ops, depends_on: [severity-mapping] }

@@ -1,0 +1,3715 @@
+{
+  "nodes": {
+    "Deal": [
+      {
+        "code": "tidewater",
+        "target_company": "Tidewater Analytics",
+        "acquirer": "Harborline Software",
+        "strategy": "bridge",
+        "status": "completed"
+      }
+    ],
+    "Iteration": [
+      {
+        "deal_code": "tidewater",
+        "n": 1,
+        "started_at": "2025-03-03T00:00:00Z",
+        "status": "committed"
+      }
+    ],
+    "GateDecision": [
+      {
+        "id": "gd-tidewater-commit-1",
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "gate": "commit",
+        "status": "approved",
+        "comment": "",
+        "by": "architect",
+        "at": "2025-03-03T00:00:00Z"
+      }
+    ],
+    "Roadmap": [
+      {
+        "deal_code": "tidewater",
+        "version": 1,
+        "iteration": 1,
+        "status": "committed",
+        "gate_id": "gd-tidewater-commit-1"
+      }
+    ],
+    "FramedUseCase": [
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "fuc-identity-federation-trust",
+        "framing_rationale": "Framed during the tidewater integration.",
+        "use_case_id": "identity-federation-trust"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "fuc-workforce-sso",
+        "framing_rationale": "Framed during the tidewater integration.",
+        "use_case_id": "workforce-sso"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "fuc-customer-sso",
+        "framing_rationale": "Framed during the tidewater integration.",
+        "use_case_id": "customer-sso"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "fuc-user-provisioning",
+        "framing_rationale": "Framed during the tidewater integration.",
+        "use_case_id": "user-provisioning"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "fuc-api-consolidation",
+        "framing_rationale": "Framed during the tidewater integration.",
+        "use_case_id": "api-consolidation"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "fuc-partner-api-access",
+        "framing_rationale": "Framed during the tidewater integration.",
+        "use_case_id": "partner-api-access"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "fuc-cloud-account-consolidation",
+        "framing_rationale": "Framed during the tidewater integration.",
+        "use_case_id": "cloud-account-consolidation"
+      }
+    ],
+    "Selection": [
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "uc": "identity-federation-trust",
+        "pattern": "idp-trust-establishment",
+        "fit_score": 83.6,
+        "rationale": "Selected for identity-federation-trust in the tidewater integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "uc": "workforce-sso",
+        "pattern": "oidc-broker",
+        "fit_score": 87.4,
+        "rationale": "Selected for workforce-sso in the tidewater integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "uc": "customer-sso",
+        "pattern": "oidc-broker",
+        "fit_score": 74,
+        "rationale": "Selected for customer-sso in the tidewater integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "uc": "user-provisioning",
+        "pattern": "scim-provisioning",
+        "fit_score": 79.5,
+        "rationale": "Selected for user-provisioning in the tidewater integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "uc": "api-consolidation",
+        "pattern": "api-gateway-facade",
+        "fit_score": 66.6,
+        "rationale": "Selected for api-consolidation in the tidewater integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "uc": "partner-api-access",
+        "pattern": "api-gateway-facade",
+        "fit_score": 66.5,
+        "rationale": "Selected for partner-api-access in the tidewater integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "uc": "cloud-account-consolidation",
+        "pattern": "landing-zone-onboarding",
+        "fit_score": 69.5,
+        "rationale": "Selected for cloud-account-consolidation in the tidewater integration.",
+        "status": "committed"
+      }
+    ],
+    "PlanTask": [
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata",
+        "task_id": "idp-trust-establishment.exchange-metadata",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 2,
+        "skill": "identity",
+        "on_critical_path": true,
+        "earliest_start": 0,
+        "wave": 1
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover",
+        "task_id": "idp-trust-establishment.certificate-rollover",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "security",
+        "on_critical_path": true,
+        "earliest_start": 1,
+        "wave": 2
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "identity-federation-trust:idp-trust-establishment.trust-runbook",
+        "task_id": "idp-trust-establishment.trust-runbook",
+        "weeks_o": 0.5,
+        "weeks_e": 0.5,
+        "weeks_p": 1,
+        "skill": "ops",
+        "on_critical_path": true,
+        "earliest_start": 2,
+        "wave": 3
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "workforce-sso:oidc-broker.register-clients",
+        "task_id": "oidc-broker.register-clients",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "identity",
+        "on_critical_path": true,
+        "earliest_start": 2.5,
+        "wave": 4
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "workforce-sso:oidc-broker.claims-mapping",
+        "task_id": "oidc-broker.claims-mapping",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3,
+        "skill": "identity",
+        "on_critical_path": true,
+        "earliest_start": 3.5,
+        "wave": 5
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "workforce-sso:oidc-broker.login-flow",
+        "task_id": "oidc-broker.login-flow",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3.5,
+        "skill": "frontend",
+        "on_critical_path": true,
+        "earliest_start": 5.5,
+        "wave": 6
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "workforce-sso:oidc-broker.tenant-cutover",
+        "task_id": "oidc-broker.tenant-cutover",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 2,
+        "skill": "ops",
+        "on_critical_path": true,
+        "earliest_start": 7.5,
+        "wave": 7
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "customer-sso:oidc-broker.register-clients",
+        "task_id": "oidc-broker.register-clients",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "identity",
+        "on_critical_path": true,
+        "earliest_start": 2.5,
+        "wave": 4
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "customer-sso:oidc-broker.claims-mapping",
+        "task_id": "oidc-broker.claims-mapping",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3,
+        "skill": "identity",
+        "on_critical_path": true,
+        "earliest_start": 3.5,
+        "wave": 5
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "customer-sso:oidc-broker.login-flow",
+        "task_id": "oidc-broker.login-flow",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3.5,
+        "skill": "frontend",
+        "on_critical_path": true,
+        "earliest_start": 5.5,
+        "wave": 6
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "customer-sso:oidc-broker.tenant-cutover",
+        "task_id": "oidc-broker.tenant-cutover",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 2,
+        "skill": "ops",
+        "on_critical_path": true,
+        "earliest_start": 7.5,
+        "wave": 7
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "user-provisioning:scim-provisioning.scim-endpoint",
+        "task_id": "scim-provisioning.scim-endpoint",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3,
+        "skill": "identity",
+        "on_critical_path": false,
+        "earliest_start": 2.5,
+        "wave": 4
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "user-provisioning:scim-provisioning.lifecycle-mapping",
+        "task_id": "scim-provisioning.lifecycle-mapping",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 2,
+        "skill": "identity",
+        "on_critical_path": false,
+        "earliest_start": 4.5,
+        "wave": 5
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "user-provisioning:scim-provisioning.deprovisioning-test",
+        "task_id": "scim-provisioning.deprovisioning-test",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "security",
+        "on_critical_path": false,
+        "earliest_start": 5.5,
+        "wave": 6
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "api-consolidation:api-gateway-facade.route-inventory",
+        "task_id": "api-gateway-facade.route-inventory",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "platform",
+        "on_critical_path": false,
+        "earliest_start": 0,
+        "wave": 1
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "api-consolidation:api-gateway-facade.gateway-routes",
+        "task_id": "api-gateway-facade.gateway-routes",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3,
+        "skill": "platform",
+        "on_critical_path": false,
+        "earliest_start": 1,
+        "wave": 2
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "api-consolidation:api-gateway-facade.dns-switch",
+        "task_id": "api-gateway-facade.dns-switch",
+        "weeks_o": 0.5,
+        "weeks_e": 0.5,
+        "weeks_p": 1,
+        "skill": "ops",
+        "on_critical_path": false,
+        "earliest_start": 3,
+        "wave": 3
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "partner-api-access:api-gateway-facade.route-inventory",
+        "task_id": "api-gateway-facade.route-inventory",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "platform",
+        "on_critical_path": false,
+        "earliest_start": 0,
+        "wave": 1
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "partner-api-access:api-gateway-facade.gateway-routes",
+        "task_id": "api-gateway-facade.gateway-routes",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3,
+        "skill": "platform",
+        "on_critical_path": false,
+        "earliest_start": 1,
+        "wave": 2
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "partner-api-access:api-gateway-facade.dns-switch",
+        "task_id": "api-gateway-facade.dns-switch",
+        "weeks_o": 0.5,
+        "weeks_e": 0.5,
+        "weeks_p": 1,
+        "skill": "ops",
+        "on_critical_path": false,
+        "earliest_start": 3,
+        "wave": 3
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory",
+        "task_id": "landing-zone-onboarding.account-inventory",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "platform",
+        "on_critical_path": false,
+        "earliest_start": 0,
+        "wave": 1
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails",
+        "task_id": "landing-zone-onboarding.guardrails",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3,
+        "skill": "security",
+        "on_critical_path": false,
+        "earliest_start": 1,
+        "wave": 2
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "cloud-account-consolidation:landing-zone-onboarding.account-move",
+        "task_id": "landing-zone-onboarding.account-move",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 2,
+        "skill": "platform",
+        "on_critical_path": false,
+        "earliest_start": 3,
+        "wave": 3
+      },
+      {
+        "deal_code": "tidewater",
+        "iteration": 1,
+        "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing",
+        "task_id": "landing-zone-onboarding.cloud-billing",
+        "weeks_o": 0.5,
+        "weeks_e": 0.5,
+        "weeks_p": 1,
+        "skill": "ops",
+        "on_critical_path": false,
+        "earliest_start": 4,
+        "wave": 4
+      }
+    ],
+    "Actual": [
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "identity-federation-trust:idp-trust-establishment.exchange-metadata",
+        "task_id": "idp-trust-establishment.exchange-metadata",
+        "weeks_actual": 1,
+        "completed_at": "2025-03-10T00:00:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "identity-federation-trust:idp-trust-establishment.certificate-rollover",
+        "task_id": "idp-trust-establishment.certificate-rollover",
+        "weeks_actual": 1.1,
+        "completed_at": "2025-03-17T16:48:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "identity-federation-trust:idp-trust-establishment.trust-runbook",
+        "task_id": "idp-trust-establishment.trust-runbook",
+        "weeks_actual": 0.5,
+        "completed_at": "2025-03-20T12:00:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "workforce-sso:oidc-broker.register-clients",
+        "task_id": "oidc-broker.register-clients",
+        "weeks_actual": 1.2,
+        "completed_at": "2025-03-28T21:36:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "workforce-sso:oidc-broker.claims-mapping",
+        "task_id": "oidc-broker.claims-mapping",
+        "weeks_actual": 2.8,
+        "completed_at": "2025-04-16T02:24:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "workforce-sso:oidc-broker.login-flow",
+        "task_id": "oidc-broker.login-flow",
+        "weeks_actual": 2.7,
+        "completed_at": "2025-04-29T09:36:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "workforce-sso:oidc-broker.tenant-cutover",
+        "task_id": "oidc-broker.tenant-cutover",
+        "weeks_actual": 1.2,
+        "completed_at": "2025-05-02T21:36:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "customer-sso:oidc-broker.register-clients",
+        "task_id": "oidc-broker.register-clients",
+        "weeks_actual": 1.2,
+        "completed_at": "2025-03-28T21:36:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "customer-sso:oidc-broker.claims-mapping",
+        "task_id": "oidc-broker.claims-mapping",
+        "weeks_actual": 2.7,
+        "completed_at": "2025-04-15T09:36:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "customer-sso:oidc-broker.login-flow",
+        "task_id": "oidc-broker.login-flow",
+        "weeks_actual": 2.7,
+        "completed_at": "2025-04-29T09:36:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "customer-sso:oidc-broker.tenant-cutover",
+        "task_id": "oidc-broker.tenant-cutover",
+        "weeks_actual": 1.2,
+        "completed_at": "2025-05-02T21:36:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "user-provisioning:scim-provisioning.scim-endpoint",
+        "task_id": "scim-provisioning.scim-endpoint",
+        "weeks_actual": 3,
+        "completed_at": "2025-04-10T12:00:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "user-provisioning:scim-provisioning.lifecycle-mapping",
+        "task_id": "scim-provisioning.lifecycle-mapping",
+        "weeks_actual": 1.1,
+        "completed_at": "2025-04-11T04:48:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "user-provisioning:scim-provisioning.deprovisioning-test",
+        "task_id": "scim-provisioning.deprovisioning-test",
+        "weeks_actual": 0.8,
+        "completed_at": "2025-04-16T02:24:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "api-consolidation:api-gateway-facade.route-inventory",
+        "task_id": "api-gateway-facade.route-inventory",
+        "weeks_actual": 0.9,
+        "completed_at": "2025-03-09T07:12:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "api-consolidation:api-gateway-facade.gateway-routes",
+        "task_id": "api-gateway-facade.gateway-routes",
+        "weeks_actual": 2.9,
+        "completed_at": "2025-03-30T07:12:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "api-consolidation:api-gateway-facade.dns-switch",
+        "task_id": "api-gateway-facade.dns-switch",
+        "weeks_actual": 0.7,
+        "completed_at": "2025-03-28T21:36:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "partner-api-access:api-gateway-facade.route-inventory",
+        "task_id": "api-gateway-facade.route-inventory",
+        "weeks_actual": 0.9,
+        "completed_at": "2025-03-09T07:12:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "partner-api-access:api-gateway-facade.gateway-routes",
+        "task_id": "api-gateway-facade.gateway-routes",
+        "weeks_actual": 2.3,
+        "completed_at": "2025-03-26T02:24:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "partner-api-access:api-gateway-facade.dns-switch",
+        "task_id": "api-gateway-facade.dns-switch",
+        "weeks_actual": 0.6,
+        "completed_at": "2025-03-28T04:48:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory",
+        "task_id": "landing-zone-onboarding.account-inventory",
+        "weeks_actual": 1.5,
+        "completed_at": "2025-03-13T12:00:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.guardrails",
+        "task_id": "landing-zone-onboarding.guardrails",
+        "weeks_actual": 2.9,
+        "completed_at": "2025-03-30T07:12:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.account-move",
+        "task_id": "landing-zone-onboarding.account-move",
+        "weeks_actual": 0.8,
+        "completed_at": "2025-03-29T14:24:00Z"
+      },
+      {
+        "deal_code": "tidewater",
+        "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing",
+        "task_id": "landing-zone-onboarding.cloud-billing",
+        "weeks_actual": 0.7,
+        "completed_at": "2025-04-04T21:36:00Z"
+      }
+    ]
+  },
+  "relationships": {
+    "HAS_ITERATION": [
+      {
+        "type": "HAS_ITERATION",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "tidewater"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      }
+    ],
+    "DECIDED_ON": [
+      {
+        "type": "DECIDED_ON",
+        "from": {
+          "label": "GateDecision",
+          "key": {
+            "id": "gd-tidewater-commit-1"
+          }
+        },
+        "to": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "tidewater",
+            "version": 1
+          }
+        },
+        "props": {}
+      }
+    ],
+    "IN_ITERATION": [
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-workforce-sso"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-customer-sso"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "customer-sso"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-user-provisioning"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "user-provisioning"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.scim-endpoint"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.lifecycle-mapping"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.deprovisioning-test"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-api-consolidation"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-partner-api-access"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "partner-api-access"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.route-inventory"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "tidewater",
+            "n": 1
+          }
+        },
+        "props": {}
+      }
+    ],
+    "INSTANCE_OF": [
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "identity-federation-trust"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-workforce-sso"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "workforce-sso"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-customer-sso"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "customer-sso"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-user-provisioning"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "user-provisioning"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-api-consolidation"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "api-consolidation"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-partner-api-access"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "partner-api-access"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "cloud-account-consolidation"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "FOR": [
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-identity-federation-trust"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-workforce-sso"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "customer-sso"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-customer-sso"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "user-provisioning"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-user-provisioning"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-api-consolidation"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "partner-api-access"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-partner-api-access"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "fuc-cloud-account-consolidation"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "SELECTS": [
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "idp-trust-establishment"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "oidc-broker"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "customer-sso"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "oidc-broker"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "user-provisioning"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "scim-provisioning"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "api-gateway-facade"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "partner-api-access"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "api-gateway-facade"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "landing-zone-onboarding"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "INCLUDES": [
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "tidewater",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "tidewater",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "tidewater",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "customer-sso"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "tidewater",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "user-provisioning"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "tidewater",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "tidewater",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "partner-api-access"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "tidewater",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "HAS_TASK": [
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "customer-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "customer-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "customer-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "customer-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "user-provisioning"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.scim-endpoint"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "user-provisioning"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.lifecycle-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "user-provisioning"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.deprovisioning-test"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "partner-api-access"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "partner-api-access"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "partner-api-access"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.dns-switch"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "INSTANTIATES": [
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "idp-trust-establishment.trust-runbook"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.tenant-cutover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.tenant-cutover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.scim-endpoint"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "scim-provisioning.scim-endpoint"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.lifecycle-mapping"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "scim-provisioning.lifecycle-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.deprovisioning-test"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "scim-provisioning.deprovisioning-test"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "api-gateway-facade.dns-switch"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.route-inventory"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "api-gateway-facade.dns-switch"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "landing-zone-onboarding.account-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "landing-zone-onboarding.guardrails"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "landing-zone-onboarding.account-move"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "OBSERVED_FOR": [
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "customer-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "customer-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "customer-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "customer-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "user-provisioning:scim-provisioning.scim-endpoint"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.scim-endpoint"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "user-provisioning:scim-provisioning.lifecycle-mapping"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.lifecycle-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "user-provisioning:scim-provisioning.deprovisioning-test"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.deprovisioning-test"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "partner-api-access:api-gateway-facade.route-inventory"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "partner-api-access:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "partner-api-access:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.dns-switch"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "tidewater",
+            "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "DEPENDS_ON": [
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "customer-sso:oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.scim-endpoint"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.lifecycle-mapping"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.scim-endpoint"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.deprovisioning-test"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "user-provisioning:scim-provisioning.lifecycle-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "partner-api-access:api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "tidewater",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "props": {}
+      }
+    ]
+  }
+}

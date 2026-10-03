@@ -1,0 +1,11 @@
+# Capability types. Findings (IS_A), build options (DELIVERS), and platform capabilities (PROVIDES) meet here.
+- { id: sso, name: Single sign-on }
+- { id: mfa, name: Multi-factor authentication }
+- { id: user-provisioning, name: User provisioning }
+- { id: audit-logging, name: Audit logging }
+- { id: api-gateway, name: API gateway }
+- { id: event-streaming, name: Event streaming }
+- { id: billing-ledger, name: Billing ledger }
+- { id: secrets-management, name: Secrets management }
+- { id: observability, name: Observability }
+- { id: data-warehouse, name: Data warehouse }

@@ -3,7 +3,7 @@
 ## Universe
 - **Harborline Software** (acquirer): B2B SaaS platform. Its platform capabilities (corporate IdP, API gateway, audit-log pipeline, event bus, billing platform) are modeled as `PlatformCapability` nodes with `coverage` per `CapabilityType`.
 - **Nimbus Ledger** (target; `deal_code: nimbus`): accounting and AP-automation SaaS with about 25 findings across identity, security, API, data, infrastructure, and operations.
-- **History:** two completed integrations, `tidewater` (analytics startup) and `quarry` (document-capture vendor). Each is loaded as a full committed plan (`Deal`, `Iteration`, `Selection`, `PlanTask`, committed `Roadmap`) plus `Actual` durations on about 40 PlanTasks in total.
+- **History:** two completed integrations, `tidewater` (analytics startup) and `quarry` (document-capture vendor). Each is loaded as a full committed plan (`Deal`, `Iteration`, `Selection`, `PlanTask`, committed `Roadmap`) plus `Actual` durations on about 50 PlanTasks in total.
 
 **Naming rule:** no names of real companies, products, people, or deals in the scenario or data. Public standards (SAML 2.0, OIDC, SCIM) and the tooling this repo is built on are fine. CI runs `scripts/denylist-check.ts`, which reads denylisted terms from `$DENYLIST_FILE` (stored **outside** this repo; in CI it comes from a secret) and fails on any match.
 

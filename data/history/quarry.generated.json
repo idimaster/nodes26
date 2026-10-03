@@ -1,0 +1,3811 @@
+{
+  "nodes": {
+    "Deal": [
+      {
+        "code": "quarry",
+        "target_company": "Quarry Capture",
+        "acquirer": "Harborline Software",
+        "strategy": "transform",
+        "status": "completed"
+      }
+    ],
+    "Iteration": [
+      {
+        "deal_code": "quarry",
+        "n": 1,
+        "started_at": "2025-09-01T00:00:00Z",
+        "status": "committed"
+      }
+    ],
+    "GateDecision": [
+      {
+        "id": "gd-quarry-commit-1",
+        "deal_code": "quarry",
+        "iteration": 1,
+        "gate": "commit",
+        "status": "approved",
+        "comment": "",
+        "by": "architect",
+        "at": "2025-09-01T00:00:00Z"
+      }
+    ],
+    "Roadmap": [
+      {
+        "deal_code": "quarry",
+        "version": 1,
+        "iteration": 1,
+        "status": "committed",
+        "gate_id": "gd-quarry-commit-1"
+      }
+    ],
+    "FramedUseCase": [
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "fuc-identity-federation-trust",
+        "framing_rationale": "Framed during the quarry integration.",
+        "use_case_id": "identity-federation-trust"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "fuc-workforce-sso",
+        "framing_rationale": "Framed during the quarry integration.",
+        "use_case_id": "workforce-sso"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "fuc-api-consolidation",
+        "framing_rationale": "Framed during the quarry integration.",
+        "use_case_id": "api-consolidation"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "fuc-legacy-api-retirement",
+        "framing_rationale": "Framed during the quarry integration.",
+        "use_case_id": "legacy-api-retirement"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "fuc-cloud-account-consolidation",
+        "framing_rationale": "Framed during the quarry integration.",
+        "use_case_id": "cloud-account-consolidation"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "fuc-data-migration",
+        "framing_rationale": "Framed during the quarry integration.",
+        "use_case_id": "data-migration"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "fuc-incident-management",
+        "framing_rationale": "Framed during the quarry integration.",
+        "use_case_id": "incident-management"
+      }
+    ],
+    "Selection": [
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "uc": "identity-federation-trust",
+        "pattern": "idp-trust-establishment",
+        "fit_score": 78.1,
+        "rationale": "Selected for identity-federation-trust in the quarry integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "uc": "workforce-sso",
+        "pattern": "oidc-broker",
+        "fit_score": 76.3,
+        "rationale": "Selected for workforce-sso in the quarry integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "uc": "api-consolidation",
+        "pattern": "api-gateway-facade",
+        "fit_score": 82.6,
+        "rationale": "Selected for api-consolidation in the quarry integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "uc": "legacy-api-retirement",
+        "pattern": "strangler-fig",
+        "fit_score": 74.4,
+        "rationale": "Selected for legacy-api-retirement in the quarry integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "uc": "cloud-account-consolidation",
+        "pattern": "landing-zone-onboarding",
+        "fit_score": 85.8,
+        "rationale": "Selected for cloud-account-consolidation in the quarry integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "uc": "data-migration",
+        "pattern": "bulk-migration",
+        "fit_score": 87.8,
+        "rationale": "Selected for data-migration in the quarry integration.",
+        "status": "committed"
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "uc": "incident-management",
+        "pattern": "incident-process-merge",
+        "fit_score": 84.3,
+        "rationale": "Selected for incident-management in the quarry integration.",
+        "status": "committed"
+      }
+    ],
+    "PlanTask": [
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata",
+        "task_id": "idp-trust-establishment.exchange-metadata",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 2,
+        "skill": "identity",
+        "on_critical_path": false,
+        "earliest_start": 0,
+        "wave": 1
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover",
+        "task_id": "idp-trust-establishment.certificate-rollover",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "security",
+        "on_critical_path": false,
+        "earliest_start": 1,
+        "wave": 2
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "identity-federation-trust:idp-trust-establishment.trust-runbook",
+        "task_id": "idp-trust-establishment.trust-runbook",
+        "weeks_o": 0.5,
+        "weeks_e": 0.5,
+        "weeks_p": 1,
+        "skill": "ops",
+        "on_critical_path": false,
+        "earliest_start": 2,
+        "wave": 3
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "workforce-sso:oidc-broker.register-clients",
+        "task_id": "oidc-broker.register-clients",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "identity",
+        "on_critical_path": false,
+        "earliest_start": 2.5,
+        "wave": 4
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "workforce-sso:oidc-broker.claims-mapping",
+        "task_id": "oidc-broker.claims-mapping",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3,
+        "skill": "identity",
+        "on_critical_path": false,
+        "earliest_start": 3.5,
+        "wave": 5
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "workforce-sso:oidc-broker.login-flow",
+        "task_id": "oidc-broker.login-flow",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3.5,
+        "skill": "frontend",
+        "on_critical_path": false,
+        "earliest_start": 5.5,
+        "wave": 6
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "workforce-sso:oidc-broker.tenant-cutover",
+        "task_id": "oidc-broker.tenant-cutover",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 2,
+        "skill": "ops",
+        "on_critical_path": false,
+        "earliest_start": 7.5,
+        "wave": 7
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "api-consolidation:api-gateway-facade.route-inventory",
+        "task_id": "api-gateway-facade.route-inventory",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "platform",
+        "on_critical_path": true,
+        "earliest_start": 0,
+        "wave": 1
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "api-consolidation:api-gateway-facade.gateway-routes",
+        "task_id": "api-gateway-facade.gateway-routes",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3,
+        "skill": "platform",
+        "on_critical_path": true,
+        "earliest_start": 1,
+        "wave": 2
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "api-consolidation:api-gateway-facade.dns-switch",
+        "task_id": "api-gateway-facade.dns-switch",
+        "weeks_o": 0.5,
+        "weeks_e": 0.5,
+        "weeks_p": 1,
+        "skill": "ops",
+        "on_critical_path": true,
+        "earliest_start": 3,
+        "wave": 3
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "legacy-api-retirement:strangler-fig.seam-definition",
+        "task_id": "strangler-fig.seam-definition",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 2,
+        "skill": "platform",
+        "on_critical_path": true,
+        "earliest_start": 3.5,
+        "wave": 4
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "legacy-api-retirement:strangler-fig.first-slice",
+        "task_id": "strangler-fig.first-slice",
+        "weeks_o": 2,
+        "weeks_e": 3,
+        "weeks_p": 5,
+        "skill": "platform",
+        "on_critical_path": true,
+        "earliest_start": 4.5,
+        "wave": 5
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "legacy-api-retirement:strangler-fig.remaining-slices",
+        "task_id": "strangler-fig.remaining-slices",
+        "weeks_o": 3,
+        "weeks_e": 5,
+        "weeks_p": 8,
+        "skill": "platform",
+        "on_critical_path": true,
+        "earliest_start": 7.5,
+        "wave": 6
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "legacy-api-retirement:strangler-fig.legacy-shutdown",
+        "task_id": "strangler-fig.legacy-shutdown",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "ops",
+        "on_critical_path": true,
+        "earliest_start": 12.5,
+        "wave": 7
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory",
+        "task_id": "landing-zone-onboarding.account-inventory",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "platform",
+        "on_critical_path": false,
+        "earliest_start": 0,
+        "wave": 1
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails",
+        "task_id": "landing-zone-onboarding.guardrails",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3,
+        "skill": "security",
+        "on_critical_path": false,
+        "earliest_start": 1,
+        "wave": 2
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "cloud-account-consolidation:landing-zone-onboarding.account-move",
+        "task_id": "landing-zone-onboarding.account-move",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 2,
+        "skill": "platform",
+        "on_critical_path": false,
+        "earliest_start": 3,
+        "wave": 3
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing",
+        "task_id": "landing-zone-onboarding.cloud-billing",
+        "weeks_o": 0.5,
+        "weeks_e": 0.5,
+        "weeks_p": 1,
+        "skill": "ops",
+        "on_critical_path": false,
+        "earliest_start": 4,
+        "wave": 4
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "data-migration:bulk-migration.mapping-spec",
+        "task_id": "bulk-migration.mapping-spec",
+        "weeks_o": 1,
+        "weeks_e": 1.5,
+        "weeks_p": 2.5,
+        "skill": "data",
+        "on_critical_path": false,
+        "earliest_start": 0,
+        "wave": 1
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "data-migration:bulk-migration.migration-tooling",
+        "task_id": "bulk-migration.migration-tooling",
+        "weeks_o": 1,
+        "weeks_e": 2,
+        "weeks_p": 3,
+        "skill": "data",
+        "on_critical_path": false,
+        "earliest_start": 1.5,
+        "wave": 2
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "data-migration:bulk-migration.parallel-run",
+        "task_id": "bulk-migration.parallel-run",
+        "weeks_o": 2,
+        "weeks_e": 3,
+        "weeks_p": 5,
+        "skill": "data",
+        "on_critical_path": false,
+        "earliest_start": 3.5,
+        "wave": 3
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "data-migration:bulk-migration.switchover",
+        "task_id": "bulk-migration.switchover",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "ops",
+        "on_critical_path": false,
+        "earliest_start": 6.5,
+        "wave": 4
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "incident-management:incident-process-merge.severity-mapping",
+        "task_id": "incident-process-merge.severity-mapping",
+        "weeks_o": 0.5,
+        "weeks_e": 0.5,
+        "weeks_p": 1,
+        "skill": "ops",
+        "on_critical_path": false,
+        "earliest_start": 0,
+        "wave": 1
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "incident-management:incident-process-merge.on-call-merge",
+        "task_id": "incident-process-merge.on-call-merge",
+        "weeks_o": 0.5,
+        "weeks_e": 1,
+        "weeks_p": 1.5,
+        "skill": "ops",
+        "on_critical_path": false,
+        "earliest_start": 0.5,
+        "wave": 2
+      },
+      {
+        "deal_code": "quarry",
+        "iteration": 1,
+        "id": "incident-management:incident-process-merge.support-desk-move",
+        "task_id": "incident-process-merge.support-desk-move",
+        "weeks_o": 1,
+        "weeks_e": 1.5,
+        "weeks_p": 2.5,
+        "skill": "ops",
+        "on_critical_path": false,
+        "earliest_start": 0.5,
+        "wave": 2
+      }
+    ],
+    "Actual": [
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "identity-federation-trust:idp-trust-establishment.exchange-metadata",
+        "task_id": "idp-trust-establishment.exchange-metadata",
+        "weeks_actual": 1.4,
+        "completed_at": "2025-09-10T19:12:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "identity-federation-trust:idp-trust-establishment.certificate-rollover",
+        "task_id": "idp-trust-establishment.certificate-rollover",
+        "weeks_actual": 1,
+        "completed_at": "2025-09-15T00:00:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "identity-federation-trust:idp-trust-establishment.trust-runbook",
+        "task_id": "idp-trust-establishment.trust-runbook",
+        "weeks_actual": 0.6,
+        "completed_at": "2025-09-19T04:48:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "workforce-sso:oidc-broker.register-clients",
+        "task_id": "oidc-broker.register-clients",
+        "weeks_actual": 0.8,
+        "completed_at": "2025-09-24T02:24:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "workforce-sso:oidc-broker.claims-mapping",
+        "task_id": "oidc-broker.claims-mapping",
+        "weeks_actual": 2.9,
+        "completed_at": "2025-10-15T19:12:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "workforce-sso:oidc-broker.login-flow",
+        "task_id": "oidc-broker.login-flow",
+        "weeks_actual": 2.8,
+        "completed_at": "2025-10-29T02:24:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "workforce-sso:oidc-broker.tenant-cutover",
+        "task_id": "oidc-broker.tenant-cutover",
+        "weeks_actual": 1.5,
+        "completed_at": "2025-11-03T00:00:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "api-consolidation:api-gateway-facade.route-inventory",
+        "task_id": "api-gateway-facade.route-inventory",
+        "weeks_actual": 0.8,
+        "completed_at": "2025-09-06T14:24:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "api-consolidation:api-gateway-facade.gateway-routes",
+        "task_id": "api-gateway-facade.gateway-routes",
+        "weeks_actual": 2.9,
+        "completed_at": "2025-09-28T07:12:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "api-consolidation:api-gateway-facade.dns-switch",
+        "task_id": "api-gateway-facade.dns-switch",
+        "weeks_actual": 0.7,
+        "completed_at": "2025-09-26T21:36:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "legacy-api-retirement:strangler-fig.seam-definition",
+        "task_id": "strangler-fig.seam-definition",
+        "weeks_actual": 1.1,
+        "completed_at": "2025-10-03T04:48:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "legacy-api-retirement:strangler-fig.first-slice",
+        "task_id": "strangler-fig.first-slice",
+        "weeks_actual": 2.4,
+        "completed_at": "2025-10-19T07:12:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "legacy-api-retirement:strangler-fig.remaining-slices",
+        "task_id": "strangler-fig.remaining-slices",
+        "weeks_actual": 4.8,
+        "completed_at": "2025-11-26T02:24:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "legacy-api-retirement:strangler-fig.legacy-shutdown",
+        "task_id": "strangler-fig.legacy-shutdown",
+        "weeks_actual": 1.4,
+        "completed_at": "2025-12-07T07:12:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory",
+        "task_id": "landing-zone-onboarding.account-inventory",
+        "weeks_actual": 1.2,
+        "completed_at": "2025-09-09T09:36:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.guardrails",
+        "task_id": "landing-zone-onboarding.guardrails",
+        "weeks_actual": 1.9,
+        "completed_at": "2025-09-21T07:12:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.account-move",
+        "task_id": "landing-zone-onboarding.account-move",
+        "weeks_actual": 0.9,
+        "completed_at": "2025-09-28T07:12:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing",
+        "task_id": "landing-zone-onboarding.cloud-billing",
+        "weeks_actual": 0.6,
+        "completed_at": "2025-10-03T04:48:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "data-migration:bulk-migration.mapping-spec",
+        "task_id": "bulk-migration.mapping-spec",
+        "weeks_actual": 2.1,
+        "completed_at": "2025-09-15T16:48:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "data-migration:bulk-migration.migration-tooling",
+        "task_id": "bulk-migration.migration-tooling",
+        "weeks_actual": 1.9,
+        "completed_at": "2025-09-24T19:12:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "data-migration:bulk-migration.parallel-run",
+        "task_id": "bulk-migration.parallel-run",
+        "weeks_actual": 3.1,
+        "completed_at": "2025-10-17T04:48:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "data-migration:bulk-migration.switchover",
+        "task_id": "bulk-migration.switchover",
+        "weeks_actual": 1.3,
+        "completed_at": "2025-10-25T14:24:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "incident-management:incident-process-merge.severity-mapping",
+        "task_id": "incident-process-merge.severity-mapping",
+        "weeks_actual": 0.5,
+        "completed_at": "2025-09-04T12:00:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "incident-management:incident-process-merge.on-call-merge",
+        "task_id": "incident-process-merge.on-call-merge",
+        "weeks_actual": 1.2,
+        "completed_at": "2025-09-12T21:36:00Z"
+      },
+      {
+        "deal_code": "quarry",
+        "plan_task_id": "incident-management:incident-process-merge.support-desk-move",
+        "task_id": "incident-process-merge.support-desk-move",
+        "weeks_actual": 2.2,
+        "completed_at": "2025-09-19T21:36:00Z"
+      }
+    ]
+  },
+  "relationships": {
+    "HAS_ITERATION": [
+      {
+        "type": "HAS_ITERATION",
+        "from": {
+          "label": "Deal",
+          "key": {
+            "code": "quarry"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      }
+    ],
+    "DECIDED_ON": [
+      {
+        "type": "DECIDED_ON",
+        "from": {
+          "label": "GateDecision",
+          "key": {
+            "id": "gd-quarry-commit-1"
+          }
+        },
+        "to": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "quarry",
+            "version": 1
+          }
+        },
+        "props": {}
+      }
+    ],
+    "IN_ITERATION": [
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-workforce-sso"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-api-consolidation"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-legacy-api-retirement"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "legacy-api-retirement"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.seam-definition"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.first-slice"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.remaining-slices"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.legacy-shutdown"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-data-migration"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "data-migration"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.mapping-spec"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.migration-tooling"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.parallel-run"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.switchover"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-incident-management"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "incident-management"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.severity-mapping"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.on-call-merge"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "IN_ITERATION",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.support-desk-move"
+          }
+        },
+        "to": {
+          "label": "Iteration",
+          "key": {
+            "deal_code": "quarry",
+            "n": 1
+          }
+        },
+        "props": {}
+      }
+    ],
+    "INSTANCE_OF": [
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "identity-federation-trust"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-workforce-sso"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "workforce-sso"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-api-consolidation"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "api-consolidation"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-legacy-api-retirement"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "legacy-api-retirement"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "cloud-account-consolidation"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-data-migration"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "data-migration"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANCE_OF",
+        "from": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-incident-management"
+          }
+        },
+        "to": {
+          "label": "UseCase",
+          "key": {
+            "id": "incident-management"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "FOR": [
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-identity-federation-trust"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-workforce-sso"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-api-consolidation"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "legacy-api-retirement"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-legacy-api-retirement"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-cloud-account-consolidation"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "data-migration"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-data-migration"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "FOR",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "incident-management"
+          }
+        },
+        "to": {
+          "label": "FramedUseCase",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "fuc-incident-management"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "SELECTS": [
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "idp-trust-establishment"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "oidc-broker"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "api-gateway-facade"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "legacy-api-retirement"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "strangler-fig"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "landing-zone-onboarding"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "data-migration"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "bulk-migration"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "SELECTS",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "incident-management"
+          }
+        },
+        "to": {
+          "label": "Pattern",
+          "key": {
+            "id": "incident-process-merge"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "INCLUDES": [
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "quarry",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "quarry",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "quarry",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "quarry",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "legacy-api-retirement"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "quarry",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "quarry",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "data-migration"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INCLUDES",
+        "from": {
+          "label": "Roadmap",
+          "key": {
+            "deal_code": "quarry",
+            "version": 1
+          }
+        },
+        "to": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "incident-management"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "HAS_TASK": [
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "identity-federation-trust"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "workforce-sso"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "api-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "legacy-api-retirement"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.seam-definition"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "legacy-api-retirement"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.first-slice"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "legacy-api-retirement"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.remaining-slices"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "legacy-api-retirement"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.legacy-shutdown"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "cloud-account-consolidation"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "data-migration"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.mapping-spec"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "data-migration"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.migration-tooling"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "data-migration"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.parallel-run"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "data-migration"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.switchover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "incident-management"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.severity-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "incident-management"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.on-call-merge"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "HAS_TASK",
+        "from": {
+          "label": "Selection",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "uc": "incident-management"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.support-desk-move"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "INSTANTIATES": [
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "idp-trust-establishment.trust-runbook"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "oidc-broker.tenant-cutover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "api-gateway-facade.dns-switch"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.seam-definition"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "strangler-fig.seam-definition"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.first-slice"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "strangler-fig.first-slice"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.remaining-slices"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "strangler-fig.remaining-slices"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.legacy-shutdown"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "strangler-fig.legacy-shutdown"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "landing-zone-onboarding.account-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "landing-zone-onboarding.guardrails"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "landing-zone-onboarding.account-move"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.mapping-spec"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "bulk-migration.mapping-spec"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.migration-tooling"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "bulk-migration.migration-tooling"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.parallel-run"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "bulk-migration.parallel-run"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.switchover"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "bulk-migration.switchover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.severity-mapping"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "incident-process-merge.severity-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.on-call-merge"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "incident-process-merge.on-call-merge"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "INSTANTIATES",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.support-desk-move"
+          }
+        },
+        "to": {
+          "label": "Task",
+          "key": {
+            "id": "incident-process-merge.support-desk-move"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "OBSERVED_FOR": [
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "legacy-api-retirement:strangler-fig.seam-definition"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.seam-definition"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "legacy-api-retirement:strangler-fig.first-slice"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.first-slice"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "legacy-api-retirement:strangler-fig.remaining-slices"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.remaining-slices"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "legacy-api-retirement:strangler-fig.legacy-shutdown"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.legacy-shutdown"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "data-migration:bulk-migration.mapping-spec"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.mapping-spec"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "data-migration:bulk-migration.migration-tooling"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.migration-tooling"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "data-migration:bulk-migration.parallel-run"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.parallel-run"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "data-migration:bulk-migration.switchover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.switchover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "incident-management:incident-process-merge.severity-mapping"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.severity-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "incident-management:incident-process-merge.on-call-merge"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.on-call-merge"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "OBSERVED_FOR",
+        "from": {
+          "label": "Actual",
+          "key": {
+            "deal_code": "quarry",
+            "plan_task_id": "incident-management:incident-process-merge.support-desk-move"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.support-desk-move"
+          }
+        },
+        "props": {}
+      }
+    ],
+    "DEPENDS_ON": [
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.exchange-metadata"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.certificate-rollover"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "identity-federation-trust:idp-trust-establishment.trust-runbook"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.register-clients"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.claims-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.tenant-cutover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "workforce-sso:oidc-broker.login-flow"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.route-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.gateway-routes"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.seam-definition"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "api-consolidation:api-gateway-facade.dns-switch"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.first-slice"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.seam-definition"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.remaining-slices"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.first-slice"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.legacy-shutdown"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "legacy-api-retirement:strangler-fig.remaining-slices"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-inventory"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.guardrails"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.cloud-billing"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "cloud-account-consolidation:landing-zone-onboarding.account-move"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.migration-tooling"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.mapping-spec"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.parallel-run"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.migration-tooling"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.switchover"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "data-migration:bulk-migration.parallel-run"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.on-call-merge"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.severity-mapping"
+          }
+        },
+        "props": {}
+      },
+      {
+        "type": "DEPENDS_ON",
+        "from": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.support-desk-move"
+          }
+        },
+        "to": {
+          "label": "PlanTask",
+          "key": {
+            "deal_code": "quarry",
+            "iteration": 1,
+            "id": "incident-management:incident-process-merge.severity-mapping"
+          }
+        },
+        "props": {}
+      }
+    ]
+  }
+}

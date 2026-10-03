@@ -1,0 +1,145 @@
+# Nimbus Ledger (fictional target). Hand-authored findings carry every planted situation;
+# filler findings are generated into findings.generated.json. See planted.yaml.
+deal:
+  code: nimbus
+  target_company: Nimbus Ledger
+  acquirer: Harborline Software
+  strategy: pending
+  status: active
+
+sources:
+  - { id: s-code-users, type: code_repo, uri: "dataroom://nimbus/code_repo/admin-console-users" }
+  - { id: s-doc-sso, type: vendor_doc, uri: "dataroom://nimbus/vendor_doc/enterprise-sso-guide" }
+  - { id: s-code-audit, type: code_repo, uri: "dataroom://nimbus/code_repo/audit-store" }
+  - { id: s-code-billing, type: code_repo, uri: "dataroom://nimbus/code_repo/billing-ledger" }
+  - { id: s-rfi-finance, type: rfi_response, uri: "dataroom://nimbus/rfi_response/finance-integration" }
+  - { id: s-contract-eu, type: contract, uri: "dataroom://nimbus/contract/eu-customer-terms" }
+  - { id: s-interview-security, type: interview_notes, uri: "dataroom://nimbus/interview_notes/security-lead" }
+  - { id: s-code-config, type: code_repo, uri: "dataroom://nimbus/code_repo/service-config" }
+  - { id: s-code-infra, type: code_repo, uri: "dataroom://nimbus/code_repo/deploy-scripts" }
+  - { id: s-code-services, type: code_repo, uri: "dataroom://nimbus/code_repo/service-map" }
+
+findings:
+  # P1: the only critical gap. Strong evidence, so classify_finding keeps it a gap.
+  - id: f-no-scim
+    kind: gap
+    text: User accounts in the Nimbus admin console are created and removed by hand. There is no SCIM endpoint or automated deprovisioning, and two leavers kept access for weeks.
+    severity: critical
+    confidence: 0.9
+    evidence_type: code_inspection
+    sources: [s-code-users]
+
+  # P6: integrate (oidc-broker, 6 wk vs 20 wk build).
+  - id: f-customer-sso
+    kind: capability
+    text: Nimbus runs its own SAML 2.0 login service for enterprise customers, with identity provider settings per tenant.
+    severity: high
+    confidence: 0.85
+    evidence_type: vendor_docs
+    sources: [s-doc-sso]
+    is_a: sso
+
+  # P6: retire (Harborline audit pipeline covers 0.85).
+  - id: f-audit-store
+    kind: capability
+    text: Nimbus writes security audit events to its own append-only store with 400-day retention.
+    severity: medium
+    confidence: 0.9
+    evidence_type: code_inspection
+    sources: [s-code-audit]
+    is_a: audit-logging
+
+  # P6: review (13 wk integrate vs 14 wk build, coverage 0.5).
+  - id: f-billing-ledger
+    kind: capability
+    text: Subscription billing runs on an in-house ledger with custom proration and dunning rules.
+    severity: high
+    confidence: 0.8
+    evidence_type: code_inspection
+    sources: [s-code-billing]
+    is_a: billing-ledger
+
+  # P2: ledger-data-sync (top pick cdc-replication) ...
+  - id: f-ledger-sync
+    kind: gap
+    text: Harborline finance needs Nimbus ledger postings within minutes. Today they are exported by hand once a night.
+    severity: high
+    confidence: 0.8
+    evidence_type: rfi
+    sources: [s-rfi-finance]
+
+  # P2: ... and reporting-consolidation (top pick batch-etl-export), which conflicts with it.
+  - id: f-reporting
+    kind: gap
+    text: Monthly consolidated reporting needs Nimbus figures in the Harborline reporting warehouse. There is no feed today.
+    severity: medium
+    confidence: 0.75
+    evidence_type: rfi
+    sources: [s-rfi-finance]
+
+  # P3: no core ontology term for data residency.
+  - id: f-eu-residency
+    kind: risk
+    text: Contracts with EU customers require their ledger data to stay in EU regions (data residency), including backups and replicas.
+    severity: high
+    confidence: 0.9
+    evidence_type: rfi
+    sources: [s-contract-eu]
+
+  # Weak evidence: classify_finding turns this into an assumption.
+  - id: f-weak-mfa
+    kind: gap
+    text: MFA is reportedly optional for Nimbus admin users.
+    severity: medium
+    confidence: 0.5
+    evidence_type: interview
+    sources: [s-interview-security]
+
+  - id: f-secrets-in-config
+    kind: gap
+    text: Database credentials for two services are stored in plaintext configuration files.
+    severity: high
+    confidence: 0.85
+    evidence_type: code_inspection
+    sources: [s-code-config]
+
+  # P5: frames to container-platform-migration, whose bridge-compatible pattern has a task cycle.
+  - id: f-vm-hosting
+    kind: gap
+    text: Nimbus deploys to hand-managed virtual machines, while Harborline runs workloads on a shared container platform.
+    severity: medium
+    confidence: 0.8
+    evidence_type: code_inspection
+    sources: [s-code-infra]
+
+  # Services and their CALLS edges.
+  - id: f-svc-api
+    kind: service
+    text: Public API service that handles all customer and partner API traffic.
+    severity: low
+    confidence: 0.95
+    evidence_type: code_inspection
+    sources: [s-code-services]
+    calls: [f-svc-auth, f-svc-ledger]
+  - id: f-svc-auth
+    kind: service
+    text: Authentication service that issues sessions for the web app and the API.
+    severity: low
+    confidence: 0.95
+    evidence_type: code_inspection
+    sources: [s-code-services]
+  - id: f-svc-ledger
+    kind: service
+    text: Ledger service that records postings and serves balances.
+    severity: low
+    confidence: 0.95
+    evidence_type: code_inspection
+    sources: [s-code-services]
+  - id: f-svc-billing
+    kind: service
+    text: Billing service that computes invoices and posts them to the ledger.
+    severity: low
+    confidence: 0.95
+    evidence_type: code_inspection
+    sources: [s-code-services]
+    calls: [f-svc-ledger]
