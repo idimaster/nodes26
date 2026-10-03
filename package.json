@@ -13,6 +13,7 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
+    "denylist": "tsx scripts/denylist-check.ts",
     "schema:gen": "tsx scripts/gen-schema.ts",
     "schema": "tsx graph/apply-schema.ts",
     "generate": "tsx scripts/generate-data.ts",

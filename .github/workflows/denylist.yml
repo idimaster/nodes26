@@ -1,0 +1,35 @@
+name: denylist
+
+# Public-repo hygiene: fail if any tracked file or commit message names a real company,
+# product, person, or deal. The terms live in the DENYLIST repository secret (one per line),
+# never in the repo. A missing or empty secret fails the job; it is never skipped.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  denylist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # commit messages are scanned too
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Write denylist from secret
+        env:
+          DENYLIST: ${{ secrets.DENYLIST }}
+        run: |
+          umask 077
+          printf '%s\n' "$DENYLIST" > "$RUNNER_TEMP/denylist.txt"
+      - name: Check
+        env:
+          DENYLIST_FILE: ${{ runner.temp }}/denylist.txt
+        run: npm run denylist
