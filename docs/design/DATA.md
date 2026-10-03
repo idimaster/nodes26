@@ -3,9 +3,9 @@
 ## Universe
 - **Harborline Software** (acquirer): B2B SaaS platform. Its platform capabilities (corporate IdP, API gateway, audit-log pipeline, event bus, billing platform) are modeled as `PlatformCapability` nodes with `coverage` per `CapabilityType`.
 - **Nimbus Ledger** (target; `deal_code: nimbus`): accounting and AP-automation SaaS with about 25 findings across identity, security, API, data, infrastructure, and operations.
-- **History:** two completed integrations, `tidewater` (analytics startup) and `quarry` (document-capture vendor). Committed plans plus `Actual` durations on about 40 tasks.
+- **History:** two completed integrations, `tidewater` (analytics startup) and `quarry` (document-capture vendor). Each is loaded as a full committed plan (`Deal`, `Iteration`, `Selection`, `PlanTask`, committed `Roadmap`) plus `Actual` durations on about 40 PlanTasks in total.
 
-**Naming rule:** no names of real companies, products, or deals. CI runs `scripts/denylist-check.ts`, which reads denylisted terms from `$DENYLIST_FILE` (stored **outside** this repo) and fails on any match.
+**Naming rule:** no names of real companies, products, people, or deals in the scenario or data. Public standards (SAML 2.0, OIDC, SCIM) and the tooling this repo is built on are fine. CI runs `scripts/denylist-check.ts`, which reads denylisted terms from `$DENYLIST_FILE` (stored **outside** this repo; in CI it comes from a secret) and fails on any match.
 
 ## Catalog (`data/catalog/`)
 
@@ -18,7 +18,7 @@
 
 ## Deal and history (`data/deals/`, `data/history/`)
 - **Nimbus findings:** each has `evidence_type` and `confidence`. Include absent capabilities with strong evidence (→ gap) and some with weak evidence (→ assumption), plus service `CALLS` edges.
-- **History:** at least 5 tasks must have ≥ 3 `Actual` observations, so that estimate provenance is demonstrable.
+- **History:** at least 5 catalog Tasks must have ≥ 3 `Actual` observations across the history deals (several PlanTasks may instantiate the same Task), so that estimate provenance is demonstrable.
 
 ## Planted situations (each must be reproducible 5/5)
 
@@ -31,4 +31,7 @@
 | P5 | One pattern variant has a task cycle | V3 witness; scheduling refuses to run |
 | P6 | Buy vs build | SSO → integrate (~6 wk vs ~20 wk build); audit logging → retire (coverage ≥ 0.8); billing ledger → review |
 
-**Generation:** `scripts/generate-data.ts` uses a fixed seed and is idempotent. Every number shown in the talk must come from regenerated data.
+**Authoring vs generation:**
+- **Hand-authored** (`data/catalog/*.yaml`, `data/deals/nimbus/planted.yaml`): the catalog (patterns, task DAGs, use cases, tracks, strategies, build options, platform capabilities, knowledge edges) and every finding or edge that a planted situation P1–P6 depends on. Planted structure is never left to randomness.
+- **Generated** by `scripts/generate-data.ts` with a fixed seed: filler Nimbus findings and sources, the history deals' plans and `Actual` durations (jittered around the catalog estimates, with the P6 and provenance numbers held exactly), and `data/manifest.json` (expected node and relationship counts per label and type).
+- The generator is idempotent: re-running produces no diff. Every number shown in the talk must come from regenerated data.

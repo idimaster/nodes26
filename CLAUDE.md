@@ -4,6 +4,7 @@ A public, open-source demo: an integration-planning agent where **the LLM propos
 
 ## Source of truth
 - `docs/design/DESIGN.md`: the implementation contract (ontology, tool contracts, guard rules G1–G9, gates, validators, workflow). If code and DESIGN disagree, fix the code or update DESIGN in the same change.
+- `config/ontology.json`: the machine-readable ontology (DESIGN §1.4); keep it in lockstep with DESIGN §1.1–§1.2.
 - `docs/design/DATA.md`: the fictional data contract and planted situations P1–P6.
 - `docs/design/GOTCHAS.md`: the 9 reproducible gotchas.
 - `docs/milestones/M1.md` … `M5.md`: ordered tasks with acceptance criteria and suggested models.
@@ -16,7 +17,7 @@ A public, open-source demo: an integration-planning agent where **the LLM propos
 5. Keep diffs focused; one task per commit, with message `T<id>: <title>`.
 
 ## Hard rules
-- **Public repo hygiene:** never write names of real companies, products, people, or deals in code, data, docs, or commit messages. All data is fictional (Harborline, Nimbus Ledger, Tidewater, Quarry). The denylist check must stay green.
+- **Public repo hygiene:** the demo scenario and data never name real companies, products, people, or deals, in code, data, docs, or commit messages. All scenario data is fictional (Harborline, Nimbus Ledger, Tidewater, Quarry). Naming the tooling this repo is built on (Neo4j, APOC, GDS, MCP, Claude Code) and public standards (SAML, OIDC, SCIM) is fine. The denylist is authoritative and must stay green.
 - **Engine is pure:** `packages/engine` has no I/O and never touches Neo4j.
 - **Reserved labels** (`GateDecision`, `Feedback`, `Override`, `Actual`, `OntologyTerm`) are written only by the gate server, the ontology server, and the loaders. Never by agent-facing Cypher.
 - **Cypher style:**

@@ -26,7 +26,6 @@ Everything else is deterministic code or Cypher.
 | | `CapabilityType` | `id` | `name` |
 | | `BuildOption` | `id` | `weeks_o`, `weeks_e`, `weeks_p`, `confidence`, `source` |
 | | `PlatformCapability` | `id` | `name` |
-| | `EstimateObservation` | `id` | `task_id`, `weeks_actual`, `deal_code` |
 | Evidence (per deal) | `Deal` | `code` | `target_company`, `acquirer`, `strategy`, `status` |
 | | `Finding` | `(deal_code, id)` | `kind` ∈ {capability, gap, risk, assumption, service}, `text`, `severity`, `confidence`, `evidence_type` |
 | | `Source` | `(deal_code, id)` | `type`, `uri` |
@@ -40,10 +39,14 @@ Everything else is deterministic code or Cypher.
 | Decisions (per deal, **reserved**) | `GateDecision` | `id` | `deal_code`, `iteration`, `gate`, `status` ∈ {pending, approved, rejected}, `comment`, `by`, `at` |
 | | `Feedback` | `id` | `deal_code`, `text`, `status` ∈ {open, resolved} |
 | | `Override` | `id` | `deal_code`, `kind` ∈ {exclude_pattern, pin_pattern, include_use_case, exclude_use_case, strategy_for, directive}, `subject`, `active` |
-| | `Actual` | `(deal_code, task_id)` | `weeks_actual`, `completed_at` |
+| | `Actual` | `(deal_code, plan_task_id)` | `task_id` (catalog `Task.id`, denormalized), `weeks_actual`, `completed_at` |
 | Meta (**reserved**) | `OntologyTerm` | `(kind, name)` | `scope` ∈ {global, `<deal_code>`}, `status` ∈ {proposed, active, rejected}, `definition`, `example`, `version` |
 
 **Reserved labels** may be written **only** by the gate server, the ontology server, and the loaders. Agent-written Cypher can never create or modify them (guard rule G7).
+
+**Keys and edition.** Every key above becomes one uniqueness constraint (single or composite property); that is 23 constraints. The demo targets **Neo4j Community**, where property-existence constraints are unavailable, so "required properties" are enforced by zod schemas in the loaders and servers, not by the database.
+
+**Observed durations.** Historical actuals are modeled only as `Actual` nodes on the committed plans of past deals (`Actual -[:OBSERVED_FOR]-> PlanTask -[:INSTANTIATES]-> Task`). There is no separate observation label.
 
 ### 1.2 Relationships
 
@@ -56,7 +59,6 @@ Everything else is deterministic code or Cypher.
   - `(Pattern)-[:REQUIRES|CONFLICTS|AUGMENTS|SUPERSEDES]->(Pattern)`
   - `(BuildOption)-[:DELIVERS]->(CapabilityType)`
   - `(PlatformCapability)-[:PROVIDES {coverage}]->(CapabilityType)`
-  - `(EstimateObservation)-[:OBSERVES]->(Task)`
 - **Evidence:**
   - `(Deal)-[:HAS_FINDING]->(Finding)`
   - `(Finding)-[:SUPPORTED_BY]->(Source)`
@@ -93,6 +95,15 @@ Everything else is deterministic code or Cypher.
 - Every per-deal node carries `deal_code`. Every per-deal query takes `$deal`.
 - A draft plan is the set of nodes in the current `Iteration` with `status: 'draft'`. Promotion to `committed` requires an approved gate (§3, §4).
 - Deal-scoped ontology terms (`scope = $deal`) are usable only in that deal. Promotion to `global` is a separate gate.
+
+### 1.4 Machine-readable ontology
+`config/ontology.json` is the single source for the core ontology: every label with its subgraph, key properties, required properties, and `reserved` flag; every relationship type with its allowed endpoint labels. It is consumed by:
+- `graph/schema.cypher` (generated from it, or tested against it: one constraint per key, one `deal_code` index per per-deal label);
+- the loaders' zod schemas (required properties);
+- guard rules G5, G6, G7 (per-deal, allowed, and reserved tokens);
+- `get_ontology` (core terms, merged with active `OntologyTerm`s).
+
+A change to §1.1 or §1.2 must change `config/ontology.json` in the same commit; a test asserts they agree.
 
 ---
 
