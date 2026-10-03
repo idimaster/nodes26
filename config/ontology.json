@@ -482,7 +482,14 @@
         "coverage": "float",
         "rule_version": "string"
       },
-      "enums": {},
+      "enums": {
+        "outcome": [
+          "integrate",
+          "build",
+          "retire",
+          "review"
+        ]
+      },
       "perDeal": true,
       "dealProperty": "deal_code",
       "reserved": false
@@ -560,6 +567,7 @@
         "deal_code",
         "kind",
         "subject",
+        "value",
         "active"
       ],
       "types": {
@@ -567,6 +575,7 @@
         "deal_code": "string",
         "kind": "string",
         "subject": "string",
+        "value": "string",
         "active": "boolean"
       },
       "enums": {
