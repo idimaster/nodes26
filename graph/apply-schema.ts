@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import neo4j, { type Driver } from 'neo4j-driver';
+import type { Driver } from 'neo4j-driver';
+import { openDriver } from './connection.js';
 
 export const SCHEMA_FILE = fileURLToPath(new URL('./schema.cypher', import.meta.url));
 
@@ -36,10 +37,7 @@ export async function applySchema(driver: Driver, text: string): Promise<{ appli
 }
 
 async function main(): Promise<void> {
-  const uri = process.env.NEO4J_URI ?? 'neo4j://localhost:7687';
-  const user = process.env.NEO4J_USERNAME ?? 'neo4j';
-  const password = process.env.NEO4J_PASSWORD ?? 'planner-demo';
-  const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
+  const driver = openDriver();
   try {
     const { applied } = await applySchema(driver, readFileSync(SCHEMA_FILE, 'utf8'));
     console.log(`schema: applied ${applied} statements from graph/schema.cypher`);

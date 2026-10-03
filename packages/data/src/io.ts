@@ -50,15 +50,26 @@ export const readHistorySpec = (dir = DATA_DIR) => readYaml(dir, 'history/histor
 
 const readJson = (dir: string, path: string): Dataset => JSON.parse(readFileSync(join(dir, path), 'utf8')) as Dataset;
 
+const generatedParts = (dir: string): Dataset[] =>
+  [GENERATED.nimbusFindings, ...readHistorySpec(dir).deals.map((d) => GENERATED.history(d.code))].map((p) =>
+    readJson(dir, p),
+  );
+
+/** The global knowledge subgraph (catalog). */
+export const readCatalogDataset = (dir = DATA_DIR): Dataset => normalizeCatalog(readCatalog(dir));
+
+/** The Nimbus deal: hand-authored findings plus the generated filler. */
+export const readDealDataset = (dir = DATA_DIR): Dataset =>
+  merge(normalizeDeal(readNimbusDeal(dir)), readJson(dir, GENERATED.nimbusFindings));
+
+/** The completed history deals. */
+export const readHistoryDataset = (dir = DATA_DIR): Dataset =>
+  merge(...readHistorySpec(dir).deals.map((d) => readJson(dir, GENERATED.history(d.code))));
+
 /**
  * The full normalized dataset: catalog, Nimbus (hand-authored + generated), and history.
  * `generated` replaces the generated files on disk (the generator passes its fresh output).
  */
 export function readDataset(dir = DATA_DIR, generated?: Dataset[]): Dataset {
-  const parts =
-    generated ??
-    [GENERATED.nimbusFindings, ...readHistorySpec(dir).deals.map((d) => GENERATED.history(d.code))].map((p) =>
-      readJson(dir, p),
-    );
-  return merge(normalizeCatalog(readCatalog(dir)), normalizeDeal(readNimbusDeal(dir)), ...parts);
+  return merge(normalizeCatalog(readCatalog(dir)), normalizeDeal(readNimbusDeal(dir)), ...(generated ?? generatedParts(dir)));
 }

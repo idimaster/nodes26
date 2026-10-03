@@ -133,3 +133,10 @@ describe('validateDataset catches broken data', () => {
     expect(validateDataset(bad)).toContainEqual(expect.stringMatching(/unknown label DataResidencyRequirement/));
   });
 });
+
+describe('dataset slices', () => {
+  it('catalog + deal + history together equal the full dataset', async () => {
+    const { readCatalogDataset, readDealDataset, readHistoryDataset, merge } = await import('../src/index.js');
+    expect(merge(readCatalogDataset(), readDealDataset(), readHistoryDataset())).toEqual(ds);
+  });
+});

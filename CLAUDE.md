@@ -21,7 +21,7 @@ A public, open-source demo: an integration-planning agent where **the LLM propos
 - **Engine is pure:** `packages/engine` has no I/O and never touches Neo4j.
 - **Reserved labels** (`GateDecision`, `Feedback`, `Override`, `Actual`, `OntologyTerm`) are written only by the gate server, the ontology server, and the loaders. Never by agent-facing Cypher.
 - **Cypher style:**
-  - parameters only (no string interpolation);
+  - parameters only (no string interpolation); the one exception is labels, relationship types, and property names, which Cypher cannot parameterize: those may be spliced in only after checking them against `config/ontology.json` (see `graph/load/write.ts`);
   - MERGE on constraint keys, nodes before relationships;
   - every variable-length pattern bounded (≤ 10);
   - every write ends with `RETURN`;
