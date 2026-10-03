@@ -1,0 +1,38 @@
+// GENERATED from config/ontology.json by `npm run schema:gen`. Do not edit by hand.
+// Applied one statement at a time by graph/apply-schema.ts. Idempotent (IF NOT EXISTS).
+CREATE CONSTRAINT strategy_key IF NOT EXISTS FOR (n:Strategy) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT track_key IF NOT EXISTS FOR (n:Track) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT use_case_key IF NOT EXISTS FOR (n:UseCase) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT pattern_key IF NOT EXISTS FOR (n:Pattern) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT task_key IF NOT EXISTS FOR (n:Task) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT capability_type_key IF NOT EXISTS FOR (n:CapabilityType) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT build_option_key IF NOT EXISTS FOR (n:BuildOption) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT platform_capability_key IF NOT EXISTS FOR (n:PlatformCapability) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT deal_key IF NOT EXISTS FOR (n:Deal) REQUIRE n.code IS UNIQUE;
+CREATE CONSTRAINT finding_key IF NOT EXISTS FOR (n:Finding) REQUIRE (n.deal_code, n.id) IS UNIQUE;
+CREATE CONSTRAINT source_key IF NOT EXISTS FOR (n:Source) REQUIRE (n.deal_code, n.id) IS UNIQUE;
+CREATE CONSTRAINT iteration_key IF NOT EXISTS FOR (n:Iteration) REQUIRE (n.deal_code, n.n) IS UNIQUE;
+CREATE CONSTRAINT framed_use_case_key IF NOT EXISTS FOR (n:FramedUseCase) REQUIRE (n.deal_code, n.iteration, n.id) IS UNIQUE;
+CREATE CONSTRAINT candidate_key IF NOT EXISTS FOR (n:Candidate) REQUIRE (n.deal_code, n.iteration, n.uc, n.pattern) IS UNIQUE;
+CREATE CONSTRAINT selection_key IF NOT EXISTS FOR (n:Selection) REQUIRE (n.deal_code, n.iteration, n.uc) IS UNIQUE;
+CREATE CONSTRAINT plan_task_key IF NOT EXISTS FOR (n:PlanTask) REQUIRE (n.deal_code, n.iteration, n.id) IS UNIQUE;
+CREATE CONSTRAINT roadmap_key IF NOT EXISTS FOR (n:Roadmap) REQUIRE (n.deal_code, n.version) IS UNIQUE;
+CREATE CONSTRAINT capability_decision_key IF NOT EXISTS FOR (n:CapabilityDecision) REQUIRE (n.deal_code, n.iteration, n.capability_id) IS UNIQUE;
+CREATE CONSTRAINT gate_decision_key IF NOT EXISTS FOR (n:GateDecision) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT feedback_key IF NOT EXISTS FOR (n:Feedback) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT override_key IF NOT EXISTS FOR (n:Override) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT actual_key IF NOT EXISTS FOR (n:Actual) REQUIRE (n.deal_code, n.plan_task_id) IS UNIQUE;
+CREATE CONSTRAINT ontology_term_key IF NOT EXISTS FOR (n:OntologyTerm) REQUIRE (n.kind, n.name) IS UNIQUE;
+CREATE INDEX finding_deal_code IF NOT EXISTS FOR (n:Finding) ON (n.deal_code);
+CREATE INDEX source_deal_code IF NOT EXISTS FOR (n:Source) ON (n.deal_code);
+CREATE INDEX iteration_deal_code IF NOT EXISTS FOR (n:Iteration) ON (n.deal_code);
+CREATE INDEX framed_use_case_deal_code IF NOT EXISTS FOR (n:FramedUseCase) ON (n.deal_code);
+CREATE INDEX candidate_deal_code IF NOT EXISTS FOR (n:Candidate) ON (n.deal_code);
+CREATE INDEX selection_deal_code IF NOT EXISTS FOR (n:Selection) ON (n.deal_code);
+CREATE INDEX plan_task_deal_code IF NOT EXISTS FOR (n:PlanTask) ON (n.deal_code);
+CREATE INDEX roadmap_deal_code IF NOT EXISTS FOR (n:Roadmap) ON (n.deal_code);
+CREATE INDEX capability_decision_deal_code IF NOT EXISTS FOR (n:CapabilityDecision) ON (n.deal_code);
+CREATE INDEX gate_decision_deal_code IF NOT EXISTS FOR (n:GateDecision) ON (n.deal_code);
+CREATE INDEX feedback_deal_code IF NOT EXISTS FOR (n:Feedback) ON (n.deal_code);
+CREATE INDEX override_deal_code IF NOT EXISTS FOR (n:Override) ON (n.deal_code);
+CREATE INDEX actual_deal_code IF NOT EXISTS FOR (n:Actual) ON (n.deal_code);

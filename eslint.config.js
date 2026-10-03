@@ -12,4 +12,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
+  {
+    // Tests index into known fixtures; a wrong index fails the test anyway.
+    files: ['**/test/**/*.ts', 'tests/**/*.ts', 'gotchas/**/*.ts'],
+    rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
+  },
 );

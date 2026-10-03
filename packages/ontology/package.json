@@ -1,0 +1,13 @@
+{
+  "name": "@planner/ontology",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Core ontology from config/ontology.json: typed accessors and schema DDL. Pure, no I/O.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  }
+}

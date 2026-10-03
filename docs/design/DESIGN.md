@@ -78,7 +78,7 @@ Everything else is deterministic code or Cypher.
   - `(Roadmap)-[:INCLUDES]->(Selection)`
   - `(Deal)-[:HAS_DECISION]->(CapabilityDecision)`
 - **Decisions:**
-  - `(GateDecision)-[:DECIDED_ON]->(any plan node)`
+  - `(GateDecision)-[:DECIDED_ON]->(any plan node | OntologyTerm)` (an `ontology_term` or `ontology_promote` gate decides on the term)
   - `(Feedback)-[:ON]->(any plan node)`
   - `(Feedback)-[:FROM]->(GateDecision)`
   - `(Feedback)-[:RESOLVED_BY]->(any plan node)`
@@ -88,6 +88,8 @@ Everything else is deterministic code or Cypher.
 - **Meta:**
   - `(OntologyTerm)-[:MOTIVATED_BY]->(Finding)`
   - `(OntologyTerm)-[:APPROVED_BY]->(GateDecision)`
+
+"Any plan node" means any label in the Plan subgraph of §1.1: `Iteration`, `FramedUseCase`, `Candidate`, `Selection`, `PlanTask`, `Roadmap`, `CapabilityDecision`.
 
 **Direction convention:** `DEPENDS_ON` points from the dependent to its prerequisite. Scheduling projections flip it (§5.2).
 
@@ -104,6 +106,12 @@ Everything else is deterministic code or Cypher.
 - `get_ontology` (core terms, merged with active `OntologyTerm`s).
 
 A change to §1.1 or §1.2 must change `config/ontology.json` in the same commit; a test asserts they agree.
+
+**Generated DDL.** `graph/schema.cypher` is generated from `config/ontology.json` (`npm run schema:gen`) and committed; a test asserts the file matches. It contains:
+- one uniqueness constraint per label key, named `<label_snake>_key` (23);
+- one range index on `deal_code`, named `<label_snake>_deal_code`, for every per-deal label that carries a `deal_code` property (13: every Evidence, Plan, and Decisions label except `Deal`, whose `code` constraint already indexes it).
+
+All statements use `IF NOT EXISTS`, so applying the file is idempotent. Property types are not yet part of the ontology file; they are added with the data schemas (T1.3).
 
 ---
 

@@ -1,0 +1,972 @@
+{
+  "$comment": "Core ontology. Single source for schema DDL, loader validation, guard G5-G7, and get_ontology. Must match docs/design/DESIGN.md \u00a71.1-\u00a71.2 (tested).",
+  "version": 1,
+  "labels": [
+    {
+      "name": "Strategy",
+      "subgraph": "knowledge",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "description"
+      ],
+      "enums": {},
+      "perDeal": false,
+      "reserved": false
+    },
+    {
+      "name": "Track",
+      "subgraph": "knowledge",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "name",
+        "order"
+      ],
+      "enums": {},
+      "perDeal": false,
+      "reserved": false
+    },
+    {
+      "name": "UseCase",
+      "subgraph": "knowledge",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "display",
+        "description"
+      ],
+      "enums": {},
+      "perDeal": false,
+      "reserved": false
+    },
+    {
+      "name": "Pattern",
+      "subgraph": "knowledge",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "name",
+        "description",
+        "reference"
+      ],
+      "enums": {},
+      "perDeal": false,
+      "reserved": false
+    },
+    {
+      "name": "Task",
+      "subgraph": "knowledge",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "summary",
+        "weeks_o",
+        "weeks_e",
+        "weeks_p",
+        "skill"
+      ],
+      "enums": {},
+      "perDeal": false,
+      "reserved": false
+    },
+    {
+      "name": "CapabilityType",
+      "subgraph": "knowledge",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "name"
+      ],
+      "enums": {},
+      "perDeal": false,
+      "reserved": false
+    },
+    {
+      "name": "BuildOption",
+      "subgraph": "knowledge",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "weeks_o",
+        "weeks_e",
+        "weeks_p",
+        "confidence",
+        "source"
+      ],
+      "enums": {},
+      "perDeal": false,
+      "reserved": false
+    },
+    {
+      "name": "PlatformCapability",
+      "subgraph": "knowledge",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "name"
+      ],
+      "enums": {},
+      "perDeal": false,
+      "reserved": false
+    },
+    {
+      "name": "Deal",
+      "subgraph": "evidence",
+      "key": [
+        "code"
+      ],
+      "required": [
+        "target_company",
+        "acquirer",
+        "strategy",
+        "status"
+      ],
+      "enums": {},
+      "perDeal": true,
+      "reserved": false,
+      "dealProperty": "code"
+    },
+    {
+      "name": "Finding",
+      "subgraph": "evidence",
+      "key": [
+        "deal_code",
+        "id"
+      ],
+      "required": [
+        "kind",
+        "text",
+        "severity",
+        "confidence",
+        "evidence_type"
+      ],
+      "enums": {
+        "kind": [
+          "capability",
+          "gap",
+          "risk",
+          "assumption",
+          "service"
+        ]
+      },
+      "perDeal": true,
+      "reserved": false,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "Source",
+      "subgraph": "evidence",
+      "key": [
+        "deal_code",
+        "id"
+      ],
+      "required": [
+        "type",
+        "uri"
+      ],
+      "enums": {},
+      "perDeal": true,
+      "reserved": false,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "Iteration",
+      "subgraph": "plan",
+      "key": [
+        "deal_code",
+        "n"
+      ],
+      "required": [
+        "started_at",
+        "status"
+      ],
+      "enums": {},
+      "perDeal": true,
+      "reserved": false,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "FramedUseCase",
+      "subgraph": "plan",
+      "key": [
+        "deal_code",
+        "iteration",
+        "id"
+      ],
+      "required": [
+        "framing_rationale",
+        "use_case_id"
+      ],
+      "enums": {},
+      "perDeal": true,
+      "reserved": false,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "Candidate",
+      "subgraph": "plan",
+      "key": [
+        "deal_code",
+        "iteration",
+        "uc",
+        "pattern"
+      ],
+      "required": [
+        "fit_score",
+        "band",
+        "signal_snapshot"
+      ],
+      "enums": {},
+      "perDeal": true,
+      "reserved": false,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "Selection",
+      "subgraph": "plan",
+      "key": [
+        "deal_code",
+        "iteration",
+        "uc"
+      ],
+      "required": [
+        "pattern",
+        "fit_score",
+        "rationale",
+        "status"
+      ],
+      "enums": {
+        "status": [
+          "draft",
+          "committed"
+        ]
+      },
+      "perDeal": true,
+      "reserved": false,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "PlanTask",
+      "subgraph": "plan",
+      "key": [
+        "deal_code",
+        "iteration",
+        "id"
+      ],
+      "required": [
+        "task_id",
+        "weeks_o",
+        "weeks_e",
+        "weeks_p",
+        "skill",
+        "on_critical_path",
+        "earliest_start",
+        "wave"
+      ],
+      "enums": {},
+      "perDeal": true,
+      "reserved": false,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "Roadmap",
+      "subgraph": "plan",
+      "key": [
+        "deal_code",
+        "version"
+      ],
+      "required": [
+        "iteration",
+        "status",
+        "gate_id"
+      ],
+      "enums": {
+        "status": [
+          "draft",
+          "committed"
+        ]
+      },
+      "perDeal": true,
+      "reserved": false,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "CapabilityDecision",
+      "subgraph": "plan",
+      "key": [
+        "deal_code",
+        "iteration",
+        "capability_id"
+      ],
+      "required": [
+        "outcome",
+        "integrate_effort",
+        "build_effort",
+        "coverage",
+        "rule_version"
+      ],
+      "enums": {},
+      "perDeal": true,
+      "reserved": false,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "GateDecision",
+      "subgraph": "decisions",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "deal_code",
+        "iteration",
+        "gate",
+        "status",
+        "comment",
+        "by",
+        "at"
+      ],
+      "enums": {
+        "status": [
+          "pending",
+          "approved",
+          "rejected"
+        ]
+      },
+      "perDeal": true,
+      "reserved": true,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "Feedback",
+      "subgraph": "decisions",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "deal_code",
+        "text",
+        "status"
+      ],
+      "enums": {
+        "status": [
+          "open",
+          "resolved"
+        ]
+      },
+      "perDeal": true,
+      "reserved": true,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "Override",
+      "subgraph": "decisions",
+      "key": [
+        "id"
+      ],
+      "required": [
+        "deal_code",
+        "kind",
+        "subject",
+        "active"
+      ],
+      "enums": {
+        "kind": [
+          "exclude_pattern",
+          "pin_pattern",
+          "include_use_case",
+          "exclude_use_case",
+          "strategy_for",
+          "directive"
+        ]
+      },
+      "perDeal": true,
+      "reserved": true,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "Actual",
+      "subgraph": "decisions",
+      "key": [
+        "deal_code",
+        "plan_task_id"
+      ],
+      "required": [
+        "task_id",
+        "weeks_actual",
+        "completed_at"
+      ],
+      "enums": {},
+      "perDeal": true,
+      "reserved": true,
+      "dealProperty": "deal_code"
+    },
+    {
+      "name": "OntologyTerm",
+      "subgraph": "meta",
+      "key": [
+        "kind",
+        "name"
+      ],
+      "required": [
+        "scope",
+        "status",
+        "definition",
+        "example",
+        "version"
+      ],
+      "enums": {
+        "status": [
+          "proposed",
+          "active",
+          "rejected"
+        ]
+      },
+      "perDeal": false,
+      "reserved": true
+    }
+  ],
+  "relationships": [
+    {
+      "type": "SOLVES",
+      "endpoints": [
+        {
+          "from": [
+            "Pattern"
+          ],
+          "to": [
+            "UseCase"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "APPLIES_TO",
+      "endpoints": [
+        {
+          "from": [
+            "Pattern"
+          ],
+          "to": [
+            "Strategy"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "IN_TRACK",
+      "endpoints": [
+        {
+          "from": [
+            "Pattern"
+          ],
+          "to": [
+            "Track"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "HAS_TASK",
+      "endpoints": [
+        {
+          "from": [
+            "Pattern"
+          ],
+          "to": [
+            "Task"
+          ]
+        },
+        {
+          "from": [
+            "Selection"
+          ],
+          "to": [
+            "PlanTask"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "DEPENDS_ON",
+      "endpoints": [
+        {
+          "from": [
+            "Task"
+          ],
+          "to": [
+            "Task"
+          ]
+        },
+        {
+          "from": [
+            "PlanTask"
+          ],
+          "to": [
+            "PlanTask"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "REQUIRES",
+      "endpoints": [
+        {
+          "from": [
+            "Pattern"
+          ],
+          "to": [
+            "Pattern"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "CONFLICTS",
+      "endpoints": [
+        {
+          "from": [
+            "Pattern"
+          ],
+          "to": [
+            "Pattern"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "AUGMENTS",
+      "endpoints": [
+        {
+          "from": [
+            "Pattern"
+          ],
+          "to": [
+            "Pattern"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "SUPERSEDES",
+      "endpoints": [
+        {
+          "from": [
+            "Pattern"
+          ],
+          "to": [
+            "Pattern"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "DELIVERS",
+      "endpoints": [
+        {
+          "from": [
+            "BuildOption"
+          ],
+          "to": [
+            "CapabilityType"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "PROVIDES",
+      "endpoints": [
+        {
+          "from": [
+            "PlatformCapability"
+          ],
+          "to": [
+            "CapabilityType"
+          ]
+        }
+      ],
+      "properties": [
+        "coverage"
+      ]
+    },
+    {
+      "type": "HAS_FINDING",
+      "endpoints": [
+        {
+          "from": [
+            "Deal"
+          ],
+          "to": [
+            "Finding"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "SUPPORTED_BY",
+      "endpoints": [
+        {
+          "from": [
+            "Finding"
+          ],
+          "to": [
+            "Source"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "CALLS",
+      "endpoints": [
+        {
+          "from": [
+            "Finding"
+          ],
+          "to": [
+            "Finding"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "IS_A",
+      "endpoints": [
+        {
+          "from": [
+            "Finding"
+          ],
+          "to": [
+            "CapabilityType"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "HAS_ITERATION",
+      "endpoints": [
+        {
+          "from": [
+            "Deal"
+          ],
+          "to": [
+            "Iteration"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "IN_ITERATION",
+      "endpoints": [
+        {
+          "from": [
+            "FramedUseCase",
+            "Selection",
+            "PlanTask",
+            "Candidate"
+          ],
+          "to": [
+            "Iteration"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "FRAMED_FROM",
+      "endpoints": [
+        {
+          "from": [
+            "FramedUseCase"
+          ],
+          "to": [
+            "Finding"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "INSTANCE_OF",
+      "endpoints": [
+        {
+          "from": [
+            "FramedUseCase"
+          ],
+          "to": [
+            "UseCase"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "FOR",
+      "endpoints": [
+        {
+          "from": [
+            "Candidate",
+            "Selection"
+          ],
+          "to": [
+            "FramedUseCase"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "OF",
+      "endpoints": [
+        {
+          "from": [
+            "Candidate"
+          ],
+          "to": [
+            "Pattern"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "ALTERNATIVE_TO",
+      "endpoints": [
+        {
+          "from": [
+            "Candidate"
+          ],
+          "to": [
+            "Selection"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "SELECTS",
+      "endpoints": [
+        {
+          "from": [
+            "Selection"
+          ],
+          "to": [
+            "Pattern"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "INSTANTIATES",
+      "endpoints": [
+        {
+          "from": [
+            "PlanTask"
+          ],
+          "to": [
+            "Task"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "INCLUDES",
+      "endpoints": [
+        {
+          "from": [
+            "Roadmap"
+          ],
+          "to": [
+            "Selection"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "HAS_DECISION",
+      "endpoints": [
+        {
+          "from": [
+            "Deal"
+          ],
+          "to": [
+            "CapabilityDecision"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "DECIDED_ON",
+      "endpoints": [
+        {
+          "from": [
+            "GateDecision"
+          ],
+          "to": [
+            "Iteration",
+            "FramedUseCase",
+            "Candidate",
+            "Selection",
+            "PlanTask",
+            "Roadmap",
+            "CapabilityDecision",
+            "OntologyTerm"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "ON",
+      "endpoints": [
+        {
+          "from": [
+            "Feedback"
+          ],
+          "to": [
+            "Iteration",
+            "FramedUseCase",
+            "Candidate",
+            "Selection",
+            "PlanTask",
+            "Roadmap",
+            "CapabilityDecision"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "FROM",
+      "endpoints": [
+        {
+          "from": [
+            "Feedback"
+          ],
+          "to": [
+            "GateDecision"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "RESOLVED_BY",
+      "endpoints": [
+        {
+          "from": [
+            "Feedback"
+          ],
+          "to": [
+            "Iteration",
+            "FramedUseCase",
+            "Candidate",
+            "Selection",
+            "PlanTask",
+            "Roadmap",
+            "CapabilityDecision"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "CONSTRAINS",
+      "endpoints": [
+        {
+          "from": [
+            "Override"
+          ],
+          "to": [
+            "UseCase",
+            "Pattern",
+            "Strategy"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "CREATED",
+      "endpoints": [
+        {
+          "from": [
+            "GateDecision"
+          ],
+          "to": [
+            "Override"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "OBSERVED_FOR",
+      "endpoints": [
+        {
+          "from": [
+            "Actual"
+          ],
+          "to": [
+            "PlanTask"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "MOTIVATED_BY",
+      "endpoints": [
+        {
+          "from": [
+            "OntologyTerm"
+          ],
+          "to": [
+            "Finding"
+          ]
+        }
+      ],
+      "properties": []
+    },
+    {
+      "type": "APPROVED_BY",
+      "endpoints": [
+        {
+          "from": [
+            "OntologyTerm"
+          ],
+          "to": [
+            "GateDecision"
+          ]
+        }
+      ],
+      "properties": []
+    }
+  ]
+}
