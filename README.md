@@ -30,3 +30,14 @@ npm run mcp:neo4j:install       # pinned official Neo4j MCP server, checksum-ver
 | `planner-engine` | This repo's pure planning functions (`npm run mcp:engine`) |
 
 They connect with `NEO4J_URI`, `NEO4J_USERNAME`, and `NEO4J_PASSWORD`, which default to the Docker setup. In Claude Code, `/mcp` shows their status.
+
+## The planner agent (Claude Code plugin)
+
+```bash
+claude plugin marketplace add .        # this repo is its own marketplace
+claude plugin install planner@nodes26
+```
+
+Then, in Claude Code inside this repo: `/agents` → **planner** → "Plan the Nimbus integration". Approve each gate in the console at http://127.0.0.1:4646/. The write guard runs on every `write-cypher` call, and its decisions are logged to `.logs/guard.jsonl`.
+
+`npm run check:tools` checks that the skill, the agent's tool allowlist, and the served tools agree.

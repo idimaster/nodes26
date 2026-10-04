@@ -283,7 +283,7 @@ When unsure, the guard denies. Every decision, allow or deny, is logged with its
 - It prints a `deny` decision with the reason, or nothing on allow. It never auto-approves, so the user's permission settings still apply.
 - It **fails closed**: unreadable input or an unreachable graph is a deny.
 - It logs one JSON line per decision to `.logs/guard.jsonl`.
-- It is registered in `hooks/hooks.json` (plugin) and, until the plugin exists (T2.6), in the project `.claude/settings.json`.
+- It is registered **only** in the project `.claude/settings.json`. The MCP servers are project-level (`.mcp.json`), so whenever `neo4j-write` exists, its guard exists, whether or not the plugin is installed. Registering it in the plugin as well would run it twice.
 
 ---
 
@@ -367,7 +367,13 @@ Rules:
 
 ---
 
-## 6. Agent workflow (`skills/plan-integration/SKILL.md`)
+## 6. Agent workflow (`plugin/skills/plan-integration/SKILL.md`)
+
+**Packaging.** The plugin lives in `plugin/` (`plugin/.claude-plugin/plugin.json`, `plugin/agents/planner.md`, `plugin/skills/plan-integration/SKILL.md`), and `.claude-plugin/marketplace.json` at the repo root lets `claude plugin marketplace add .` install it.
+- It is a subdirectory on purpose: a plugin root's `.mcp.json` and `hooks/hooks.json` are auto-loaded. The repo root's servers would be registered a second time under `mcp__plugin_…` names, and the guard would run twice.
+- The plugin carries the agent and the skill only. Servers, the guard hook, and `MCP_TOOL_TIMEOUT` (which a plugin cannot set) come from the project settings.
+
+**Tool surface** (`npm run check:tools`, gotcha 03): the `mcp__…` tools named in the skill must equal the agent's `tools:` allowlist; every granted tool must be served by a `.mcp.json` server (the check launches them); and every served `…__write-cypher` must be matched by a guard hook. Read queries the skill uses are named blocks inside `SKILL.md`, and an end-to-end test (`tests/e2e/nimbus-skill-walk.test.ts`) runs them.
 
 1. **Ground.** Call `get_ontology`, then `get-schema`. Read the deal's findings and prior-project estimates.
 2. **Ingest.** Run `classify_finding` on each finding, then write Finding and Source nodes.

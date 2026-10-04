@@ -11,10 +11,9 @@ const read = (p: string) => JSON.parse(readFileSync(join(ROOT, p), 'utf8')) as {
 };
 const mcp = JSON.parse(readFileSync(join(ROOT, '.mcp.json'), 'utf8')) as { mcpServers: Record<string, unknown> };
 
-describe.each([
-  ['hooks/hooks.json (plugin)', 'hooks/hooks.json', '${CLAUDE_PLUGIN_ROOT}'],
-  ['.claude/settings.json (project)', '.claude/settings.json', '$CLAUDE_PROJECT_DIR'],
-])('%s', (_name, file, rootVar) => {
+// The MCP servers are project-level (.mcp.json), so the guard is registered at project level too:
+// whenever neo4j-write exists, its guard exists (DESIGN §3). The plugin carries no hook.
+describe.each([['.claude/settings.json (project)', '.claude/settings.json', '$CLAUDE_PROJECT_DIR']])('%s', (_name, file, rootVar) => {
   const entries = read(file).hooks.PreToolUse;
 
   it('guards exactly mcp__neo4j-write__write-cypher, a server .mcp.json declares', () => {
@@ -28,5 +27,13 @@ describe.each([
     expect(hook?.command).toBe(`"${rootVar}/node_modules/.bin/tsx" "${rootVar}/packages/guard/bin/guard-hook.ts"`);
     expect(existsSync(join(ROOT, 'packages/guard/bin/guard-hook.ts'))).toBe(true);
     expect(hook?.timeout).toBeGreaterThanOrEqual(10);
+  });
+});
+
+describe('the plugin does not bundle servers or hooks of its own', () => {
+  it('has no .mcp.json or hooks/hooks.json under plugin/', () => {
+    expect(existsSync(join(ROOT, 'plugin/.mcp.json'))).toBe(false);
+    expect(existsSync(join(ROOT, 'plugin/hooks/hooks.json'))).toBe(false);
+    expect(existsSync(join(ROOT, 'hooks/hooks.json'))).toBe(false);
   });
 });
