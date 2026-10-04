@@ -42,49 +42,49 @@
       {
         "deal_code": "quarry",
         "iteration": 1,
-        "id": "fuc-identity-federation-trust",
+        "id": "identity-federation-trust",
         "framing_rationale": "Framed during the quarry integration.",
         "use_case_id": "identity-federation-trust"
       },
       {
         "deal_code": "quarry",
         "iteration": 1,
-        "id": "fuc-workforce-sso",
+        "id": "workforce-sso",
         "framing_rationale": "Framed during the quarry integration.",
         "use_case_id": "workforce-sso"
       },
       {
         "deal_code": "quarry",
         "iteration": 1,
-        "id": "fuc-api-consolidation",
+        "id": "api-consolidation",
         "framing_rationale": "Framed during the quarry integration.",
         "use_case_id": "api-consolidation"
       },
       {
         "deal_code": "quarry",
         "iteration": 1,
-        "id": "fuc-legacy-api-retirement",
+        "id": "legacy-api-retirement",
         "framing_rationale": "Framed during the quarry integration.",
         "use_case_id": "legacy-api-retirement"
       },
       {
         "deal_code": "quarry",
         "iteration": 1,
-        "id": "fuc-cloud-account-consolidation",
+        "id": "cloud-account-consolidation",
         "framing_rationale": "Framed during the quarry integration.",
         "use_case_id": "cloud-account-consolidation"
       },
       {
         "deal_code": "quarry",
         "iteration": 1,
-        "id": "fuc-data-migration",
+        "id": "data-migration",
         "framing_rationale": "Framed during the quarry integration.",
         "use_case_id": "data-migration"
       },
       {
         "deal_code": "quarry",
         "iteration": 1,
-        "id": "fuc-incident-management",
+        "id": "incident-management",
         "framing_rationale": "Framed during the quarry integration.",
         "use_case_id": "incident-management"
       }
@@ -706,7 +706,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-identity-federation-trust"
+            "id": "identity-federation-trust"
           }
         },
         "to": {
@@ -801,7 +801,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-workforce-sso"
+            "id": "workforce-sso"
           }
         },
         "to": {
@@ -915,7 +915,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-api-consolidation"
+            "id": "api-consolidation"
           }
         },
         "to": {
@@ -1010,7 +1010,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-legacy-api-retirement"
+            "id": "legacy-api-retirement"
           }
         },
         "to": {
@@ -1124,7 +1124,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-cloud-account-consolidation"
+            "id": "cloud-account-consolidation"
           }
         },
         "to": {
@@ -1238,7 +1238,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-data-migration"
+            "id": "data-migration"
           }
         },
         "to": {
@@ -1352,7 +1352,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-incident-management"
+            "id": "incident-management"
           }
         },
         "to": {
@@ -1449,7 +1449,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-identity-federation-trust"
+            "id": "identity-federation-trust"
           }
         },
         "to": {
@@ -1467,7 +1467,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-workforce-sso"
+            "id": "workforce-sso"
           }
         },
         "to": {
@@ -1485,7 +1485,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-api-consolidation"
+            "id": "api-consolidation"
           }
         },
         "to": {
@@ -1503,7 +1503,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-legacy-api-retirement"
+            "id": "legacy-api-retirement"
           }
         },
         "to": {
@@ -1521,7 +1521,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-cloud-account-consolidation"
+            "id": "cloud-account-consolidation"
           }
         },
         "to": {
@@ -1539,7 +1539,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-data-migration"
+            "id": "data-migration"
           }
         },
         "to": {
@@ -1557,7 +1557,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-incident-management"
+            "id": "incident-management"
           }
         },
         "to": {
@@ -1585,7 +1585,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-identity-federation-trust"
+            "id": "identity-federation-trust"
           }
         },
         "props": {}
@@ -1605,7 +1605,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-workforce-sso"
+            "id": "workforce-sso"
           }
         },
         "props": {}
@@ -1625,7 +1625,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-api-consolidation"
+            "id": "api-consolidation"
           }
         },
         "props": {}
@@ -1645,7 +1645,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-legacy-api-retirement"
+            "id": "legacy-api-retirement"
           }
         },
         "props": {}
@@ -1665,7 +1665,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-cloud-account-consolidation"
+            "id": "cloud-account-consolidation"
           }
         },
         "props": {}
@@ -1685,7 +1685,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-data-migration"
+            "id": "data-migration"
           }
         },
         "props": {}
@@ -1705,7 +1705,7 @@
           "key": {
             "deal_code": "quarry",
             "iteration": 1,
-            "id": "fuc-incident-management"
+            "id": "incident-management"
           }
         },
         "props": {}

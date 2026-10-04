@@ -1,10 +1,10 @@
+import { computeSchedule, instantiateTasks } from '@planner/engine';
 import type { z } from 'zod';
 import type { evidenceType, findingKind } from './authoring.js';
 import { DATA_DIR, GENERATED, readCatalog, readDataset, readHistorySpec } from './io.js';
 import { manifestOf } from './metrics.js';
 import { dealRef, ref, taskId, type Catalog } from './normalize.js';
 import { between, pick, rng, round, shuffle } from './rng.js';
-import { scheduleFields } from './schedule.js';
 import { addNode, addRel, emptyDataset, must, type Dataset, type NodeRef } from './types.js';
 
 /** Fixed seed (DATA.md). Changing it changes every generated number in the talk. */
@@ -105,33 +105,27 @@ function historyDeal(r: () => number, catalog: Catalog, d: ReturnType<typeof rea
   addNode(ds, 'Iteration', { deal_code: deal, n: it, started_at: d.started_at, status: 'committed' });
   addRel(ds, 'HAS_ITERATION', dealNode, iterRef);
 
-  // PlanTasks for every selection, before scheduling.
-  const planTasks: { id: string; uc: string; taskId: string; weeks: [number, number, number]; skill: string; deps: string[] }[] = [];
-  for (const s of d.selections) {
+  // PlanTasks and their dependencies come from the engine, exactly as in a live plan.
+  const selections = d.selections.map((s) => {
     const p = patterns.get(s.pattern);
     if (!p) throw new Error(`history ${deal}: unknown pattern ${s.pattern}`);
     if (!p.solves.includes(s.use_case)) throw new Error(`history ${deal}: ${s.pattern} does not solve ${s.use_case}`);
-    for (const t of p.tasks) {
-      planTasks.push({
-        id: `${s.use_case}:${taskId(p.id, t.id)}`,
-        uc: s.use_case,
-        taskId: taskId(p.id, t.id),
-        weeks: t.weeks,
+    return {
+      uc: s.use_case,
+      pattern: p.id,
+      requires: p.requires,
+      tasks: p.tasks.map((t) => ({
+        id: taskId(p.id, t.id),
+        weeks_o: t.weeks[0],
+        weeks_e: t.weeks[1],
+        weeks_p: t.weeks[2],
         skill: t.skill,
-        deps: t.depends_on.map((x) => `${s.use_case}:${taskId(p.id, x)}`),
-      });
-    }
-  }
-  for (const s of d.selections) {
-    const required = must(patterns.get(s.pattern), `pattern ${s.pattern}`).requires;
-    const prereqSelections = d.selections.filter((o) => required.includes(o.pattern));
-    const prereqSinks = prereqSelections.flatMap((o) => {
-      const own = planTasks.filter((t) => t.uc === o.use_case);
-      return own.filter((t) => !own.some((x) => x.deps.includes(t.id))).map((t) => t.id);
-    });
-    for (const t of planTasks.filter((x) => x.uc === s.use_case && x.deps.length === 0)) t.deps.push(...prereqSinks);
-  }
-  const schedule = scheduleFields(planTasks.map((t) => ({ id: t.id, weeks_e: t.weeks[1], deps: t.deps })));
+        depends_on: t.depends_on.map((x) => taskId(p.id, x)),
+      })),
+    };
+  });
+  const { plan_tasks, depends_on } = instantiateTasks({ deal, iteration: it, selections });
+  const schedule = new Map(computeSchedule(plan_tasks, depends_on).tasks.map((t) => [t.id, t]));
 
   const gateId = `gd-${deal}-commit-${it}`;
   addNode(ds, 'GateDecision', {
@@ -149,12 +143,12 @@ function historyDeal(r: () => number, catalog: Catalog, d: ReturnType<typeof rea
   addRel(ds, 'DECIDED_ON', ref('GateDecision', gateId), roadmapRef);
 
   for (const s of d.selections) {
-    const fuc = planRef('FramedUseCase', `fuc-${s.use_case}`);
+    const fuc = planRef('FramedUseCase', s.use_case);
     const sel: NodeRef = { label: 'Selection', key: { deal_code: deal, iteration: it, uc: s.use_case } };
     addNode(ds, 'FramedUseCase', {
       deal_code: deal,
       iteration: it,
-      id: `fuc-${s.use_case}`,
+      id: s.use_case,
       framing_rationale: `Framed during the ${deal} integration.`,
       use_case_id: s.use_case,
     });
@@ -174,32 +168,32 @@ function historyDeal(r: () => number, catalog: Catalog, d: ReturnType<typeof rea
     addRel(ds, 'SELECTS', sel, ref('Pattern', s.pattern));
     addRel(ds, 'INCLUDES', roadmapRef, sel);
 
-    for (const t of planTasks.filter((x) => x.uc === s.use_case)) {
+    for (const t of plan_tasks.filter((x) => x.uc === s.use_case)) {
       const f = must(schedule.get(t.id), `schedule for ${t.id}`);
       const pt = planRef('PlanTask', t.id);
       addNode(ds, 'PlanTask', {
         deal_code: deal,
         iteration: it,
         id: t.id,
-        task_id: t.taskId,
-        weeks_o: t.weeks[0],
-        weeks_e: t.weeks[1],
-        weeks_p: t.weeks[2],
+        task_id: t.task_id,
+        weeks_o: t.weeks_o,
+        weeks_e: t.weeks_e,
+        weeks_p: t.weeks_p,
         skill: t.skill,
         on_critical_path: f.on_critical_path,
-        earliest_start: round(f.earliest_start, 6),
+        earliest_start: f.earliest_start,
         wave: f.wave,
       });
       addRel(ds, 'IN_ITERATION', pt, iterRef);
       addRel(ds, 'HAS_TASK', sel, pt);
-      addRel(ds, 'INSTANTIATES', pt, ref('Task', t.taskId));
-      for (const dep of t.deps) addRel(ds, 'DEPENDS_ON', pt, planRef('PlanTask', dep));
+      addRel(ds, 'INSTANTIATES', pt, ref('Task', t.task_id));
+      for (const dep of depends_on.filter((e) => e.from === t.id)) addRel(ds, 'DEPENDS_ON', pt, planRef('PlanTask', dep.to));
 
-      const weeksActual = round(t.weeks[1] * between(r, 0.8, 1.5), 1);
+      const weeksActual = round(t.weeks_e * between(r, 0.8, 1.5), 1);
       addNode(ds, 'Actual', {
         deal_code: deal,
         plan_task_id: t.id,
-        task_id: t.taskId,
+        task_id: t.task_id,
         weeks_actual: weeksActual,
         completed_at: isoPlusWeeks(d.started_at, f.earliest_start + weeksActual),
       });

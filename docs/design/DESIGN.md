@@ -95,6 +95,8 @@ Everything else is deterministic code or Cypher.
 
 ### 1.3 Conventions
 - Every per-deal node carries `deal_code`. Every per-deal query takes `$deal`.
+- `uc` (on Candidate, Selection, and in PlanTask ids) is always a catalog `UseCase` id. A FramedUseCase's `id` equals its `use_case_id`: one framing per use case per iteration, framed from one or more findings.
+- `Iteration`, `FramedUseCase`, `Selection`, `PlanTask`, and `Roadmap` carry `status` ∈ {draft, committed} (Candidates and CapabilityDecisions are scored outputs, without status); `Finding.classified_as` stores the `classify_finding` result next to the original `kind`.
 - `PlanTask.id` is `<uc>:<Task.id>` (the use case of its Selection, then the catalog task), so it is unique within an iteration even when a pattern is selected for two use cases.
 - A draft plan is the set of nodes in the current `Iteration` with `status: 'draft'`. Promotion to `committed` requires an approved gate (§3, §4).
 - Deal-scoped ontology terms (`scope = $deal`) are usable only in that deal. Promotion to `global` is a separate gate.
@@ -136,10 +138,10 @@ All statements use `IF NOT EXISTS`, so applying the file is idempotent.
 | `classify_finding` | finding with evidence | `gap` \| `assumption` \| `capability` \| `risk` \| `service` (§2.1) |
 | `analyze_pattern_fit` | `use_case`, `deal_context`, `candidates[]` (retrieved by Cypher) | Ranked `FitAnalysis[]`: score, band, signal breakdown, reuse penalty, anti-applicability flags (§2.2) |
 | `instantiate_tasks` | `deal`, `iteration`, `selections[]` | `plan_tasks[]` + `depends_on[]` (§2.3) |
-| `compute_schedule` | `plan_tasks[]`, `depends_on[]` | Critical path, `earliest_start`, waves, PERT band (§2.3). Kahn longest path; **errors with a cycle witness on cyclic input** |
+| `compute_schedule` | `plan_tasks[]`, `depends_on[]` | Critical path, `earliest_start`, waves, PERT band (§2.3). Kahn longest path; **errors with a cycle witness on cyclic input**: the cycle's ids in `DEPENDS_ON` order, starting from its smallest id, with that id repeated at the end |
 | `estimate_provenance` | task, baseline, observations[], modifiers[] | `{baseline, history_avg, n, modifiers, result, band}` (§2.4) |
-| `classify_buy_build` | rows from BB1, thresholds | Outcome per capability, plus `rule_version` (§2.5) |
-| `cypher_template` | template name | `{query, params_schema}` for standard writes |
+| `classify_buy_build` | rows from BB1, thresholds | Outcome per capability, plus `rule_version` (§2.6) |
+| `cypher_template` | template name | `{query, params_schema, destructive}` for the standard writes in §2.5 |
 
 Every number below lives in `config/thresholds.json`, not in code:
 
@@ -200,7 +202,31 @@ For one framed use case, each candidate pattern scores the sum of five signals (
 
 `result` = blended × the product of every modifier's `factor`, rounded to 1 decimal. `band` = [`weeks_o`, `weeks_p`] × `result` ÷ `baseline`, each rounded to 1 decimal.
 
-### 2.5 Buy vs build
+### 2.5 Cypher templates
+`packages/engine/src/templates.ts` holds the agent's standard writes. Each follows the CLAUDE.md Cypher style and wraps integer parameters in `toInteger()`, because MCP hosts pass JSON numbers that would otherwise be stored as floats.
+
+| Template | Writes |
+|---|---|
+| `set_deal_strategy` | `Deal.strategy` after the frame gate |
+| `create_iteration` | `Iteration` (draft) + `HAS_ITERATION` |
+| `classify_findings` | `Finding.classified_as` |
+| `write_framed_use_cases` | `FramedUseCase` + `IN_ITERATION`, `INSTANCE_OF`, `FRAMED_FROM` |
+| `write_candidates` | `Candidate` + `IN_ITERATION`, `FOR`, `OF` |
+| `write_selections` | `Selection` (draft) + `IN_ITERATION`, `FOR`, `SELECTS`; other candidates `ALTERNATIVE_TO` it |
+| `replace_selection` | **destructive.** Repairs a *draft* Selection: deletes its `SELECTS`, its PlanTasks, and its `ALTERNATIVE_TO` edges, then re-points it. The agent then re-runs `instantiate_tasks` + `write_plan_tasks` |
+| `write_plan_tasks` | `PlanTask` + `IN_ITERATION`, `HAS_TASK`, `INSTANTIATES`, `DEPENDS_ON` |
+| `write_schedule` | `earliest_start`, `wave`, `on_critical_path` |
+| `commit_roadmap` | `Roadmap` (committed) + `INCLUDES`; promotes the iteration's plan nodes (needs G8) |
+| `write_capability_decisions` | `CapabilityDecision` + `HAS_DECISION` (allowed after commit: buy vs build is step 11) |
+
+**Safety contract**, tested against Neo4j:
+- Plan writes (`write_framed_use_cases` to `write_schedule`, and `replace_selection`) only touch a **draft** iteration. On a committed one they write nothing.
+- `status` is set to `draft` only `ON CREATE`, so re-running a template never demotes a committed node. Only `commit_roadmap` writes `committed`.
+- `write_selections` never re-points an existing Selection: a different pattern for the same use case is returned in `rejected`. Re-pointing is `replace_selection`'s job. It refuses (returns no rows) when any of the Selection's PlanTasks has an `ON`, `RESOLVED_BY`, `DECIDED_ON`, or `OBSERVED_FOR` edge, so a repair never deletes what a gate, feedback, or actual refers to.
+- `commit_roadmap` refuses (no rows) to reuse a roadmap version that belongs to another iteration.
+- Templates do not throw on refused rows: they return counts, or no rows. **The skill compares every count with its input and stops on a mismatch** (an unknown use case, finding, pattern, or task id is never written).
+
+### 2.6 Buy vs build
 Each BB1 row has `capability_id`, `integrate_effort` (sum of `weeks_e` of the PlanTasks of the Selection whose framed use case is `FRAMED_FROM` the capability finding), `build_effort` (`BuildOption.weeks_e` for that `CapabilityType`), and `coverage` (the acquirer's `PROVIDES` coverage, 0 if none). Rules, first match wins (`rule_version` `bb1-v1`):
 1. `coverage` ≥ `retire_coverage` → **retire** (the acquirer's platform replaces it);
 2. `integrate_effort` ≤ `integrate_ratio` × `build_effort` → **integrate**;
@@ -220,7 +246,7 @@ The guard first **tokenizes** the query: string literals (single- and double-quo
 | Rule | Deny when |
 |---|---|
 | G1 | More than one statement (a `;` token anywhere except at the very end) |
-| G2 | `DELETE`, `DETACH`, `REMOVE`, `DROP`, `LOAD CSV`, `FOREACH`, `IN TRANSACTIONS`, or any `dbms.`/`apoc.periodic`/`apoc.cypher`/`apoc.do` name |
+| G2 | `DELETE`, `DETACH`, `REMOVE`, `DROP`, `LOAD CSV`, `FOREACH`, `IN TRANSACTIONS`, or any `dbms.`/`apoc.periodic`/`apoc.cypher`/`apoc.do` name. **One exception:** a query whose text is exactly a `cypher_template` marked `destructive` (today only `replace_selection`), with params that pass that template's schema; every other rule still applies to it |
 | G3 | A procedure `CALL` not on the allowlist (`db.labels`, `db.relationshipTypes`), or any `apoc.*` function. A `CALL {…}` or `CALL (vars) {…}` subquery is not a procedure call; its body is checked like the rest. Use the built-in `randomUUID()` for ids |
 | G4 | Unbounded variable-length pattern (`*`, `*..`, `*n..`), or an upper bound above 10 |
 | G5 | The query writes (`CREATE`, `MERGE`, `SET`) a per-deal label, but `params.deal` is missing or the query text never references `$deal` |

@@ -1,0 +1,13 @@
+{
+  "name": "@planner/engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure planner functions (DESIGN §2). No I/O; callers pass data and thresholds in.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  }
+}

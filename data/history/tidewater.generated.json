@@ -42,49 +42,49 @@
       {
         "deal_code": "tidewater",
         "iteration": 1,
-        "id": "fuc-identity-federation-trust",
+        "id": "identity-federation-trust",
         "framing_rationale": "Framed during the tidewater integration.",
         "use_case_id": "identity-federation-trust"
       },
       {
         "deal_code": "tidewater",
         "iteration": 1,
-        "id": "fuc-workforce-sso",
+        "id": "workforce-sso",
         "framing_rationale": "Framed during the tidewater integration.",
         "use_case_id": "workforce-sso"
       },
       {
         "deal_code": "tidewater",
         "iteration": 1,
-        "id": "fuc-customer-sso",
+        "id": "customer-sso",
         "framing_rationale": "Framed during the tidewater integration.",
         "use_case_id": "customer-sso"
       },
       {
         "deal_code": "tidewater",
         "iteration": 1,
-        "id": "fuc-user-provisioning",
+        "id": "user-provisioning",
         "framing_rationale": "Framed during the tidewater integration.",
         "use_case_id": "user-provisioning"
       },
       {
         "deal_code": "tidewater",
         "iteration": 1,
-        "id": "fuc-api-consolidation",
+        "id": "api-consolidation",
         "framing_rationale": "Framed during the tidewater integration.",
         "use_case_id": "api-consolidation"
       },
       {
         "deal_code": "tidewater",
         "iteration": 1,
-        "id": "fuc-partner-api-access",
+        "id": "partner-api-access",
         "framing_rationale": "Framed during the tidewater integration.",
         "use_case_id": "partner-api-access"
       },
       {
         "deal_code": "tidewater",
         "iteration": 1,
-        "id": "fuc-cloud-account-consolidation",
+        "id": "cloud-account-consolidation",
         "framing_rationale": "Framed during the tidewater integration.",
         "use_case_id": "cloud-account-consolidation"
       }
@@ -686,7 +686,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-identity-federation-trust"
+            "id": "identity-federation-trust"
           }
         },
         "to": {
@@ -781,7 +781,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-workforce-sso"
+            "id": "workforce-sso"
           }
         },
         "to": {
@@ -895,7 +895,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-customer-sso"
+            "id": "customer-sso"
           }
         },
         "to": {
@@ -1009,7 +1009,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-user-provisioning"
+            "id": "user-provisioning"
           }
         },
         "to": {
@@ -1104,7 +1104,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-api-consolidation"
+            "id": "api-consolidation"
           }
         },
         "to": {
@@ -1199,7 +1199,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-partner-api-access"
+            "id": "partner-api-access"
           }
         },
         "to": {
@@ -1294,7 +1294,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-cloud-account-consolidation"
+            "id": "cloud-account-consolidation"
           }
         },
         "to": {
@@ -1410,7 +1410,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-identity-federation-trust"
+            "id": "identity-federation-trust"
           }
         },
         "to": {
@@ -1428,7 +1428,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-workforce-sso"
+            "id": "workforce-sso"
           }
         },
         "to": {
@@ -1446,7 +1446,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-customer-sso"
+            "id": "customer-sso"
           }
         },
         "to": {
@@ -1464,7 +1464,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-user-provisioning"
+            "id": "user-provisioning"
           }
         },
         "to": {
@@ -1482,7 +1482,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-api-consolidation"
+            "id": "api-consolidation"
           }
         },
         "to": {
@@ -1500,7 +1500,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-partner-api-access"
+            "id": "partner-api-access"
           }
         },
         "to": {
@@ -1518,7 +1518,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-cloud-account-consolidation"
+            "id": "cloud-account-consolidation"
           }
         },
         "to": {
@@ -1546,7 +1546,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-identity-federation-trust"
+            "id": "identity-federation-trust"
           }
         },
         "props": {}
@@ -1566,7 +1566,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-workforce-sso"
+            "id": "workforce-sso"
           }
         },
         "props": {}
@@ -1586,7 +1586,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-customer-sso"
+            "id": "customer-sso"
           }
         },
         "props": {}
@@ -1606,7 +1606,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-user-provisioning"
+            "id": "user-provisioning"
           }
         },
         "props": {}
@@ -1626,7 +1626,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-api-consolidation"
+            "id": "api-consolidation"
           }
         },
         "props": {}
@@ -1646,7 +1646,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-partner-api-access"
+            "id": "partner-api-access"
           }
         },
         "props": {}
@@ -1666,7 +1666,7 @@
           "key": {
             "deal_code": "tidewater",
             "iteration": 1,
-            "id": "fuc-cloud-account-consolidation"
+            "id": "cloud-account-consolidation"
           }
         },
         "props": {}

@@ -11,6 +11,7 @@
   },
   "scripts": {
     "test": "vitest run",
+    "coverage": "vitest run --coverage packages/engine tests/engine",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "denylist": "tsx scripts/denylist-check.ts",
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "24.19.1",
+    "@vitest/coverage-v8": "5.0.3",
     "eslint": "10.12.0",
     "globals": "17.13.0",
     "neo4j-driver": "6.2.0",

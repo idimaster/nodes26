@@ -1,0 +1,38 @@
+{
+  "$comment": "Every tunable number of the planner engine (DESIGN §2). Changing a value changes demo outcomes; the engine data tests pin P1-P6.",
+  "classify": {
+    "strong_evidence": ["code_inspection", "vendor_docs", "rfi"],
+    "min_confidence": 0.7
+  },
+  "strategy": {
+    "base": 50,
+    "per_signal": 10,
+    "absorb_coverage": 0.8,
+    "tie_break": "bridge"
+  },
+  "fit": {
+    "weights": {
+      "use_case_match": 35,
+      "text_overlap": 20,
+      "strategy_compat": 20,
+      "prereq_satisfaction": 15,
+      "constraint_compat": 10
+    },
+    "reuse": { "free_picks": 2, "penalty_per_pick": 5 },
+    "bands": { "recommend": 60, "surface": 40, "review": 25 },
+    "stopwords": [
+      "about", "after", "all", "also", "and", "any", "are", "before", "between", "both", "can", "each",
+      "for", "from", "has", "have", "into", "its", "need", "needs", "not", "once", "one", "only", "onto",
+      "other", "over", "per", "such", "than", "that", "the", "their", "them", "then", "there", "this",
+      "through", "today", "under", "using", "when", "where", "which", "while", "will", "with", "within"
+    ]
+  },
+  "provenance": { "min_observations": 3 },
+  "buy_build": {
+    "rule_version": "bb1-v1",
+    "retire_coverage": 0.8,
+    "integrate_ratio": 0.5,
+    "build_ratio": 0.5
+  },
+  "edge_coverage_floor": 0.6
+}
