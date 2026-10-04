@@ -1,0 +1,10 @@
+{
+  "$comment": "Pinned official Neo4j MCP server (github.com/neo4j/mcp). scripts/install-neo4j-mcp.sh refuses any archive whose SHA-256 differs from these.",
+  "version": "v1.6.0",
+  "sha256": {
+    "Darwin_arm64": "fdbea7e35fa754f97c1f77ef1219fe31a4a00527db76b5db6e9a60ffbaee7f78",
+    "Darwin_x86_64": "029a6835ca343c35a7eec393c37ec06940c9e844fc0ce2606740fc7e9bf1d80e",
+    "Linux_arm64": "897dcd4072e78c3657fd4fb5c313df26e352c210538d2f02ddc64c68bb5b3cfb",
+    "Linux_x86_64": "f5009a9176920cebc504f72a8c37fd730e1ce61827a3be528b2c461727e023ff"
+  }
+}

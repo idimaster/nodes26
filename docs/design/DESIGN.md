@@ -124,8 +124,8 @@ All statements use `IF NOT EXISTS`, so applying the file is idempotent.
 
 | Server | Transport | Tools | Writes to Neo4j? |
 |---|---|---|---|
-| `neo4j-read` | official Neo4j MCP (pinned release), `NEO4J_READ_ONLY=true` | `get-schema`, `read-cypher` | No |
-| `neo4j-write` | official Neo4j MCP | `write-cypher` (**guarded**, §3) | Yes, via the agent |
+| `neo4j-read` | official Neo4j MCP `v1.6.0`, `--read-only true` | `get-schema`, `read-cypher` | No |
+| `neo4j-write` | official Neo4j MCP `v1.6.0`, `--read-only false` | `write-cypher` (**guarded**, §3) | Yes, via the agent |
 | `planner-engine` | stdio (this repo, `npm run mcp:engine`) | see below. Tool errors (including a cycle, with its `witness`) come back as `isError` results | **Never** |
 | `ontology` | stdio (this repo) | `get_ontology`, `propose_term` | Proposed terms only (own driver) |
 | `gate` | stdio (this repo) | `request_approval`, `await_approval`, `resolve_feedback` | Decisions, feedback, overrides, term activation (own driver) |
@@ -142,6 +142,13 @@ All statements use `IF NOT EXISTS`, so applying the file is idempotent.
 | `estimate_provenance` | task, baseline, observations[], modifiers[] | `{baseline, history_avg, n, modifiers, result, band}` (§2.4) |
 | `classify_buy_build` | rows from BB1, thresholds | Outcome per capability, plus `rule_version` (§2.6) |
 | `cypher_template` | template name | `{query, params_schema, destructive}` for the standard writes in §2.5 |
+
+**Neo4j MCP details** (checked against the pinned binary):
+- `config/neo4j-mcp.json` pins the release and the SHA-256 of each platform archive. `npm run mcp:neo4j:install` installs it into `.tools/` and refuses any other archive.
+- `.mcp.json` (project level) launches both instances through `scripts/neo4j-mcp.sh`. The script maps `NEO4J_URI`/`NEO4J_USERNAME`/`NEO4J_PASSWORD` to the server's `NEO4J_MCP_*` variables and turns telemetry off (the upstream default is on).
+- In read-only mode the server does not list `write-cypher` at all. `read-cypher` rejects writes by checking the query type with `EXPLAIN`.
+- `write-cypher` takes `{query, params}`.
+- Both instances also serve `list-gds-procedures`. The agent is not granted it (and is not granted `neo4j-write`'s read tools); scheduling calls GDS from our own code (§5.2).
 
 Every number below lives in `config/thresholds.json`, not in code:
 

@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "neo4j-read": {
+      "command": "scripts/neo4j-mcp.sh",
+      "args": ["--read-only", "true"]
+    },
+    "neo4j-write": {
+      "command": "scripts/neo4j-mcp.sh",
+      "args": ["--read-only", "false"]
+    },
+    "planner-engine": {
+      "command": "node_modules/.bin/tsx",
+      "args": ["packages/engine-mcp/src/server.ts"]
+    }
+  }
+}
