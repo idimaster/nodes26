@@ -38,8 +38,8 @@ async function connect(name: string): Promise<Client> {
 const text = (r: { content: unknown }) => (r.content as { text: string }[]).map((c) => c.text).join('\n');
 
 describe('.mcp.json', () => {
-  it('declares the two Neo4j instances and the engine, with no secrets', () => {
-    expect(Object.keys(mcp.mcpServers).sort()).toEqual(['neo4j-read', 'neo4j-write', 'planner-engine']);
+  it('declares the two Neo4j instances, the engine, and the gate, with no secrets', () => {
+    expect(Object.keys(mcp.mcpServers).sort()).toEqual(['gate', 'neo4j-read', 'neo4j-write', 'planner-engine']);
     expect(mcp.mcpServers['neo4j-read']).toEqual({ command: 'scripts/neo4j-mcp.sh', args: ['--read-only', 'true'] });
     expect(mcp.mcpServers['neo4j-write']).toEqual({ command: 'scripts/neo4j-mcp.sh', args: ['--read-only', 'false'] });
     expect(JSON.stringify(mcp)).not.toMatch(/password|planner-demo/i);

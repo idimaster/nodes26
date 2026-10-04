@@ -289,14 +289,16 @@ When unsure, the guard denies. Every decision, allow or deny, is logged with its
 
 ## 4. Gates (`packages/gate` + console)
 
+- **Subjects** are typed references, resolved within the deal and iteration: `Selection:<uc>`, `FramedUseCase:<id>`, `PlanTask:<id>`, `Candidate:<uc>/<pattern>`, `Iteration:<n>`, `Roadmap:<version>`, `CapabilityDecision:<capability_id>`, `OntologyTerm:<label|relationship>/<Name>`. An unknown subject is an error, and no gate is written.
+- **Ids are deterministic**, so a replay reproduces them: GateDecision `gd-<deal>-<iteration>-<gate>-<n>`, Feedback `fb-<gate_id>`, Override `ov-<gate_id>-<n>`. `GateDecision.summary` stores the summary shown in the console.
 - **`request_approval({deal, iteration, gate, subject_ids[], summary})`**
   1. The server writes `GateDecision {status:'pending'}` with `DECIDED_ON` edges to each subject.
   2. It shows the card in the console.
-  3. It blocks for up to 50 seconds, returning the decision if one arrives in time, else `{status:'pending', gate_id}`.
+  3. It blocks for up to 50 seconds (`GATE_WAIT_SECONDS`), returning the decision if one arrives in time, else `{status:'pending', gate_id, feedback_ids: [], overrides: []}` (the same shape either way).
   - `gate` ∈ {`frame`, `select`, `commit`, `ontology_term`, `ontology_promote`}.
 - **`await_approval({gate_id})`**: the same long-poll. The skill keeps calling it until the gate resolves.
-- **`resolve_feedback({deal, feedback_id, resolved_by_ids[]})`**: the agent calls this when a change in a later iteration addresses open Feedback. The server writes `RESOLVED_BY` from the Feedback to each given plan node of that deal and sets `status: 'resolved'`. It refuses unknown ids, ids from another deal, and Feedback that is already resolved. This is the only way Feedback changes after it is created, because the agent cannot write the reserved `Feedback` label (G7).
-- **Console** (`viz/` panel): shows the summary, scores, alternatives, and a provenance link. Actions are **Approve**, **Approve except…**, and **Reject**, each with an optional comment.
+- **`resolve_feedback({deal, iteration, feedback_id, resolved_by_ids[]})`** (subjects resolve within `iteration`, the new one): the agent calls this when a change in a later iteration addresses open Feedback. The server writes `RESOLVED_BY` from the Feedback to each given plan node of that deal and sets `status: 'resolved'`. It refuses unknown ids, ids from another deal, and Feedback that is already resolved. This is the only way Feedback changes after it is created, because the agent cannot write the reserved `Feedback` label (G7).
+- **Console** (`viz/gate.html`, served by the gate process at `http://127.0.0.1:$GATE_PORT/`, default 4646, with `GET /api/gates?status=` and `POST /api/gates/:id/decision`): shows the summary, each subject, and for selections the score and alternatives within 20 points. The graph is the source of truth: if the port is taken, a second gate process keeps working, because every long-poll re-checks the graph each second. Actions are **Approve**, **Approve except…**, and **Reject**, each with an optional comment.
 - **Server-side writes on decision** (own driver, never via the agent):
   - Status, `by`, `at`, and `comment` on the GateDecision.
   - If there is a comment, `Feedback {status:'open'}` with `ON` → each subject and `FROM` → the GateDecision.
@@ -312,9 +314,14 @@ When unsure, the guard denies. Every decision, allow or deny, is logged with its
     | *directive: text* | `kind: directive`, `subject: ''`, `value: text` (no `CONSTRAINS`) |
 
     Every Override has `active: true` and `value: ''` unless the table says otherwise. **Approve except…** approves the gate and writes the overrides for the excepted subjects.
-  - For the `ontology_term` gate: the term becomes `active`, plus a uniqueness constraint `(deal_code, id)` for new labels.
+  - For the `ontology_term` gate: on approve, the term becomes `active` (`APPROVED_BY` the gate) and a new label gets a uniqueness constraint `(deal_code, id)`; on reject, the term becomes `rejected`. For `ontology_promote`: on approve, the term's scope becomes `global`.
+  - Feedback `ON` edges go only to plan-node subjects.
+  - An `ontology_term` approval requires every subject term to be `proposed` and every label to be UpperCamelCase. Its constraint is created *before* the decision is committed (the DDL is idempotent), so an approved term never lacks its constraint. An `ontology_promote` approval requires an `active` term. Both approvals record `APPROVED_BY`. OntologyTerm subjects resolve only within the deal's own scope.
+  - *Approve except…* needs at least one exclusion (`remove X` / `except X`).
+  - **Concurrency:** a decision, a gate request (per deal), and `resolve_feedback` each take a write lock before re-reading state. Of two concurrent decisions on one gate, exactly one wins and the other gets 409, and gate ids stay unique.
+  - **Console HTTP safety:** it binds 127.0.0.1 and requires a local `Host` (against DNS rebinding). For decisions it also requires an `Origin` of the console itself when one is sent, `application/json` (a cross-site "simple" POST never gets that far), and a body under 64 KB. A decided gate cannot be decided again (HTTP 409). *Approve except…* with no parseable exception is refused (HTTP 400) and writes nothing.
 - **Return value:** `{status, gate_id, feedback_ids[], overrides[]}`.
-- `request_approval` and `await_approval` return before the host's MCP tool timeout. `MCP_TOOL_TIMEOUT` is set above 50 seconds in the plugin env.
+- `request_approval` and `await_approval` return before the host's MCP tool timeout. `MCP_TOOL_TIMEOUT` is a Claude Code client setting, set to 60000 ms in the project `.claude/settings.json` `env` (T2.6 decides how the plugin carries it).
 
 ---
 
