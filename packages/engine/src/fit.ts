@@ -23,7 +23,7 @@ export interface FitInput {
     /** Pattern of every Selection already in this iteration (repeats count for reuse). */
     selected_patterns: string[];
     /** Rules from not_recommended_when that apply to this deal, per pattern (proposed by the LLM). */
-    flagged_rules?: Record<string, string[]>;
+    flagged_rules?: Record<string, string[]> | undefined;
   };
   candidates: FitCandidate[];
 }

@@ -126,7 +126,7 @@ All statements use `IF NOT EXISTS`, so applying the file is idempotent.
 |---|---|---|---|
 | `neo4j-read` | official Neo4j MCP (pinned release), `NEO4J_READ_ONLY=true` | `get-schema`, `read-cypher` | No |
 | `neo4j-write` | official Neo4j MCP | `write-cypher` (**guarded**, §3) | Yes, via the agent |
-| `planner-engine` | stdio (this repo) | see below | **Never** |
+| `planner-engine` | stdio (this repo, `npm run mcp:engine`) | see below. Tool errors (including a cycle, with its `witness`) come back as `isError` results | **Never** |
 | `ontology` | stdio (this repo) | `get_ontology`, `propose_term` | Proposed terms only (own driver) |
 | `gate` | stdio (this repo) | `request_approval`, `await_approval`, `resolve_feedback` | Decisions, feedback, overrides, term activation (own driver) |
 
@@ -135,7 +135,7 @@ All statements use `IF NOT EXISTS`, so applying the file is idempotent.
 | Tool | Input | Output |
 |---|---|---|
 | `recommend_strategy` | `deal_context` | Ranked strategies with `fit_score` and rationale (§2.1) |
-| `classify_finding` | finding with evidence | `gap` \| `assumption` \| `capability` \| `risk` \| `service` (§2.1) |
+| `classify_finding` | `findings[]`, each with its evidence (a batch, so step 2 is one call) | `gap` \| `assumption` \| `capability` \| `risk` \| `service` (§2.1) |
 | `analyze_pattern_fit` | `use_case`, `deal_context`, `candidates[]` (retrieved by Cypher) | Ranked `FitAnalysis[]`: score, band, signal breakdown, reuse penalty, anti-applicability flags (§2.2) |
 | `instantiate_tasks` | `deal`, `iteration`, `selections[]` | `plan_tasks[]` + `depends_on[]` (§2.3) |
 | `compute_schedule` | `plan_tasks[]`, `depends_on[]` | Critical path, `earliest_start`, waves, PERT band (§2.3). Kahn longest path; **errors with a cycle witness on cyclic input**: the cycle's ids in `DEPENDS_ON` order, starting from its smallest id, with that id repeated at the end |

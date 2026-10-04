@@ -5,7 +5,7 @@ export type Strategy = 'bridge' | 'transform';
 
 export interface StrategyContext {
   /** Classified findings (classifyFinding already applied). */
-  findings: { id: string; kind: string; severity: string; capability_type?: string }[];
+  findings: { id: string; kind: string; severity: string; capability_type?: string | undefined }[];
   /** The acquirer's coverage per capability type (absent = 0). */
   coverage: Record<string, number>;
 }
