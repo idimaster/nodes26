@@ -77,19 +77,20 @@ WHERE i.status = 'draft'
 UNWIND $rows AS row
 MATCH (u:UseCase {id: row.use_case_id})
 CALL (row) {
-  UNWIND row.finding_ids AS finding_id
-  OPTIONAL MATCH (f:Finding {deal_code: $deal, id: finding_id})
-  RETURN collect(f) AS findings
+  OPTIONAL MATCH (f:Finding {deal_code: $deal})
+  WHERE f.id IN row.finding_ids
+  RETURN count(DISTINCT f) AS found
 }
-WITH i, row, u, findings
-WHERE size(findings) = size(row.finding_ids)
+WITH i, row, u, found
+WHERE found = size(row.finding_ids)
 MERGE (fu:FramedUseCase {deal_code: $deal, iteration: toInteger($iteration), id: row.use_case_id})
 ON CREATE SET fu.status = 'draft'
 SET fu.use_case_id = row.use_case_id, fu.framing_rationale = row.framing_rationale
 MERGE (fu)-[:IN_ITERATION]->(i)
 MERGE (fu)-[:INSTANCE_OF]->(u)
-WITH fu, findings
-UNWIND findings AS f
+WITH fu, row
+MATCH (f:Finding {deal_code: $deal})
+WHERE f.id IN row.finding_ids
 MERGE (fu)-[:FRAMED_FROM]->(f)
 RETURN count(DISTINCT fu) AS framed, count(f) AS framed_from`,
   },
@@ -299,12 +300,18 @@ CALL (r) {
   RETURN count(s) AS included
 }
 CALL () {
-  MATCH (n {deal_code: $deal, iteration: toInteger($iteration)})
-  WHERE (n:FramedUseCase OR n:PlanTask) AND n.status = 'draft'
-  SET n.status = 'committed'
-  RETURN count(n) AS promoted
+  MATCH (fu:FramedUseCase {deal_code: $deal, iteration: toInteger($iteration)})
+  WHERE fu.status = 'draft'
+  SET fu.status = 'committed'
+  RETURN count(fu) AS framings
 }
-RETURN r.version AS version, included, promoted`,
+CALL () {
+  MATCH (pt:PlanTask {deal_code: $deal, iteration: toInteger($iteration)})
+  WHERE pt.status = 'draft'
+  SET pt.status = 'committed'
+  RETURN count(pt) AS tasks
+}
+RETURN r.version AS version, included, framings + tasks AS promoted`,
   },
 
   write_capability_decisions: {

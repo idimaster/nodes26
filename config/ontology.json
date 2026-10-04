@@ -640,6 +640,10 @@
         "version": "integer"
       },
       "enums": {
+        "kind": [
+          "label",
+          "relationship"
+        ],
         "status": [
           "proposed",
           "active",

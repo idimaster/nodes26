@@ -52,7 +52,8 @@ function parseLabels(): DesignLabel[] {
       const names = prop.includes('/')
         ? prop.split('/').map((suffix, i) => (i === 0 ? suffix : prop.split('_')[0] + '_' + suffix))
         : [prop];
-      required.push(...names);
+      // A key property may appear in the required column only to declare its enum.
+      required.push(...names.filter((x) => !key.includes(x)));
       const values = m[2];
       if (values && !values.includes('<')) {
         enums[prop] = values.split(',').map((v) => v.trim());

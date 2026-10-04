@@ -1,0 +1,15 @@
+{
+  "name": "@planner/guard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Write guard for agent-facing Cypher (DESIGN §3): a tokenizer and rules G1-G9, plus the Claude Code PreToolUse adapter.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@planner/engine": "0.0.0",
+    "@planner/ontology": "0.0.0",
+    "neo4j-driver": "6.2.0"
+  }
+}

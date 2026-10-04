@@ -1,0 +1,17 @@
+{
+  "description": "Write guard for the planner agent (DESIGN §3): every write-cypher call is checked against rules G1-G9 before it runs.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__neo4j-write__write-cypher",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/node_modules/.bin/tsx\" \"${CLAUDE_PLUGIN_ROOT}/packages/guard/bin/guard-hook.ts\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

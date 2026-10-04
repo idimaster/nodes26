@@ -40,7 +40,7 @@ Everything else is deterministic code or Cypher.
 | | `Feedback` | `id` | `deal_code`, `text`, `status` ∈ {open, resolved} |
 | | `Override` | `id` | `deal_code`, `kind` ∈ {exclude_pattern, pin_pattern, include_use_case, exclude_use_case, strategy_for, directive}, `subject`, `value`, `active` |
 | | `Actual` | `(deal_code, plan_task_id)` | `task_id` (catalog `Task.id`, denormalized), `weeks_actual`, `completed_at` |
-| Meta (**reserved**) | `OntologyTerm` | `(kind, name)` | `scope` ∈ {global, `<deal_code>`}, `status` ∈ {proposed, active, rejected}, `definition`, `example`, `version` |
+| Meta (**reserved**) | `OntologyTerm` | `(kind, name)` | `kind` ∈ {label, relationship}, `scope` ∈ {global, `<deal_code>`}, `status` ∈ {proposed, active, rejected}, `definition`, `example`, `version` |
 
 **Reserved labels** may be written **only** by the gate server, the ontology server, and the loaders. Agent-written Cypher can never create or modify them (guard rule G7).
 
@@ -253,16 +253,37 @@ The guard first **tokenizes** the query: string literals (single- and double-quo
 | Rule | Deny when |
 |---|---|
 | G1 | More than one statement (a `;` token anywhere except at the very end) |
-| G2 | `DELETE`, `DETACH`, `REMOVE`, `DROP`, `LOAD CSV`, `FOREACH`, `IN TRANSACTIONS`, or any `dbms.`/`apoc.periodic`/`apoc.cypher`/`apoc.do` name. **One exception:** a query whose text is exactly a `cypher_template` marked `destructive` (today only `replace_selection`), with params that pass that template's schema; every other rule still applies to it |
-| G3 | A procedure `CALL` not on the allowlist (`db.labels`, `db.relationshipTypes`), or any `apoc.*` function. A `CALL {…}` or `CALL (vars) {…}` subquery is not a procedure call; its body is checked like the rest. Use the built-in `randomUUID()` for ids |
-| G4 | Unbounded variable-length pattern (`*`, `*..`, `*n..`), or an upper bound above 10 |
+| G2 | `DELETE`, `DETACH`, `REMOVE`, `DROP`, `LOAD CSV`, `FOREACH`, `IN TRANSACTIONS`, any `dbms.` name, and schema or admin commands (`CREATE INDEX`/`CONSTRAINT`/`DATABASE`/`ALIAS`/`USER`/`ROLE`, `ALTER`, `GRANT`, `DENY`, `REVOKE`, `USE`, `START`, `STOP`, `TERMINATE`). **One exception:** a query whose text is exactly a `cypher_template` marked `destructive` (today only `replace_selection`), with params that pass that template's schema; every other rule still applies to it |
+| G3 | A procedure `CALL` not on the allowlist (`db.labels`, `db.relationshipTypes`), or any `apoc.*` or `gds.*` function (e.g. `gds.util.asNode` fetches nodes the guard cannot see). A `CALL {…}` or `CALL (vars) {…}` subquery is not a procedure call; its body is checked like the rest. Use the built-in `randomUUID()` for ids |
+| G4 | Unbounded variable-length pattern (`*`, `*..`, `*n..`), or an upper bound above 10. The same for quantified path patterns: `+` or `*` after a pattern, `{m,}`, or `{m,n}` with n > 10 |
 | G5 | The query writes (`CREATE`, `MERGE`, `SET`) a per-deal label, but `params.deal` is missing or the query text never references `$deal` |
-| G6 | Any label or relationship-type token is not in the core ontology or in active terms for `global` or `params.deal`. **Dynamic labels or types** (`$(…)` after `:`, or `$any(…)`/`$all(…)`) are always denied, because they cannot be checked lexically |
-| G7 | Query touches a **reserved** label (§1.1), in any clause |
-| G8 | The query could make anything `committed`: the token `committed` appears in a string literal, **or any parameter value (searched recursively through maps and lists) equals `'committed'`**. Allowed only if `params.gate_id` resolves to a GateDecision with `deal_code = params.deal`, `iteration = params.iteration`, `gate = 'commit'`, and `status = 'approved'` (one read query). `params.iteration` is required |
+| G6 | Any label or relationship type (after `:` or `IS`) is not in the core ontology or in active terms for `global` or `params.deal`. **Dynamic labels or types** (`$(…)`, `$any(…)`, `$all(…)`), label wildcards (`%`), and negation (`!`) are always denied, because they cannot be checked lexically |
+| G7 | Query touches a **reserved** label (§1.1), in any clause, or (in a write query) could reach one without naming it. See *Writes* below |
+| G8 | The query could make anything `committed`: the token `committed` appears in a string literal (after decoding escapes), **or any parameter value (searched recursively through maps and lists) contains `committed`**. Allowed only if `params.gate_id` resolves to a GateDecision with `deal_code = params.deal`, `iteration = params.iteration`, `gate = 'commit'`, and `status = 'approved'` (one read query). `params.iteration` is required. A `status` property may only be written as a plain string literal, so the value cannot be assembled (`'commit' + 'ted'`) |
 | G9 | No `RETURN` clause |
 
+**Writes** (any of `CREATE`, `MERGE`, `SET`, `DELETE`, `DETACH`, `REMOVE`). The guard checks what it positively understands instead of listing what is forbidden. An adversarial review found nine ways around a denylist (`IS` labels, `:%`, variable reuse after `WITH`, backticked namespaces, clause words inside expressions, dynamic property writes, …); this design closes each class:
+- **Variable scopes are tracked.** A node is *labeled* when a pattern binds it with a label in the current scope.
+  - `WITH` keeps only bare variables and `x AS y` aliases (or everything for `WITH *`).
+  - `UNWIND` and `YIELD` variables are unlabeled.
+  - `CALL (a, b) {…}` sees only `a` and `b`; `CALL {…}` sees nothing.
+  - `EXISTS`/`COUNT`/`COLLECT` blocks and list or pattern comprehensions see the outer scope.
+  - `UNION` starts empty.
+- **Node patterns** bind only in `MATCH`, `OPTIONAL MATCH`, `MERGE`, and `CREATE`. There they must carry a label or use a labeled variable; `(v WHERE …)` counts as unlabeled. In `WHERE` and other expressions, `(v:Label)` is a label *test* and binds nothing (`NOT (g:Strategy)` must not make `g` look labeled). Anonymous nodes are allowed only outside `CREATE`/`MERGE`.
+- **Unsupported syntax is denied (G2):** Cypher 25/GQL clauses (`NEXT`, `LET`, `FILTER`, `INSERT`, `WHEN`/`THEN`/`ELSE` outside `CASE`), path selectors and match modes (`ANY`/`ALL` selectors, `SHORTEST`, `REPEATABLE`, `DIFFERENT`, `WALK`, `TRAIL`, `ACYCLIC`), `SHOW`, `CYPHER`, `EXPLAIN`, and `PROFILE`. Variables may not be named like keywords.
+- **SET items** must be `var.prop = value` or `var:Label`/`var IS Label`. `var` must be a labeled node or a relationship variable with exactly one explicit, non-reserved type. Everything else is denied: `SET n[...]`, `SET (expr).x`, `SET n = …`, `SET n += …`.
+- `nodes()`, `relationships()`, `startNode()`, and `endNode()` are denied, as is any relationship type with a reserved endpoint in `CREATE`/`MERGE`.
+- Clause context is tracked per bracket, so a `WHERE` inside `[x IN … WHERE …]` or a label named like a clause does not change the enclosing clause.
+
+**Limits.** The guard is lexical; it does not parse Cypher, and it is defense in depth, not proof. It was hardened over three adversarial review rounds (9, then 7, then 1 confirmed bypass class, each closed and kept as a regression test in `packages/guard/test/validate.test.ts`). The deeper guarantees are structural: the agent's standard writes are fixed templates (§2.5), and reserved data is written only through the gate and ontology servers' own drivers.
+
 When unsure, the guard denies. Every decision, allow or deny, is logged with its reason. The deny reason names the rule and the offending token, so the agent can fix the query.
+
+**Adapter** (`packages/guard/bin/guard-hook.ts`): a Claude Code `PreToolUse` hook for any `…__write-cypher` tool. Before validating, it reads the active ontology terms (global and `params.deal`) in one read query; G8 adds one gate lookup.
+- It prints a `deny` decision with the reason, or nothing on allow. It never auto-approves, so the user's permission settings still apply.
+- It **fails closed**: unreadable input or an unreachable graph is a deny.
+- It logs one JSON line per decision to `.logs/guard.jsonl`.
+- It is registered in `hooks/hooks.json` (plugin) and, until the plugin exists (T2.6), in the project `.claude/settings.json`.
 
 ---
 
