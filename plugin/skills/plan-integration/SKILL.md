@@ -22,7 +22,7 @@ not written there did not happen.
    query or params. Do not work around a rule. If you need a label that does not exist, propose it (step 4).
 4. **Gates are the architect's.** `mcp__gate__request_approval` waits up to 50 seconds. While the
    status is `pending`, keep calling `mcp__gate__await_approval` with the `gate_id`. Do not continue
-   past a gate until it is `approved`. If it is `rejected`, stop and report the feedback and overrides.
+   past a gate until it is `approved`. If it is `rejected`, follow step 13 (re-plan from feedback).
 5. **Repairs are bounded.** Retry a failed step at most twice, then stop and explain what blocks you.
 6. Every per-deal query takes `$deal`. Reads go to `mcp__neo4j-read__read-cypher` with the named
    queries below.
@@ -120,6 +120,24 @@ Selection in this plan: report it, do not guess.
 
 **12. Report.** Summarize the plan: selections, critical path, finish, PERT band, buy-vs-build outcomes with their rule,
 and every gate decision. Name anything you could not do.
+
+**13. On feedback** (a gate came back `rejected`). Run `recall_memory`. It has the open feedback, what each
+was about, and the active overrides. Then re-plan in a new iteration:
+- Write iteration `n + 1` with `create_iteration` and continue from step 4 with it.
+- Honor every active override:
+  - `exclude_pattern`: `candidates` no longer offers it.
+  - `exclude_use_case`: do not frame that use case. `include_use_case`: frame it.
+  - `pin_pattern`: select it when it is a candidate.
+  - `strategy_for`: name it in the rationale of that use case.
+  - `directive`: follow it and quote it in the summary.
+- Answer the feedback text itself too, not only the overrides.
+- After the new selections are written, call `mcp__gate__resolve_feedback` for each open feedback the new plan
+  addresses, with `iteration` = the new iteration and `resolved_by_ids` = the new `Selection:<uc>` that
+  addresses it.
+- Run `iteration_diff` for the new iteration and put each change, with its feedback text, into the next gate's
+  summary.
+- Re-plan at most once without new feedback. If the same gate is rejected again with nothing new to act on,
+  stop and ask the architect.
 
 ## Named read queries
 
@@ -227,6 +245,70 @@ CALL (c) {
 }
 RETURN c.id AS capability_id, [f IN findings | f.id] AS finding_ids, integrate_effort, build_effort, coverage
 ORDER BY capability_id
+```
+
+<!-- query: recall_memory -->
+```cypher
+// recall_memory (DESIGN §5.3): what the agent must remember before re-planning. One row: the latest
+// iteration and its selections, every open Feedback with what it was about, and every active Override.
+CALL () {
+  OPTIONAL MATCH (i:Iteration {deal_code: $deal})
+  WITH i ORDER BY i.n DESC
+  LIMIT 1
+  RETURN i
+}
+CALL (i) {
+  OPTIONAL MATCH (s:Selection {deal_code: $deal})-[:IN_ITERATION]->(i)
+  WITH s ORDER BY s.uc
+  RETURN collect(CASE WHEN s IS NULL THEN null ELSE {uc: s.uc, pattern: s.pattern, status: s.status} END) AS selections
+}
+CALL () {
+  OPTIONAL MATCH (f:Feedback {deal_code: $deal})
+  WHERE f.status = 'open'
+  OPTIONAL MATCH (f)-[:FROM]->(g:GateDecision)
+  WITH f, g,
+       COLLECT {
+         MATCH (f)-[:ON]->(x)
+         RETURN labels(x)[0] + ':' + coalesce(x.uc, x.id, toString(x.n)) + CASE WHEN x:Selection THEN ' -> ' + x.pattern ELSE '' END AS about
+         ORDER BY about
+       } AS about
+  ORDER BY f.id
+  RETURN collect(CASE WHEN f IS NULL THEN null ELSE {id: f.id, text: f.text, gate: g.gate, gate_id: g.id, iteration: g.iteration, about: about} END) AS open_feedback
+}
+CALL () {
+  OPTIONAL MATCH (o:Override {deal_code: $deal})
+  WHERE o.active = true
+  WITH o ORDER BY o.id
+  RETURN collect(CASE WHEN o IS NULL THEN null ELSE {id: o.id, kind: o.kind, subject: o.subject, value: o.value} END) AS overrides
+}
+RETURN i.n AS latest_iteration, i.status AS latest_status, selections, open_feedback, overrides
+```
+
+<!-- query: iteration_diff -->
+```cypher
+// iteration_diff (DESIGN §5.3): what changed in iteration $iteration against the one before, per use case,
+// with the text of every Feedback the new selection resolved (RESOLVED_BY). No rows when nothing changed.
+CALL () {
+  OPTIONAL MATCH (s:Selection {deal_code: $deal, iteration: $iteration})
+  RETURN collect(s) AS now
+}
+CALL () {
+  OPTIONAL MATCH (s:Selection {deal_code: $deal, iteration: $iteration - 1})
+  RETURN collect(s) AS before
+}
+WITH now, before, [s IN now | s.uc] + [s IN before WHERE NOT s.uc IN [x IN now | x.uc] | s.uc] AS ucs
+UNWIND ucs AS uc
+WITH uc, head([s IN now WHERE s.uc = uc]) AS a, head([s IN before WHERE s.uc = uc]) AS b
+WITH uc, a, b,
+     CASE WHEN b IS NULL THEN 'added' WHEN a IS NULL THEN 'removed' WHEN a.pattern <> b.pattern THEN 'changed' END AS change
+WHERE change IS NOT NULL
+CALL (a) {
+  OPTIONAL MATCH (f:Feedback)-[:RESOLVED_BY]->(a)
+  WITH f ORDER BY f.id
+  RETURN collect(f.text) AS feedback
+}
+RETURN uc, change, b.pattern AS before, a.pattern AS after, feedback
+ORDER BY uc
 ```
 
 <!-- query: near_miss -->

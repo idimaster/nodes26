@@ -1,14 +1,6 @@
-import { readFileSync } from 'node:fs';
-import { createServer } from 'node:net';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import type { Driver } from 'neo4j-driver';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { loadContext, validate } from '@planner/guard';
-import { openDriver } from '../../graph/connection.js';
-import { loadAll } from '../../graph/load/index.js';
+import { QUERIES, SKILL, startHarness, type Harness } from './harness.js';
 
 /**
  * T2.6, without an LLM: walk the plan-integration skill for Nimbus through the real MCP servers,
@@ -16,96 +8,21 @@ import { loadAll } from '../../graph/load/index.js';
  * the console over HTTP. The LLM's choices (framing, picking the top candidate) are fixed here.
  */
 
-const ROOT = fileURLToPath(new URL('../..', import.meta.url));
-const SKILL = readFileSync(join(ROOT, 'plugin/skills/plan-integration/SKILL.md'), 'utf8');
-const QUERIES = Object.fromEntries(
-  [...SKILL.matchAll(/<!-- query: (\w+) -->\s*```cypher\n([\s\S]*?)```/g)].map((m) => [m[1] as string, (m[2] as string).trim()]),
-);
-const MCP = JSON.parse(readFileSync(join(ROOT, '.mcp.json'), 'utf8')) as {
-  mcpServers: Record<string, { command: string; args?: string[] }>;
-};
 const DEAL = 'nimbus';
-
+let h: Harness;
 let driver: Driver;
-let port = 0;
-const clients: Record<string, Client> = {};
-const log: string[] = [];
-
-async function freePort(): Promise<number> {
-  return new Promise((resolve) => {
-    const srv = createServer();
-    srv.listen(0, '127.0.0.1', () => {
-      const p = (srv.address() as { port: number }).port;
-      srv.close(() => resolve(p));
-    });
-  });
-}
-
-const text = (r: unknown) => ((r as { content: { text: string }[] }).content.map((c) => c.text).join('\n'));
-async function call(server: string, tool: string, args: Record<string, unknown>): Promise<unknown> {
-  const r = await (clients[server] as Client).callTool({ name: tool, arguments: args });
-  if (r.isError) throw new Error(`${server}.${tool} failed: ${text(r)}`);
-  log.push(`${server}.${tool}`);
-  return JSON.parse(text(r));
-}
-const read = async <T = Record<string, unknown>>(name: string, params: Record<string, unknown> = {}) =>
-  (await call('neo4j-read', 'read-cypher', { query: QUERIES[name], params: { deal: DEAL, ...params } })) as T[];
-
-/** Rule 1 + 2 of the skill: template → guard → write-cypher → compare the count. */
-async function write(template: string, params: Record<string, unknown>) {
-  const { query } = (await call('planner-engine', 'cypher_template', { name: template })) as { query: string };
-  const decision = await validate(query, params, await loadContext(driver, DEAL));
-  expect(decision, `guard on ${template}: ${decision.allow ? '' : decision.reason}`).toEqual({ allow: true });
-  const rows = (await call('neo4j-write', 'write-cypher', { query, params })) as Record<string, unknown>[];
-  return rows[0] ?? {};
-}
-
-/** Rule 4: request, and approve as the architect in the console while the agent waits. */
-async function gate(gateKind: string, iteration: number, subjects: string[], summary: string) {
-  const pending = call('gate', 'request_approval', { deal: DEAL, iteration, gate: gateKind, subject_ids: subjects, summary });
-  let id: string | undefined;
-  for (let i = 0; i < 40 && !id; i++) {
-    await new Promise((r) => setTimeout(r, 100));
-    const gates = (await (await fetch(`http://127.0.0.1:${port}/api/gates?status=pending`)).json()) as { id: string; gate: string }[];
-    id = gates.find((g) => g.gate === gateKind)?.id;
-  }
-  expect(id, `the ${gateKind} gate appears in the console`).toBeDefined();
-  const res = await fetch(`http://127.0.0.1:${port}/api/gates/${id}/decision`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ action: 'approve', comment: '', by: 'architect' }),
-  });
-  expect(res.status).toBe(200);
-  const result = (await pending) as { status: string; gate_id: string };
-  expect(result.status).toBe('approved');
-  return result.gate_id;
-}
+const call = (server: string, tool: string, args: Record<string, unknown>) => h.call(server, tool, args);
+const read = <T = Record<string, unknown>>(name: string, params: Record<string, unknown> = {}) => h.read<T>(name, params);
+const write = (template: string, params: Record<string, unknown>) => h.write(template, params);
+const gate = async (kind: string, iteration: number, subjects: string[], summary: string) => (await h.gate(kind, iteration, subjects, summary)).gate_id;
 
 beforeAll(async () => {
-  driver = openDriver();
-  await driver.executeQuery('MATCH (n) DETACH DELETE n');
-  await loadAll(driver);
-  port = await freePort();
-  for (const [name, entry] of Object.entries(MCP.mcpServers)) {
-    const client = new Client({ name: `walk-${name}`, version: '0.0.0' });
-    await client.connect(
-      new StdioClientTransport({
-        command: entry.command,
-        args: entry.args ?? [],
-        cwd: ROOT,
-        env: { ...(process.env as Record<string, string>), GATE_PORT: String(port), GATE_WAIT_SECONDS: '5' },
-        stderr: 'ignore',
-      }),
-    );
-    clients[name] = client;
-  }
+  h = await startHarness(DEAL);
+  driver = h.driver;
 }, 60_000);
 
 afterAll(async () => {
-  for (const c of Object.values(clients)) await c.close();
-  await driver.executeQuery('MATCH (n) DETACH DELETE n');
-  await loadAll(driver);
-  await driver.close();
+  await h.close();
 });
 
 describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
@@ -118,7 +35,7 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
 
   it('reaches a committed roadmap', async () => {
     // 1. Ground
-    expect(text(await (clients['neo4j-read'] as Client).callTool({ name: 'get-schema', arguments: {} }))).toContain('Finding');
+    expect(JSON.stringify(await call('neo4j-read', 'get-schema', {}))).toContain('Finding');
     const findings = await read<{ id: string; kind: string; text: string; severity: string; confidence: number; evidence_type: string; capability_type: string | null; target_company: string; acquirer: string }>('findings');
     expect(findings.length).toBe(25);
     const coverage = Object.fromEntries((await read<{ capability_type: string; coverage: number }>('coverage')).map((c) => [c.capability_type, c.coverage]));

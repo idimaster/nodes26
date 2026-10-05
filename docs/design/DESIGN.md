@@ -371,7 +371,9 @@ Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp
 
 ### 5.3 Other queries
 - **Grounding** (`graph/queries/skill/`, synced into the skill by `npm run skill:sync`): `candidates` (UseCase ← SOLVES ← Pattern, with its strategies and requirements, minus patterns named by an active `exclude_pattern` Override of the deal); `prior_estimates` (per Task, the `Actual.weeks_actual` observed on committed history plans, with mean and count; one row per asked task). At commit, the skill explains each critical-path task's estimate with `estimate_provenance` (§2.4).
-- **Memory:** `recall_memory` (latest iteration plus open Feedback with targets); `iteration_diff` (selections new in iteration *n* vs *n − 1*, each with its `RESOLVED_BY` feedback).
+- **Memory** (`graph/queries/skill/`):
+  - `recall_memory($deal)` returns one row: the latest iteration and its selections, every **open** Feedback with its text, gate, and what it was `ON` (e.g. `Selection:ledger-data-sync -> cdc-replication`), and every **active** Override.
+  - `iteration_diff($deal, $iteration)` returns one row per use case that changed against *n − 1*: `{uc, change: added|changed|removed, before, after, feedback}`, where `feedback` is the text of each Feedback the new Selection is `RESOLVED_BY`. No rows when nothing changed.
 - **Buy vs build (BB1, `graph/queries/skill/bb1.cypher`):** one row per capability type with a finding *classified* as `capability`: integrate effort = sum of `weeks_e` of the PlanTasks of the Selections framed from those findings in this iteration (null when none, which `classify_buy_build` reports as `unplanned`); build effort from BuildOption; coverage = the best PlatformCapability `PROVIDES`, 0 if none → `classify_buy_build` (§2.6) → `write_capability_decisions` (step 11, after the commit; `iteration` is part of the key).
 
 ---
@@ -399,6 +401,6 @@ Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp
 9. **Schedule** (§5.2): the agent calls `planner-graph`'s `schedule_plan`. A cycle stops the run before any commit.
 10. **Commit.** Call `request_approval(gate: commit)`, then promote with `$gate_id` (G8).
 11. **Buy vs build.** Run BB1 and write CapabilityDecision nodes.
-12. **On feedback.** Start `Iteration n+1`, call `recall_memory`, replan, call `resolve_feedback` for each Feedback the new plan addresses, then call `iteration_diff`.
+12. **On feedback** (skill step 13, when a gate is rejected). Call `recall_memory`, start `Iteration n+1`, and re-plan from framing, honoring every active Override (`exclude_pattern` is already dropped by `candidates`; `exclude_use_case`/`include_use_case` steer framing; `pin_pattern` steers selection; `strategy_for` and `directive` go into rationales and summaries). Call `resolve_feedback` for each Feedback the new plan addresses, then `iteration_diff`, whose changes and feedback text go into the next gate's summary. Re-plan at most once without new feedback (P4).
 
 Loop safety: `maxTurns`/`stopWhen` must be set by the host, and the repair loop is bounded at 2.
