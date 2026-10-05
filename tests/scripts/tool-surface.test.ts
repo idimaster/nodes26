@@ -72,3 +72,12 @@ describe('the real repo (launches every .mcp.json server)', () => {
     expect(await runCheck()).toEqual([]);
   }, 60_000);
 });
+
+describe('SKILL.md carries the validator queries from graph/queries/validators', () => {
+  it('is in sync (run npm run skill:sync)', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { SKILL_FILE, syncedSkill } = await import('../../scripts/sync-skill.js');
+    const skill = readFileSync(SKILL_FILE, 'utf8');
+    expect(skill).toBe(syncedSkill(skill));
+  });
+});

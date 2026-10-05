@@ -110,7 +110,7 @@ afterAll(async () => {
 
 describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
   it('has every named query the steps refer to', () => {
-    for (const q of ['findings', 'coverage', 'next_iteration', 'use_cases', 'candidates', 'pattern_tasks', 'plan_graph', 'next_roadmap_version']) {
+    for (const q of ['findings', 'coverage', 'next_iteration', 'use_cases', 'candidates', 'pattern_tasks', 'plan_graph', 'near_miss', 'derive_prerequisite', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v6b', 'next_roadmap_version']) {
       expect(QUERIES[q], q).toBeTruthy();
       expect(SKILL).toContain(`\`${q}\``);
     }
@@ -137,43 +137,48 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
     })) as { strategy: string; fit_score: number; rationale: string }[];
     expect(strategy?.strategy).toBe('bridge');
 
-    // 4. Frame (the LLM's choice, fixed here)
+    // 4. Frame (the LLM's choice, fixed here). ledger-data-sync and reporting-consolidation plant P2.
     await write('create_iteration', { deal: DEAL, n: iteration, started_at: '2026-10-05T09:00:00Z' });
     const framings = [
       { use_case_id: 'user-provisioning', finding_ids: ['f-no-scim'] },
       { use_case_id: 'ledger-data-sync', finding_ids: ['f-ledger-sync'] },
+      { use_case_id: 'reporting-consolidation', finding_ids: ['f-reporting'] },
       { use_case_id: 'customer-sso', finding_ids: ['f-customer-sso'] },
       { use_case_id: 'audit-logging', finding_ids: ['f-audit-store'] },
     ];
-    const framed = await write('write_framed_use_cases', {
-      deal: DEAL,
-      iteration,
-      rows: framings.map((f) => ({ ...f, framing_rationale: `Framed from ${f.finding_ids.join(', ')}.` })),
-    });
-    expect(Number(framed.framed)).toBe(framings.length);
+    const frame = async (rows: { use_case_id: string; finding_ids: string[]; framing_rationale?: string }[]) => {
+      const out = await write('write_framed_use_cases', {
+        deal: DEAL,
+        iteration,
+        rows: rows.map((f) => ({ framing_rationale: `Framed from ${f.finding_ids.join(', ')}.`, ...f })),
+      });
+      expect(Number(out.framed)).toBe(rows.length);
+    };
+    await frame(framings);
     await gate('frame', iteration, framings.map((f) => `FramedUseCase:${f.use_case_id}`), `Strategy ${strategy?.strategy} (${strategy?.fit_score}).`);
     await write('set_deal_strategy', { deal: DEAL, strategy: strategy?.strategy });
 
     // 5. Retrieve and score
     const useCases = new Map((await read<{ id: string; description: string }>('use_cases')).map((u) => [u.id, u.description]));
-    const top = new Map<string, { pattern: string; score: number }>();
-    for (const f of framings) {
-      const candidates = await read('candidates', { use_case: f.use_case_id });
+    const score = async (uc: string, findingIds: string[], selectedPatterns: string[]) => {
+      const candidates = await read('candidates', { use_case: uc });
       const ranked = (await call('planner-engine', 'analyze_pattern_fit', {
-        use_case: {
-          use_case_id: f.use_case_id,
-          description: useCases.get(f.use_case_id),
-          finding_texts: f.finding_ids.map((id) => findings.find((x) => x.id === id)?.text ?? ''),
-        },
-        deal_context: { strategy: strategy?.strategy, target_company: findings[0]?.target_company, acquirer: findings[0]?.acquirer, selected_patterns: [] },
+        use_case: { use_case_id: uc, description: useCases.get(uc), finding_texts: findingIds.map((id) => findings.find((x) => x.id === id)?.text ?? '') },
+        deal_context: { strategy: strategy?.strategy, target_company: findings[0]?.target_company, acquirer: findings[0]?.acquirer, selected_patterns: selectedPatterns },
         candidates,
       })) as { pattern: string; score: number; band: string; signals: unknown }[];
-      const rows = ranked.slice(0, 3).map((r) => ({ uc: f.use_case_id, pattern: r.pattern, fit_score: r.score, band: r.band, signal_snapshot: JSON.stringify(r.signals) }));
+      const rows = ranked.slice(0, 3).map((r) => ({ uc, pattern: r.pattern, fit_score: r.score, band: r.band, signal_snapshot: JSON.stringify(r.signals) }));
       expect(Number((await write('write_candidates', { deal: DEAL, iteration, rows })).candidates)).toBe(rows.length);
+      return ranked;
+    };
+    const top = new Map<string, { pattern: string; score: number }>();
+    for (const f of framings) {
+      const ranked = await score(f.use_case_id, f.finding_ids, []);
       top.set(f.use_case_id, { pattern: ranked[0]?.pattern as string, score: ranked[0]?.score as number });
     }
     expect(top.get('user-provisioning')?.pattern).toBe('scim-provisioning');
     expect(top.get('ledger-data-sync')?.pattern).toBe('cdc-replication');
+    expect(top.get('reporting-consolidation')?.pattern).toBe('batch-etl-export');
 
     // 6. Select (the LLM takes the top candidate) and the select gate
     const selections = [...top].map(([uc, t]) => ({ uc, pattern: t.pattern, fit_score: t.score, rationale: 'Highest fit score.' }));
@@ -181,35 +186,96 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
     await gate('select', iteration, selections.map((s) => `Selection:${s.uc}`), selections.map((s) => `${s.uc}: ${s.pattern} (${s.fit_score})`).join('; '));
 
     // 7. Instantiate: the graph derives tasks and edges from the catalog
-    const patternTasks = await read<{ pattern: string; tasks: unknown[] }>('pattern_tasks', { patterns: selections.map((s) => s.pattern) });
-    const expectedTasks = selections.reduce((n, s) => n + (patternTasks.find((p) => p.pattern === s.pattern)?.tasks.length ?? 0), 0);
-    const planWrite = await write('write_plan_tasks', { deal: DEAL, iteration });
-    expect(Number(planWrite.tasks)).toBe(expectedTasks);
+    await write('write_plan_tasks', { deal: DEAL, iteration });
 
-    // 8. Schedule what is stored, exactly as stored
+    // 8. Validate, and repair as the skill says (at most two rounds)
+    type Check = { check: string; verdict: string; violations: { witness: string[]; detail: string }[] };
+    const validate = async () => {
+      const out: Record<string, Check> = {};
+      for (const q of ['v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v6b']) {
+        const [row] = await read<Check>(q, { iteration });
+        out[(row as Check).check] = row as Check;
+      }
+      return out;
+    };
+    const repairs: string[] = [];
+    let checks = await validate();
+    // P1 and P2 as planted: scim-provisioning and oidc-broker need idp-trust-establishment; cdc and batch conflict.
+    expect(checks.V1?.violations.map((v) => v.witness)).toEqual([
+      ['oidc-broker', 'idp-trust-establishment'],
+      ['scim-provisioning', 'idp-trust-establishment'],
+    ]);
+    expect(checks.V2?.violations.map((v) => v.witness)).toEqual([['batch-etl-export', 'cdc-replication']]);
+    for (let round = 0; round < 2 && Object.values(checks).some((c) => c.verdict.startsWith('FAIL')); round++) {
+      expect(checks.V3?.verdict, 'a cycle stops the run').not.toBe('FAIL');
+      // V2: switch the use case that loses fewer points to its stored near-miss.
+      for (const v of checks.V2?.violations ?? []) {
+        const ucs = [...v.detail.matchAll(/(\S+) selects/g), ...v.detail.matchAll(/selected for (\S+)/g)].map((m) => m[1] as string);
+        const options = [];
+        for (const uc of ucs) {
+          const [nm] = await read<{ pattern: string; fit_score: number; points_lost: number }>('near_miss', { iteration, uc });
+          if (nm) options.push({ uc, ...nm });
+        }
+        const best = options.sort((a, b) => a.points_lost - b.points_lost)[0];
+        expect(best).toBeDefined();
+        await write('replace_selection', {
+          deal: DEAL, iteration, uc: best?.uc, pattern: best?.pattern, fit_score: best?.fit_score,
+          rationale: `Near-miss: ${v.witness.join(' CONFLICTS with ')} (V2).`,
+        });
+        repairs.push(`V2: ${best?.uc} → ${best?.pattern}`);
+      }
+      // V1: derive each missing prerequisite once.
+      const derived = new Set<string>();
+      for (const v of (checks.V1?.violations ?? []).filter((x) => x.witness.length === 2)) {
+        const missing = v.witness.at(-1) as string;
+        if (derived.has(missing)) continue;
+        derived.add(missing);
+        const [d] = await read<{ finding_ids: string[]; use_cases: string[] }>('derive_prerequisite', { iteration, required_by: v.witness[0], missing });
+        const uc = d?.use_cases[0] as string;
+        expect(uc).toBe('identity-federation-trust');
+        await frame([{ use_case_id: uc, finding_ids: d?.finding_ids ?? [], framing_rationale: `Required by ${v.witness[0]} (V1).` }]);
+        const current = (await driver.executeQuery('MATCH (s:Selection {deal_code: $deal, iteration: 1}) RETURN s.pattern AS p', { deal: DEAL })).records.map(
+          (r) => r.get('p') as string,
+        );
+        const ranked = await score(uc, d?.finding_ids ?? [], current);
+        const pick = ranked.find((r) => r.pattern === missing);
+        await write('write_selections', { deal: DEAL, iteration, rows: [{ uc, pattern: missing, fit_score: pick?.score ?? 0, rationale: `Required by ${v.witness[0]} (V1).` }] });
+        repairs.push(`V1: derived ${missing} for ${uc}`);
+      }
+      await write('write_plan_tasks', { deal: DEAL, iteration });
+      checks = await validate();
+    }
+    expect(repairs).toEqual(['V2: ledger-data-sync → event-bus-bridge', 'V1: derived idp-trust-establishment for identity-federation-trust']);
+    for (const c of ['V1', 'V2', 'V3', 'V4', 'V5', 'V6']) expect(checks[c]?.verdict, c).toBe('PASS');
+    expect(['PASS', 'WARN']).toContain(checks.V6b?.verdict);
+
+    // 9. Schedule what is stored, exactly as stored
     const [plan] = (await read<{ plan_tasks: { id: string }[]; depends_on: { from: string; to: string }[] }>('plan_graph', { iteration })) as [
       { plan_tasks: { id: string }[]; depends_on: { from: string; to: string }[] },
     ];
-    expect(plan.plan_tasks).toHaveLength(expectedTasks);
-    expect(plan.depends_on).toHaveLength(Number(planWrite.edges));
     const schedule = (await call('planner-engine', 'compute_schedule', plan)) as {
       tasks: unknown[];
       finish: number;
       critical_path: string[];
       pert: { p10: number; p90: number };
     };
-    expect(Number((await write('write_schedule', { deal: DEAL, iteration, rows: schedule.tasks })).scheduled)).toBe(expectedTasks);
+    expect(Number((await write('write_schedule', { deal: DEAL, iteration, rows: schedule.tasks })).scheduled)).toBe(plan.plan_tasks.length);
 
-    // 9. Commit
+    // 10. Commit
+    const finalSelections = (await driver.executeQuery(
+      'MATCH (s:Selection {deal_code: $deal, iteration: 1}) RETURN s.uc AS uc ORDER BY uc',
+      { deal: DEAL },
+    )).records.map((r) => r.get('uc') as string);
+    expect(finalSelections).toHaveLength(6);
     const [{ version }] = (await read<{ version: number }>('next_roadmap_version')) as [{ version: number }];
     const commitGate = await gate(
       'commit',
       iteration,
-      [...selections.map((s) => `Selection:${s.uc}`), `Iteration:${iteration}`],
-      `Finish week ${schedule.finish}; PERT ${schedule.pert.p10}–${schedule.pert.p90}; critical path ${schedule.critical_path.join(' → ')}.`,
+      [...finalSelections.map((uc) => `Selection:${uc}`), `Iteration:${iteration}`],
+      `Finish week ${schedule.finish}; PERT ${schedule.pert.p10}–${schedule.pert.p90}; repairs: ${repairs.join('; ')}.`,
     );
     const committed = await write('commit_roadmap', { deal: DEAL, iteration, version, gate_id: commitGate });
-    expect(Number(committed.included)).toBe(selections.length);
+    expect(Number(committed.included)).toBe(finalSelections.length);
 
     // The record: a committed roadmap backed by an approved commit gate, and nothing left in draft.
     const { records } = await driver.executeQuery(

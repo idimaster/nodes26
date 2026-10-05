@@ -327,11 +327,13 @@ When unsure, the guard denies. Every decision, allow or deny, is logged with its
 
 ## 5. Validators and analytics (`graph/queries/`)
 
-Every validator returns **one row**:
+Every validator (`graph/queries/validators/vN-*.cypher`, params `$deal` and `$iteration`; V7 takes only `$floor`) returns **one row**:
 
 ```
-{check, examined, violations: [{witness, detail}], verdict}
+{check, examined, violations: [{witness, witness_eids, detail}], verdict}   // V7 also returns coverage
 ```
+
+`verdict` is one of `PASS`, `FAIL`, `WARN` (V6b only), or `FAIL: nothing checked`. `witness_eids` holds the `elementId()` of each witness node, in the same order, for the UI. `graph/validate.ts` runs them in order (`runValidators(deal, iteration)`, `npm run validate -- <deal> <iteration>`). `npm run skill:sync` copies V1–V6b into the skill, and a test fails if the copies drift.
 
 Rules:
 - Use `OPTIONAL MATCH` for the examined set, so an empty graph returns a row instead of nothing.
@@ -345,10 +347,10 @@ Rules:
 | V1 | Prerequisite closure: `REQUIRES*1..5` from selected patterns to unselected patterns | Constraint | FAIL; the skill **derives** (adds) the missing prerequisite |
 | V2 | Conflicting selections: `CONFLICTS` between two selected patterns | Constraint | FAIL; the LLM repairs (stored near-miss first) |
 | V3 | Task cycle: `PlanTask-[:DEPENDS_ON*1..10]->` itself | Structural | FAIL |
-| V4 | Uncovered critical gap: `Finding {kind:'gap', severity:'critical'}` with no `FRAMED_FROM` ← FramedUseCase ← Selection in this iteration. **Exact provenance only, no track fallback.** | Coverage | FAIL |
+| V4 | Uncovered critical gap: a critical Finding whose `classified_as` (else `kind`) is `gap`, with no `FRAMED_FROM` ← FramedUseCase ← Selection in this iteration. **Exact provenance only, no track fallback.** `examined` counts the iteration's Selections, so an empty plan is "nothing checked" and a plan for a deal without critical gaps passes | Coverage | FAIL |
 | V5 | Active `exclude_pattern` Override violated by a Selection | Coverage | FAIL |
 | V6 | Audit chain: Selection without `fit_score`; FramedUseCase without `framing_rationale` | Audit | FAIL |
-| V6b | No Candidate within 20 points of a Selection | Audit | WARN |
+| V6b | No other Candidate of the Selection's use case within 20 points | Audit | WARN |
 | V7 | Knowledge-edge coverage: share of patterns with any `REQUIRES`/`CONFLICTS`/`AUGMENTS` edge | Data | Report; CI fails below the configured floor (demo: 0.6) |
 
 ### 5.2 Scheduling
@@ -383,8 +385,10 @@ Rules:
 6. **Select.** The LLM chooses among candidates and writes draft Selections. Then call `request_approval(gate: select)`.
 7. **Instantiate.** `write_plan_tasks` derives PlanTasks and dependencies from the catalog in the graph.
 8. **Validate.** Run V1–V6.
-   - Derive V1 fixes automatically.
-   - Repair V2 and others against the witness, at most 2 loops, then escalate.
+   - Derive V1 fixes automatically: frame a use case the missing pattern solves, from the requiring selection's findings, and select the missing pattern ("Required by X (V1)").
+   - Repair V2 by switching the use case that loses fewer points to its stored near-miss (`replace_selection`). Repair V5 the same way, and V4/V6 by completing the framing, score, or rationale.
+   - V3 stops the run.
+   - After a repair, `write_plan_tasks` rebuilds the plan and validation runs again, for at most 2 rounds, then escalate. Derived and repaired selections are listed in the commit gate's summary.
 9. **Schedule** (§5.2) what is stored: the skill reads `plan_graph` and passes it to `compute_schedule` unchanged. A cycle stops the run before any schedule or commit. (`write_schedule` still trusts the values it is given; T3.2 moves scheduling server-side.)
 10. **Commit.** Call `request_approval(gate: commit)`, then promote with `$gate_id` (G8).
 11. **Buy vs build.** Run BB1 and write CapabilityDecision nodes.
