@@ -444,3 +444,21 @@ Captions follow the addendum's table, plus `iteration n` and `roadmap vN`; white
 - The M3 providers are real (validators, BB1, resource load, iteration diff), not placeholders, and so are the Browser favorites.
 - The stability acceptance is **< 5 px across 10 polls on scene 2** after the initial layout (Playwright, `npm run test:ui`), not "unchanged".
 
+## 8. Replay, Tier 0 (`graph/replay/`, T4.4)
+
+**Recording format** (`data/replays/<name>.jsonl`, zod-checked by `graph/replay/format.ts`):
+- one `header` line: `{format: 1, deal, source: live | skill-walk, recorded_at, expect}`. `expect` holds the node counts per label and relationship counts per type over the whole graph, plus validator verdicts per iteration of the deal;
+- the state-changing calls in order (`call`: `{seq, server, tool, args, result}`): `neo4j-write.write-cypher`, `gate.request_approval`/`await_approval`/`resolve_feedback`, `ontology.propose_term`, `planner-graph.schedule_plan`. Reads and pure engine calls change nothing and are not recorded;
+- one `decision` per decided gate: `{gate_id, action, comment, by}`. It's read from the GateDecision; `approve_except` means an approval whose comment created an exclusion Override.
+
+**Recording:**
+- `scripts/record-session.ts` reads a Claude Code transcript and pairs `tool_use` with `tool_result`. It skips failed calls (for example, guard denials) and unwraps `{result}` structured content. Then it reads the decisions and expectations from the graph the session left behind.
+- The e2e harness writes the same format from the scripted skill walks (`RECORD_REPLAY=<path>`, `npm run record:golden`).
+
+**Replay** (`graph/replay/replay.ts`, `npm run demo:replay`):
+- It wipes and reloads the graph, then starts the `.mcp.json` servers the recording uses, with `GATE_HTTP=off`, and re-sends each call.
+- Each `write-cypher` passes `guard.validate` first, as the PreToolUse hook does live. A denial stops the replay.
+- For a gate-waiting call whose recorded result is decided, the recorded decision is applied with `GateStore.decide` (the console's own path, addendum A4) once the gate is pending.
+- Gate ids are deterministic (§4), so a gate id or status that differs stops the replay. Other result differences are reported but don't fail it.
+- At the end, the counts and verdicts must equal `expect`, otherwise it exits 1. `--delay <ms>` paces the calls so the demo UI can be watched.
+

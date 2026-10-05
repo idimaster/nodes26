@@ -50,6 +50,24 @@ and ask: "Plan the Nimbus integration." Approve each gate in the console. (Insid
 
 `npm run check:tools` checks that the skill, the agent's tool allowlist, and the served tools agree.
 
+## Tier 0: replay without an LLM
+
+```bash
+npm run demo:ui                                  # in one terminal: the page at http://127.0.0.1:4646/?deal=nimbus
+npm run demo:replay -- --delay 800               # in another: wipe, reload, and replay the golden Nimbus run
+npm run demo:replay -- data/replays/nimbus-p4.jsonl   # the rejection → iteration 2 story
+```
+
+A recording (`data/replays/*.jsonl`) holds a run's state-changing MCP calls (writes, gates, feedback, scheduling), the architect's decisions, and the graph counts and validator verdicts the run ended with. Replay re-sends every call to the same MCP servers, runs each write through the guard first, makes the recorded decisions while the gate tools wait, and exits 1 if the final counts or verdicts differ. `tests/replay/golden.test.ts` does the same in CI.
+
+The committed recordings come from the scripted skill walks (`npm run record:golden`, header `source: "skill-walk"`). To record a live LLM run instead, right after the session ends and before anything resets the graph:
+
+```bash
+npm run record:session -- --transcript ~/.claude/projects/<project>/<session>.jsonl --out data/replays/nimbus-v1.jsonl
+```
+
+Only MCP tool arguments and results are kept, not prompts or chat.
+
 ## Neo4j Browser
 
 Open http://localhost:7474 (user `neo4j`, password from `.env.example`). Drag `browser/style.grass` onto Browser for the demo palette, and import `browser/favorites.cypher` as favorites (set `:param deal => "nimbus"` and `:param iteration => 1` first). In Browser settings, turn **off** "Connect result nodes", and zoom to 125–150%.

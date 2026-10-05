@@ -2,13 +2,14 @@ import { readFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import type { Driver } from 'neo4j-driver';
 import { expect } from 'vitest';
 import { loadContext, validate } from '@planner/guard';
 import { openDriver } from '../../graph/connection.js';
 import { loadAll } from '../../graph/load/index.js';
+import { isStateful, writeRecording, type Call } from '../../graph/replay/format.js';
+import { startServers } from '../../graph/replay/servers.js';
+import { decisions, expectations } from '../../graph/replay/snapshot.js';
 
 /**
  * Shared harness for end-to-end walks of the plan-integration skill without an LLM: every server in
@@ -21,9 +22,6 @@ export const SKILL = readFileSync(join(ROOT, 'plugin/skills/plan-integration/SKI
 export const QUERIES: Record<string, string> = Object.fromEntries(
   [...SKILL.matchAll(/<!-- query: (\w+) -->\s*```cypher\n([\s\S]*?)```/g)].map((m) => [m[1] as string, (m[2] as string).trim()]),
 );
-const MCP = JSON.parse(readFileSync(join(ROOT, '.mcp.json'), 'utf8')) as {
-  mcpServers: Record<string, { command: string; args?: string[] }>;
-};
 
 const freePort = () =>
   new Promise<number>((resolve) => {
@@ -33,8 +31,6 @@ const freePort = () =>
       srv.close(() => resolve(p));
     });
   });
-
-const text = (r: unknown) => (r as { content: { text: string }[] }).content.map((c) => c.text).join('\n');
 
 export type Decision = { action: 'approve' | 'approve_except' | 'reject'; comment?: string };
 
@@ -48,31 +44,23 @@ export interface Harness {
   close: () => Promise<void>;
 }
 
-/** Wipes and reloads the graph, then starts every .mcp.json server. */
-export async function startHarness(deal: string, opts: { gateWaitSeconds?: number } = {}): Promise<Harness> {
+/**
+ * Wipes and reloads the graph, then starts every .mcp.json server. With `record` (or RECORD_REPLAY=<path>),
+ * the walk's state-changing calls are written as a replay recording when the harness closes (T4.4).
+ */
+export async function startHarness(deal: string, opts: { gateWaitSeconds?: number; record?: string } = {}): Promise<Harness> {
   const driver = openDriver();
   await driver.executeQuery('MATCH (n) DETACH DELETE n');
   await loadAll(driver);
   const port = await freePort();
-  const clients: Record<string, Client> = {};
-  for (const [name, entry] of Object.entries(MCP.mcpServers)) {
-    const client = new Client({ name: `walk-${name}`, version: '0.0.0' });
-    await client.connect(
-      new StdioClientTransport({
-        command: entry.command,
-        args: entry.args ?? [],
-        cwd: ROOT,
-        env: { ...(process.env as Record<string, string>), GATE_PORT: String(port), GATE_WAIT_SECONDS: String(opts.gateWaitSeconds ?? 5) },
-        stderr: 'ignore',
-      }),
-    );
-    clients[name] = client;
-  }
+  const servers = await startServers(ROOT, { GATE_PORT: String(port), GATE_WAIT_SECONDS: String(opts.gateWaitSeconds ?? 5) });
+  const record = opts.record ?? process.env.RECORD_REPLAY;
+  const calls: Call[] = [];
 
   const call: Harness['call'] = async (server, tool, args) => {
-    const r = await (clients[server] as Client).callTool({ name: tool, arguments: args });
-    if (r.isError) throw new Error(`${server}.${tool} failed: ${text(r)}`);
-    return JSON.parse(text(r));
+    const result = await servers.call(server, tool, args);
+    if (record && isStateful(server, tool)) calls.push({ kind: 'call', seq: calls.length + 1, server, tool, args, result });
+    return result;
   };
   const read: Harness['read'] = async <T>(name: string, params: Record<string, unknown> = {}) => {
     if (!QUERIES[name]) throw new Error(`SKILL.md has no named query ${name}`);
@@ -105,7 +93,14 @@ export async function startHarness(deal: string, opts: { gateWaitSeconds?: numbe
     return result;
   };
   const close = async () => {
-    for (const c of Object.values(clients)) await c.close();
+    await servers.close();
+    if (record) {
+      writeRecording(record, {
+        header: { kind: 'header', format: 1, deal, source: 'skill-walk', recorded_at: new Date().toISOString(), expect: await expectations(driver, deal) },
+        calls,
+        decisions: await decisions(driver, deal),
+      });
+    }
     await driver.executeQuery('MATCH (n) DETACH DELETE n');
     await loadAll(driver);
     await driver.close();

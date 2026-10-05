@@ -32,6 +32,9 @@
     "browser:gen": "tsx scripts/gen-browser.ts",
     "demo:ui": "tsx scripts/build-ui.ts && tsx packages/gate/bin/console.ts",
     "console": "npm run demo:ui",
+    "demo:replay": "tsx scripts/replay.ts",
+    "record:session": "tsx scripts/record-session.ts",
+    "record:golden": "RECORD_REPLAY=data/replays/nimbus-v1.jsonl vitest run tests/e2e/nimbus-skill-walk.test.ts && RECORD_REPLAY=data/replays/nimbus-p4.jsonl vitest run tests/e2e/p4-feedback.test.ts",
     "mcp:neo4j:install": "scripts/install-neo4j-mcp.sh",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down"
