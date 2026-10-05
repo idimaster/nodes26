@@ -300,7 +300,7 @@ When unsure, the guard denies. Every decision, allow or deny, is logged with its
   - `gate` ∈ {`frame`, `select`, `commit`, `ontology_term`, `ontology_promote`}.
 - **`await_approval({gate_id})`**: the same long-poll. The skill keeps calling it until the gate resolves.
 - **`resolve_feedback({deal, iteration, feedback_id, resolved_by_ids[]})`** (subjects resolve within `iteration`, the new one): the agent calls this when a change in a later iteration addresses open Feedback. The server writes `RESOLVED_BY` from the Feedback to each given plan node of that deal and sets `status: 'resolved'`. It refuses unknown ids, ids from another deal, and Feedback that is already resolved. This is the only way Feedback changes after it is created, because the agent cannot write the reserved `Feedback` label (G7).
-- **Console** (`viz/gate.html`, served by the gate process at `http://127.0.0.1:$GATE_PORT/`, default 4646, with `GET /api/gates?status=` and `POST /api/gates/:id/decision`): shows the summary, each subject, and for selections the score and alternatives within 20 points. The graph is the source of truth: if the port is taken, a second gate process keeps working, because every long-poll re-checks the graph each second. `npm run console` serves the same console on its own, so the architect can open it before, or without, a Claude Code session. Actions are **Approve**, **Approve except…**, and **Reject**, each with an optional comment.
+- **Console** (the demo UI page, §7, served by the gate process at `http://127.0.0.1:$GATE_PORT/`, default 4646, with `GET /api/gates?status=&deal=` and `POST /api/gates/:id/decision`, alias `POST /api/gates/:id`): shows the summary, each subject, optional `details` (candidates, provenance), and for selections the score and alternatives within 20 points. The graph is the source of truth: if the port is taken, a second gate process keeps working, because every long-poll re-checks the graph every 500 ms. `npm run demo:ui` (alias `npm run console`) serves the same page on its own, so the architect can open it before, or without, a Claude Code session; `GATE_HTTP=off` stops the MCP gate process from serving it. Actions are **Approve**, **Approve except…**, and **Reject**, each with an optional comment (Reject requires one in the page).
 - **Server-side writes on decision** (own driver, never via the agent):
   - Status, `by`, `at`, and `comment` on the GateDecision.
   - If there is a comment, `Feedback {status:'open'}` with `ON` → each subject and `FROM` → the GateDecision.
@@ -404,3 +404,43 @@ Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp
 12. **On feedback** (skill step 13, when a gate is rejected). Call `recall_memory`, start `Iteration n+1`, and re-plan from framing, honoring every active Override (`exclude_pattern` is already dropped by `candidates`; `exclude_use_case`/`include_use_case` steer framing; `pin_pattern` steers selection; `strategy_for` and `directive` go into rationales and summaries). Call `resolve_feedback` for each Feedback the new plan addresses, then `iteration_diff`, whose changes and feedback text go into the next gate's summary. Re-plan at most once without new feedback (P4).
 
 Loop safety: `maxTurns`/`stopWhen` must be set by the host, and the repair loop is bounded at 2.
+
+## 7. Demo UI (`viz/`, served by `packages/gate`)
+
+Built per `docs/milestones/T4.2-ADDENDUM.md`, with the deviations listed below. The page is a Vite app (`viz/` → `viz/dist`), served statically by the gate's HTTP server next to the gate API. It reads the graph only through read-only endpoints; it never talks to Neo4j and carries no credentials (a test greps `viz/dist`).
+
+**Endpoints** (`packages/gate/src/ui/api.ts`, GET only, READ sessions with a 2 s timeout):
+- `/api/health` → `{ok, neo4j, gds, providers}`;
+- `/api/iterations?deal=` → newest first;
+- `/api/graph?deal=&iteration=&scene=1|2|3` → `{version, nodes[], rels[], witness, truncated}`. `version` is a sha1 (16 hex) over the sorted node ids with `status`/`fit_score`/`on_critical_path`, plus the relationship ids. Nodes are capped at 150, kept by the scene's group priority;
+- `/api/tables/:name?deal=&iteration=` for `buy_vs_build`, `resource_load`, `validators`, `iteration_diff` → `{status: ok, columns, rows}` or `{status: unavailable, reason}`. A provider error becomes `unavailable` with the message, never a 500;
+- everything else under `/` is a file from `viz/dist` (path traversal refused). When the page isn't built, 503 says to run `npm run demo:ui`.
+
+**Scenes** (`packages/gate/src/ui/scenes/*.cypher`): each is a node-set query returning one row of priority groups (it starts with `OPTIONAL MATCH`, so an empty deal still yields one row), followed by the shared `relationships.cypher` over those ids (`LIMIT 600`).
+1. Knowledge: selected patterns, candidate patterns, related patterns, tasks.
+2. Plan: iteration, selections, framings, PlanTasks, findings, patterns, candidates, CapabilityDecisions.
+3. Decisions: GateDecisions, Feedback, Overrides, and OntologyTerms, plus their targets.
+
+Captions follow the addendum's table, plus `iteration n` and `roadmap vN`; whitespace is collapsed and captions are capped at 28 characters. Emphasis priority: `witness` > `critical_path` > `draft`.
+
+**Witness:** `validatorWitness` runs V1–V6 once per graph `version` (cached) and returns the first FAIL, with the union of its `witness_eids`. The page colors those nodes red, zooms to them for 3 s, and shows a toast. A witness node that isn't in the current scene is simply not drawn.
+
+**Page:**
+- Polls every 2 s (`?poll=` overrides it), with one request in flight, and skips the graph when `version` is unchanged.
+- A full layout runs only when the scene or the iteration changes: dagre (top to bottom) for scene 2, fcose for scenes 1 and 3.
+- Polls are applied by `GraphView` (`viz/src/graph-view.ts`) from `diffGraph` (`viz/src/diff.ts`). New nodes are placed next to a neighbor already on screen, or else in a column to the right. **Existing nodes never move.**
+- Gate cards render from the `<template>` in `viz/index.html` and re-render only when the set of pending ids changes, so a comment being typed is never lost. A 409 shows "Already decided."
+- Provenance links highlight in cyan.
+- Keys: `1` `2` `3` scenes, `4` tables, `g` gate panel, `r` reset zoom, `f` fullscreen, `i` Follow latest.
+- `?deal=` picks the deal (default `nimbus`). `?sound=on` turns on the new-gate beep, which is off by default.
+
+**Neo4j Browser:** `npm run browser:gen` writes `browser/style.grass` (the same palette, every ontology label) and `browser/favorites.cypher` (the scene queries, iteration_diff, resource load, BB1, the validators), and a test keeps both in sync.
+
+**Deviations from the addendum:**
+- **Cytoscape.js replaces NVL.** NVL's license covers use with Neo4j's commercial products and Aura, but this demo runs Neo4j Community. Cytoscape 3.34.3 is used with `cytoscape-dagre` (hierarchical) and `cytoscape-fcose` (force-directed), all pinned and consumed from npm. "NVL telemetry is disabled" doesn't apply: Cytoscape sends none.
+- The port default stays 4646. Decisions keep `POST /api/gates/:id/decision`, with `/api/gates/:id` as an alias. The Host, Origin, and JSON checks from T2.5 stay on every POST.
+- `npm run console` is now an alias of `npm run demo:ui`, which builds `viz/dist` when any source is newer (`scripts/build-ui.ts`, also the vitest global setup).
+- OntologyTerm's `meta` subgraph is drawn as `ontology`.
+- The M3 providers are real (validators, BB1, resource load, iteration diff), not placeholders, and so are the Browser favorites.
+- The stability acceptance is **< 5 px across 10 polls on scene 2** after the initial layout (Playwright, `npm run test:ui`), not "unchanged".
+

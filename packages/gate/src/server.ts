@@ -1,9 +1,10 @@
-import { readFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+import type { Driver } from 'neo4j-driver';
 import { GateError, type GateStore } from './store.js';
+import { uiHandler } from './ui/api.js';
 
 const ok = (result: unknown): CallToolResult => ({
   content: [{ type: 'text', text: JSON.stringify(result) }],
@@ -30,6 +31,13 @@ export function createGateMcpServer(store: GateStore, waitSeconds: number): McpS
         gate: z.enum(['frame', 'select', 'commit', 'ontology_term', 'ontology_promote']),
         subject_ids: z.array(id).min(1),
         summary: z.string().min(1),
+        details: z
+          .object({
+            candidates: z.array(z.object({ pattern: z.string(), fit_score: z.number() })).optional(),
+            provenance_eids: z.array(z.string()).optional(),
+          })
+          .optional()
+          .describe('Optional context for the console: scored candidates and provenance element ids'),
       }),
     },
     async (input) => {
@@ -106,7 +114,9 @@ async function readJson(req: IncomingMessage): Promise<unknown> {
  * another origin could forge: a foreign Host (DNS rebinding), a foreign Origin, or a decision that
  * is not application/json (a "simple" request that skips the CORS preflight).
  */
-export function createConsoleServer(store: GateStore, consoleHtmlPath: string, port: number): Server {
+export function createConsoleServer(store: GateStore, opts: { port: number; driver: Driver; vizDist: string }): Server {
+  const { port } = opts;
+  const ui = uiHandler({ driver: opts.driver, vizDist: opts.vizDist });
   const hosts = new Set([`127.0.0.1:${port}`, `localhost:${port}`]);
   const origins = new Set([`http://127.0.0.1:${port}`, `http://localhost:${port}`]);
   return createServer((req, res) => {
@@ -121,15 +131,16 @@ export function createConsoleServer(store: GateStore, consoleHtmlPath: string, p
             return send(res, 415, { error: 'unsupported', message: 'decisions must be application/json' });
           }
         }
-        if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/gate.html')) {
-          return send(res, 200, readFileSync(consoleHtmlPath, 'utf8'), 'text/html; charset=utf-8');
-        }
         if (req.method === 'GET' && url.pathname === '/api/gates') {
           const status = url.searchParams.get('status');
           if (status !== null && !['pending', 'approved', 'rejected'].includes(status)) return send(res, 400, { error: 'bad status' });
-          return send(res, 200, await store.listGates((status as 'pending' | 'approved' | 'rejected' | null) ?? undefined));
+          return send(
+            res,
+            200,
+            await store.listGates((status as 'pending' | 'approved' | 'rejected' | null) ?? undefined, url.searchParams.get('deal') ?? undefined),
+          );
         }
-        const m = /^\/api\/gates\/([^/]+)\/decision$/.exec(url.pathname);
+        const m = /^\/api\/gates\/([^/]+?)(?:\/decision)?$/.exec(url.pathname);
         if (req.method === 'POST' && m) {
           let raw: unknown;
           try {
@@ -142,6 +153,7 @@ export function createConsoleServer(store: GateStore, consoleHtmlPath: string, p
           if (!body.success) return send(res, 400, { error: 'invalid', message: body.error.message });
           return send(res, 200, await store.decide(decodeURIComponent(m[1] as string), body.data));
         }
+        if (await ui(req, res, url)) return;
         return send(res, 404, { error: 'not_found' });
       } catch (e) {
         if (e instanceof GateError) {

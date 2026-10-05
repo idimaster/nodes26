@@ -55,9 +55,12 @@ export interface GateView {
   summary: string;
   comment: string;
   at: string;
+  /** Optional structured context for the console (T4.2): candidates, provenance element ids. */
+  details: unknown;
   subjects: SubjectView[];
 }
 
+const POLL_MS = 500;
 const PLAN_LABELS = ['Iteration', 'FramedUseCase', 'Candidate', 'Selection', 'PlanTask', 'Roadmap', 'CapabilityDecision'];
 const INTEGER_KEYS = new Set(['iteration', 'n', 'version']);
 const LABEL_NAME = /^[A-Z][A-Za-z0-9]*$/;
@@ -116,7 +119,14 @@ export class GateStore {
     return ids;
   }
 
-  async requestGate(input: { deal: string; iteration: number; gate: GateKind; subject_ids: string[]; summary: string }): Promise<{ gate_id: string }> {
+  async requestGate(input: {
+    deal: string;
+    iteration: number;
+    gate: GateKind;
+    subject_ids: string[];
+    summary: string;
+    details?: unknown;
+  }): Promise<{ gate_id: string }> {
     if (input.subject_ids.length === 0) throw new GateError('invalid', 'a gate needs at least one subject');
     const session = this.driver.session();
     try {
@@ -133,13 +143,21 @@ export class GateStore {
         const gateId = `gd-${input.deal}-${input.iteration}-${input.gate}-${toNum(count.records[0]?.get('n')) + 1}`;
         await tx.run(
           `CREATE (g:GateDecision {id: $id, deal_code: $deal, iteration: $iteration, gate: $gate, status: 'pending',
-                                   comment: '', by: '', at: datetime(), summary: $summary})
+                                   comment: '', by: '', at: datetime(), summary: $summary, details: $details})
            WITH g
            UNWIND $subjects AS sid
            MATCH (s) WHERE elementId(s) = sid
            CREATE (g)-[:DECIDED_ON]->(s)
            RETURN count(*) AS n`,
-          { id: gateId, deal: input.deal, iteration: neo4j.int(input.iteration), gate: input.gate, summary: input.summary, subjects },
+          {
+            id: gateId,
+            deal: input.deal,
+            iteration: neo4j.int(input.iteration),
+            gate: input.gate,
+            summary: input.summary,
+            details: input.details === undefined ? null : JSON.stringify(input.details),
+            subjects,
+          },
         );
         return { gate_id: gateId };
       });
@@ -280,7 +298,7 @@ export class GateStore {
     return (await this.getResult(gateId)) as GateResult;
   }
 
-  /** Long-poll: resolves on a decision in this process at once, and checks the graph every second for others. */
+  /** Long-poll: resolves on a decision in this process at once, and checks the graph every 500 ms for others. */
   async waitForDecision(gateId: string, seconds: number): Promise<GateResult> {
     const deadline = Date.now() + seconds * 1000;
     for (;;) {
@@ -294,7 +312,7 @@ export class GateStore {
           this.events.off(gateId, done);
           resolve();
         };
-        const timer = setTimeout(done, Math.min(1000, remaining));
+        const timer = setTimeout(done, Math.min(POLL_MS, remaining));
         this.events.on(gateId, done);
       });
     }
@@ -333,11 +351,11 @@ export class GateStore {
     }
   }
 
-  async listGates(status?: GateResult['status']): Promise<GateView[]> {
+  async listGates(status?: GateResult['status'], deal?: string): Promise<GateView[]> {
     const { records } = await this.driver.executeQuery(
       `MATCH (g:GateDecision)
-       WHERE $status IS NULL OR g.status = $status
-       RETURN g {.id, .deal_code, .iteration, .gate, .status, .summary, .comment, at: toString(g.at)} AS gate,
+       WHERE ($status IS NULL OR g.status = $status) AND ($deal IS NULL OR g.deal_code = $deal)
+       RETURN g {.id, .deal_code, .iteration, .gate, .status, .summary, .comment, .details, at: toString(g.at)} AS gate,
               COLLECT {
                 MATCH (g)-[:DECIDED_ON]->(s)
                 RETURN {
@@ -351,7 +369,7 @@ export class GateStore {
                 } AS subject ORDER BY subject.ref
               } AS subjects
        ORDER BY g.at, g.id`,
-      { status: status ?? null },
+      { status: status ?? null, deal: deal ?? null },
     );
     return records.map((r) => {
       const g = r.get('gate') as Record<string, unknown>;
@@ -364,6 +382,7 @@ export class GateStore {
         summary: (g.summary as string | null) ?? '',
         comment: (g.comment as string | null) ?? '',
         at: g.at as string,
+        details: typeof g.details === 'string' ? (JSON.parse(g.details) as unknown) : null,
         subjects: (r.get('subjects') as Record<string, unknown>[]).map((s) => {
           const view: SubjectView = { ref: s.ref as string, label: s.label as string, title: s.title as string };
           if (s.fit_score !== null && s.fit_score !== undefined) view.fit_score = toNum(s.fit_score);

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gate console</title>
+</head>
+<body>
+<header>
+  <h1>Gate console</h1>
+  <nav class="scenes" aria-label="Scenes">
+    <button data-scene="1">1 Knowledge</button>
+    <button data-scene="2">2 Plan</button>
+    <button data-scene="3">3 Decisions</button>
+    <button id="tables-btn">4 Tables</button>
+  </nav>
+  <label>Deal <input id="deal" size="10" aria-label="Deal"></label>
+  <label>Iteration <select id="iteration" aria-label="Iteration"></select></label>
+  <label class="check"><input type="checkbox" id="follow" checked> Follow latest</label>
+  <span class="badge" id="badge" title="Pending gates">0</span>
+  <span class="muted" id="status">Loading…</span>
+</header>
+<main>
+  <section id="graph" aria-label="Graph"></section>
+  <aside id="gate-panel" tabindex="-1" aria-label="Pending gates">
+    <label class="by">Reviewer <input id="by" value="architect" aria-label="Reviewer name"></label>
+    <div id="gates" aria-live="polite"></div>
+  </aside>
+</main>
+<div id="tables" class="overlay" hidden>
+  <div class="sheet">
+    <nav id="table-tabs"></nav>
+    <div id="table-body"></div>
+  </div>
+</div>
+<div id="toast" role="status" hidden></div>
+<template id="gate-card">
+  <section class="card">
+    <div class="head"><span class="gate"></span><span class="chip"></span></div>
+    <div class="summary"></div>
+    <ul class="subjects"></ul>
+    <div class="details"></div>
+    <textarea placeholder="Comment. One override per line: remove X · except X · keep X · include X · use bridge for X · directive: …"></textarea>
+    <div class="hint">“Approve except…” needs at least one “except X” line. Reject needs a comment.</div>
+    <div class="actions">
+      <button class="approve">Approve</button>
+      <button class="except">Approve except…</button>
+      <button class="reject">Reject</button>
+    </div>
+    <div class="error" role="alert"></div>
+  </section>
+</template>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

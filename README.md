@@ -38,7 +38,7 @@ claude plugin marketplace add ./       # this repo is its own marketplace (the .
 claude plugin install planner@nodes26
 ```
 
-Start the gate console in a terminal and keep it open: `npm run console` → http://127.0.0.1:4646/. (The `gate` MCP server also serves it while a Claude Code session runs, but the standalone console works before and without one.)
+Start the demo UI in a terminal and keep it open: `npm run demo:ui` → http://127.0.0.1:4646/?deal=nimbus. It builds the page if needed, then serves the graph (scenes `1` Knowledge, `2` Plan, `3` Decisions), the gate panel, and the tables (`4`). (`npm run console` is an alias. The `gate` MCP server also serves the page while a Claude Code session runs, unless `GATE_HTTP=off`.)
 
 Then start a Claude Code session *as* the planner agent, from the repo root (plugin agents are named `<plugin>:<agent>`):
 
@@ -49,3 +49,7 @@ claude --agent planner:planner
 and ask: "Plan the Nimbus integration." Approve each gate in the console. (Inside an ordinary session you can also ask Claude to "use the planner:planner agent to plan the Nimbus integration".) The write guard runs on every `write-cypher` call, and its decisions are logged to `.logs/guard.jsonl`.
 
 `npm run check:tools` checks that the skill, the agent's tool allowlist, and the served tools agree.
+
+## Neo4j Browser
+
+Open http://localhost:7474 (user `neo4j`, password from `.env.example`). Drag `browser/style.grass` onto Browser for the demo palette, and import `browser/favorites.cypher` as favorites (set `:param deal => "nimbus"` and `:param iteration => 1` first). In Browser settings, turn **off** "Connect result nodes", and zoom to 125–150%.

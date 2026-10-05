@@ -10,3 +10,5 @@ coverage/
 .tools/
 .logs/
 reports/
+test-results/
+playwright-report/

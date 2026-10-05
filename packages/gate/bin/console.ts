@@ -18,7 +18,7 @@ const driver = neo4j.driver(
   process.env.NEO4J_URI ?? 'neo4j://localhost:7687',
   neo4j.auth.basic(process.env.NEO4J_USERNAME ?? 'neo4j', process.env.NEO4J_PASSWORD ?? 'planner-demo'),
 );
-const http = createConsoleServer(new GateStore(driver), fileURLToPath(new URL('../../../viz/gate.html', import.meta.url)), port);
+const http = createConsoleServer(new GateStore(driver), { port, driver, vizDist: fileURLToPath(new URL('../../../viz/dist', import.meta.url)) });
 http.on('error', (e: NodeJS.ErrnoException) => {
   console.error(
     e.code === 'EADDRINUSE'

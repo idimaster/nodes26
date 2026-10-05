@@ -20,7 +20,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   console.error('gate: GATE_PORT must be a TCP port');
   process.exit(1);
 }
-const consoleHtml = fileURLToPath(new URL('../../../viz/gate.html', import.meta.url));
+const vizDist = fileURLToPath(new URL('../../../viz/dist', import.meta.url));
 
 const driver = neo4j.driver(
   process.env.NEO4J_URI ?? 'neo4j://localhost:7687',
@@ -28,21 +28,27 @@ const driver = neo4j.driver(
 );
 const store = new GateStore(driver);
 
-const http = createConsoleServer(store, consoleHtml, port);
-http.on('error', (e: NodeJS.ErrnoException) => {
-  console.error(
-    e.code === 'EADDRINUSE'
-      ? `gate: port ${port} is in use; another gate process serves the console. Continuing without it.`
-      : `gate: console server error: ${e.message}`,
-  );
-});
-http.listen(port, '127.0.0.1', () => console.error(`gate: console at http://127.0.0.1:${port}/`));
+// Mode A (agent run): GATE_HTTP=off, the console is served by `npm run demo:ui` (mode B).
+const httpOn = (process.env.GATE_HTTP ?? 'on') !== 'off';
+const http = httpOn ? createConsoleServer(store, { port, driver, vizDist }) : null;
+if (http) {
+  http.on('error', (e: NodeJS.ErrnoException) => {
+    console.error(
+      e.code === 'EADDRINUSE'
+        ? `gate: port ${port} is in use; another gate process serves the console. Continuing without it.`
+        : `gate: console server error: ${e.message}`,
+    );
+  });
+  http.listen(port, '127.0.0.1', () => console.error(`gate: console at http://127.0.0.1:${port}/`));
+} else {
+  console.error('gate: console off (GATE_HTTP=off); run npm run demo:ui to serve it');
+}
 
 await createGateMcpServer(store, waitSeconds).connect(new StdioServerTransport());
 console.error(`gate: ready (long-poll ${waitSeconds}s)`);
 
 const shutdown = () => {
-  http.close();
+  http?.close();
   void driver.close().finally(() => process.exit(0));
 };
 process.stdin.on('close', shutdown);

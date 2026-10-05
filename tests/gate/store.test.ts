@@ -332,3 +332,15 @@ describe('review fixes: concurrency, ontology safety, refusals', () => {
     ).rejects.toMatchObject({ code: 'invalid' });
   });
 });
+
+describe('T4.2 gate extensions', () => {
+  it('stores optional details as JSON and returns them parsed; filters by deal', async () => {
+    const details = { candidates: [{ pattern: 'event-bus-bridge', fit_score: 84.4 }], provenance_eids: [] };
+    const { gate_id } = await store.requestGate({ deal: 'nimbus', iteration: 1, gate: 'select', subject_ids: SELECTIONS, summary: 'with details', details });
+    const g = (await store.listGates('pending', 'nimbus')).find((x) => x.id === gate_id);
+    expect(g?.details).toEqual(details);
+    expect((await store.listGates('pending', 'tidewater')).map((x) => x.id)).not.toContain(gate_id);
+    const plain = await request();
+    expect((await store.listGates('pending', 'nimbus')).find((x) => x.id === plain.gate_id)?.details).toBeNull();
+  });
+});
