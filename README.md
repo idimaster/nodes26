@@ -40,6 +40,12 @@ claude plugin install planner@nodes26
 
 Start the gate console in a terminal and keep it open: `npm run console` → http://127.0.0.1:4646/. (The `gate` MCP server also serves it while a Claude Code session runs, but the standalone console works before and without one.)
 
-Then, in Claude Code inside this repo: `/agents` → **planner** → "Plan the Nimbus integration". Approve each gate in the console. The write guard runs on every `write-cypher` call, and its decisions are logged to `.logs/guard.jsonl`.
+Then start a Claude Code session *as* the planner agent, from the repo root (plugin agents are named `<plugin>:<agent>`):
+
+```bash
+claude --agent planner:planner
+```
+
+and ask: "Plan the Nimbus integration." Approve each gate in the console. (Inside an ordinary session you can also ask Claude to "use the planner:planner agent to plan the Nimbus integration".) The write guard runs on every `write-cypher` call, and its decisions are logged to `.logs/guard.jsonl`.
 
 `npm run check:tools` checks that the skill, the agent's tool allowlist, and the served tools agree.
