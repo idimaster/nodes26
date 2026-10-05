@@ -1,6 +1,9 @@
 {
   "name": "nodes26",
-  "owner": { "name": "NODES 2026 demo" },
+  "description": "The NODES 2026 integration-planner demo: the planner agent and skill for this repo.",
+  "owner": {
+    "name": "NODES 2026 demo"
+  },
   "plugins": [
     {
       "name": "planner",

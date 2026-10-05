@@ -34,7 +34,7 @@ They connect with `NEO4J_URI`, `NEO4J_USERNAME`, and `NEO4J_PASSWORD`, which def
 ## The planner agent (Claude Code plugin)
 
 ```bash
-claude plugin marketplace add .        # this repo is its own marketplace
+claude plugin marketplace add ./       # this repo is its own marketplace (the ./ is required)
 claude plugin install planner@nodes26
 ```
 

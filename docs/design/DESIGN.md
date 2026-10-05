@@ -369,7 +369,7 @@ Rules:
 
 ## 6. Agent workflow (`plugin/skills/plan-integration/SKILL.md`)
 
-**Packaging.** The plugin lives in `plugin/` (`plugin/.claude-plugin/plugin.json`, `plugin/agents/planner.md`, `plugin/skills/plan-integration/SKILL.md`), and `.claude-plugin/marketplace.json` at the repo root lets `claude plugin marketplace add .` install it.
+**Packaging.** The plugin lives in `plugin/` (`plugin/.claude-plugin/plugin.json`, `plugin/agents/planner.md`, `plugin/skills/plan-integration/SKILL.md`), and `.claude-plugin/marketplace.json` at the repo root lets `claude plugin marketplace add ./` install it.
 - It is a subdirectory on purpose: a plugin root's `.mcp.json` and `hooks/hooks.json` are auto-loaded. The repo root's servers would be registered a second time under `mcp__plugin_…` names, and the guard would run twice.
 - The plugin carries the agent and the skill only. Servers, the guard hook, and `MCP_TOOL_TIMEOUT` (which a plugin cannot set) come from the project settings.
 
