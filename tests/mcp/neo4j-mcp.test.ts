@@ -39,7 +39,7 @@ const text = (r: { content: unknown }) => (r.content as { text: string }[]).map(
 
 describe('.mcp.json', () => {
   it('declares the two Neo4j instances, the engine, and the gate, with no secrets', () => {
-    expect(Object.keys(mcp.mcpServers).sort()).toEqual(['gate', 'neo4j-read', 'neo4j-write', 'planner-engine', 'planner-graph']);
+    expect(Object.keys(mcp.mcpServers).sort()).toEqual(['gate', 'neo4j-read', 'neo4j-write', 'ontology', 'planner-engine', 'planner-graph']);
     expect(mcp.mcpServers['neo4j-read']).toEqual({ command: 'scripts/neo4j-mcp.sh', args: ['--read-only', 'true'] });
     expect(mcp.mcpServers['neo4j-write']).toEqual({ command: 'scripts/neo4j-mcp.sh', args: ['--read-only', 'false'] });
     expect(JSON.stringify(mcp)).not.toMatch(/password|planner-demo/i);

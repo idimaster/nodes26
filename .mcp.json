@@ -31,6 +31,12 @@
       "args": [
         "packages/graph-mcp/bin/graph-mcp.ts"
       ]
+    },
+    "ontology": {
+      "command": "node_modules/.bin/tsx",
+      "args": [
+        "packages/ontology-mcp/bin/ontology-mcp.ts"
+      ]
     }
   }
 }

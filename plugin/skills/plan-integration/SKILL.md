@@ -19,8 +19,7 @@ not written there did not happen.
    existing selection). Stop, read it back with `mcp__neo4j-read__read-cypher`, fix the input, and only
    then continue.
 3. **A guard denial is a message to you.** Its reason names the rule (G1–G9) and the fix. Correct the
-   query or params. Do not work around a rule. If you need a label that does not exist, say so and stop
-   (proposing terms comes with the ontology server).
+   query or params. Do not work around a rule. If you need a label that does not exist, propose it (step 4).
 4. **Gates are the architect's.** `mcp__gate__request_approval` waits up to 50 seconds. While the
    status is `pending`, keep calling `mcp__gate__await_approval` with the `gate_id`. Do not continue
    past a gate until it is `approved`. If it is `rejected`, stop and report the feedback and overrides.
@@ -30,7 +29,8 @@ not written there did not happen.
 
 ## Steps
 
-**1. Ground.** Call `mcp__neo4j-read__get-schema`. Run `findings`, `coverage`, and `next_iteration`.
+**1. Ground.** Call `mcp__ontology__get_ontology` with the deal: it lists what you may write. Then call
+`mcp__neo4j-read__get-schema`, which shows only what exists. Run `findings`, `coverage`, and `next_iteration`.
 
 **2. Classify.** Call `mcp__planner-engine__classify_finding` with all findings at once. Write the
 result with template `classify_findings`.
@@ -46,6 +46,14 @@ Write a one-sentence `framing_rationale` that names the findings. Write all fram
 `write_framed_use_cases`. Then call `mcp__gate__request_approval` with `gate: "frame"`, the subjects
 `FramedUseCase:<use_case_id>` for every framing, and a summary that states the recommended strategy, its
 score, and its rationale. When approved, write the strategy with `set_deal_strategy`.
+
+If a finding expresses a constraint the ontology has no label for (for example a data-residency requirement),
+call `mcp__ontology__propose_term` with `kind: "label"`, an UpperCamelCase `name`, a one-sentence `definition`,
+an `example`, and the finding in `motivated_by`. It asks the architect; while `pending`, call
+`mcp__gate__await_approval`. Once it is `approved`, write **one** node of the new label for this deal. This is the
+only write you may compose yourself, and it must look like this:
+`MERGE (r:<Label> {deal_code: $deal, id: $id}) SET r.description = $text RETURN r.id AS id`.
+If the term is rejected, record the finding in the summary instead.
 
 **5. Retrieve and score.** For each framed use case, run `candidates` with its `use_case` and
 `selected_patterns`. Call `mcp__planner-engine__analyze_pattern_fit` with:

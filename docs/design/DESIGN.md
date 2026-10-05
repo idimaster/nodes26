@@ -128,7 +128,7 @@ All statements use `IF NOT EXISTS`, so applying the file is idempotent.
 | `neo4j-write` | official Neo4j MCP `v1.6.0`, `--read-only false` | `write-cypher` (**guarded**, §3) | Yes, via the agent |
 | `planner-graph` | stdio (this repo, `npm run mcp:graph`) | `schedule_plan` (§5.2): trusted graph computations the agent asks for but cannot fake | PlanTask schedule fields only (own driver) |
 | `planner-engine` | stdio (this repo, `npm run mcp:engine`) | see below. Tool errors (including a cycle, with its `witness`) come back as `isError` results | **Never** |
-| `ontology` | stdio (this repo) | `get_ontology`, `propose_term` | Proposed terms only (own driver) |
+| `ontology` | stdio (this repo, `npm run mcp:ontology`) | `get_ontology({deal})`: core ontology plus active terms of global and the deal (never proposed terms or another deal's). `propose_term({deal, iteration, kind, name, definition, example, motivated_by[]})`: validates the name (UpperCamelCase label or UPPER_SNAKE type, not core, not existing) and the findings, writes a proposed term with `MOTIVATED_BY`, and opens an `ontology_term` gate through `@planner/gate`, waiting like `request_approval` | Proposed terms only (own driver) |
 | `gate` | stdio (this repo) | `request_approval`, `await_approval`, `resolve_feedback` | Decisions, feedback, overrides, term activation (own driver) |
 
 **`planner-engine`** (pure functions; JSON in, JSON out):
@@ -387,7 +387,7 @@ Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp
 1. **Ground.** Call `get_ontology`, then `get-schema`. Read the deal's findings and prior-project estimates.
 2. **Ingest.** Run `classify_finding` on each finding, then write Finding and Source nodes.
 3. **Strategy.** Run `recommend_strategy`, then `request_approval(gate: frame)` together with step 4.
-4. **Frame.** The LLM drafts framings and writes FramedUseCase nodes as draft. If it needs a concept missing from the ontology, it calls `propose_term`, which triggers `request_approval(gate: ontology_term)`.
+4. **Frame.** The LLM drafts framings and writes FramedUseCase nodes as draft. If it needs a concept missing from the ontology, it calls `propose_term`, which triggers `request_approval(gate: ontology_term)`. After approval it writes one instance of the new label, `MERGE (r:<Label> {deal_code: $deal, id: $id}) SET r.description = $text RETURN r.id AS id`: the only write the skill lets the agent compose, and the guard checks it like any other (P3).
 5. **Retrieve and score.** Use read-cypher for retrieval, then `analyze_pattern_fit`. Write the top 3 as Candidates.
 6. **Select.** The LLM chooses among candidates and writes draft Selections. Then call `request_approval(gate: select)`.
 7. **Instantiate.** `write_plan_tasks` derives PlanTasks and dependencies from the catalog in the graph.
