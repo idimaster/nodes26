@@ -41,6 +41,8 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run load
+      - name: Tool surface (skill = agent ⊆ served, write tools guarded; gotcha 03)
+        run: npm run check:tools
       - name: Knowledge-edge coverage (V7)
         run: npm run coverage:edges
       - uses: actions/upload-artifact@v4

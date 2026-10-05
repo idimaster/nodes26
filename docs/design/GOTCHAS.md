@@ -5,6 +5,8 @@ Each one lives in `gotchas/NN-slug/` with:
 - `before.(cypher|ts)` and `after.(cypher|ts)`.
 - `test.ts`: asserts that **before fails and after passes**, against a fixture graph loaded in `beforeAll`.
 
+The folders share `gotchas/_shared/fixture.ts` (the demo graph and the agent's templates) and nothing else: every `after` imports the real guard, ontology server, gate store, validators, scheduler, or tool-surface check. Gotcha 03 relies on `npm run check:tools`, which is a CI step.
+
 | # | Folder | Before (demonstrates the failure) | After (the fix) |
 |---|---|---|---|
 | 1 | `01-schema-is-not-a-contract` | Agent relies on `get-schema`; on an empty graph it returns nothing, and an invented label is accepted | `get_ontology` returns allowed terms; guard G6 denies the invented label |
