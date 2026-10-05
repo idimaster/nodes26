@@ -104,9 +104,13 @@ stored plan itself (V3 first, then GDS or Kahn) and writes the result; you never
   came from, and stop. A different selection is the architect's call.
 - **Otherwise**, keep `finish`, `critical_path`, `pert`, and `resource_load` for the commit summary.
 
-**10. Commit.** Run `next_roadmap_version`. Call `mcp__gate__request_approval` with `gate: "commit"`, the
+**10. Commit.** Explain the estimates on the critical path first: run `prior_estimates` with the
+`task_id`s of the critical-path PlanTasks (the catalog Task ids after the `:` in each PlanTask id). For each,
+call `mcp__planner-engine__estimate_provenance` with the task's `weeks_o/e/p`, its `observations`, and no
+modifiers, and keep `baseline → history_avg (n) → result [band]` for the summary. Then run
+`next_roadmap_version`. Call `mcp__gate__request_approval` with `gate: "commit"`, the
 subjects `Selection:<uc>` and `Iteration:<n>`, and a summary that has the finish week, the PERT p10 to
-p90 band, the critical path, every derived or repaired selection with the reason, and every `WARN`. When approved, write with `commit_roadmap`, passing the approved
+p90 band, the critical path with each task's estimate provenance, every derived or repaired selection with the reason, and every `WARN`. When approved, write with `commit_roadmap`, passing the approved
 `gate_id`, the `iteration`, and the `version`.
 
 **11. Report.** Summarize the plan: selections, critical path, finish, PERT band, and every gate
@@ -148,7 +152,13 @@ ORDER BY id
 
 <!-- query: candidates -->
 ```cypher
+// Candidate retrieval (DESIGN §5.3): patterns that SOLVE the use case, minus every pattern an active
+// exclude_pattern Override of this deal names (a "remove X" at a gate takes X out of the next iteration).
 MATCH (u:UseCase {id: $use_case})<-[:SOLVES]-(p:Pattern)
+WHERE NOT EXISTS {
+  MATCH (o:Override {deal_code: $deal, kind: 'exclude_pattern', subject: p.id})
+  WHERE o.active = true
+}
 RETURN p.id AS id, p.name AS name, p.description AS description,
        COLLECT { MATCH (p)-[:SOLVES]->(x:UseCase) RETURN x.id ORDER BY x.id } AS solves,
        COLLECT { MATCH (p)-[:APPLIES_TO]->(s:Strategy) RETURN s.id ORDER BY s.id } AS strategies,
@@ -169,6 +179,21 @@ RETURN p.id AS pattern,
                  depends_on: COLLECT { MATCH (t)-[:DEPENDS_ON]->(d:Task) RETURN d.id ORDER BY d.id }}
          ORDER BY t.id
        } AS tasks
+```
+
+<!-- query: prior_estimates -->
+```cypher
+// Prior-project estimates (DESIGN §5.3): for each catalog Task, the Actual durations observed on
+// committed plans of past deals. One row per asked task, with n = 0 when it was never observed.
+UNWIND $task_ids AS task_id
+MATCH (t:Task {id: task_id})
+OPTIONAL MATCH (a:Actual)-[:OBSERVED_FOR]->(pt:PlanTask)-[:INSTANTIATES]->(t)
+WHERE EXISTS { (pt)<-[:HAS_TASK]-(:Selection {status: 'committed'}) }
+WITH t, a
+ORDER BY a.deal_code, a.plan_task_id
+RETURN t.id AS task_id, t.weeks_o AS weeks_o, t.weeks_e AS weeks_e, t.weeks_p AS weeks_p,
+       count(a) AS n, avg(a.weeks_actual) AS history_avg, collect(a.weeks_actual) AS observations
+ORDER BY task_id
 ```
 
 <!-- query: near_miss -->

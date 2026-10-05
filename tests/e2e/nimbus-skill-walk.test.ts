@@ -110,7 +110,7 @@ afterAll(async () => {
 
 describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
   it('has every named query the steps refer to', () => {
-    for (const q of ['findings', 'coverage', 'next_iteration', 'use_cases', 'candidates', 'pattern_tasks', 'near_miss', 'derive_prerequisite', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v6b', 'next_roadmap_version']) {
+    for (const q of ['findings', 'coverage', 'next_iteration', 'use_cases', 'candidates', 'pattern_tasks', 'prior_estimates', 'near_miss', 'derive_prerequisite', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v6b', 'next_roadmap_version']) {
       expect(QUERIES[q], q).toBeTruthy();
       expect(SKILL).toContain(`\`${q}\``);
     }
@@ -265,7 +265,24 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
     );
     expect(Number(unscheduled.records[0]?.get('n'))).toBe(0);
 
-    // 10. Commit
+    // 10. Commit: explain the critical-path estimates first (T3.5)
+    const criticalTasks = [...new Set(schedule.critical_path.map((id) => id.slice(id.indexOf(':') + 1)))];
+    const priors = await read<{ task_id: string; weeks_o: number; weeks_e: number; weeks_p: number; observations: number[] }>('prior_estimates', {
+      task_ids: criticalTasks,
+    });
+    expect(priors).toHaveLength(criticalTasks.length);
+    const provenance = [];
+    for (const p of priors) {
+      provenance.push(
+        (await call('planner-engine', 'estimate_provenance', {
+          task: { id: p.task_id, weeks_o: p.weeks_o, weeks_e: p.weeks_e, weeks_p: p.weeks_p },
+          observations: p.observations,
+          modifiers: [],
+        })) as { task_id: string; baseline: number; n: number; result: number },
+      );
+    }
+    expect(provenance.every((x) => x.result > 0 && x.baseline > 0)).toBe(true);
+
     const finalSelections = (await driver.executeQuery(
       'MATCH (s:Selection {deal_code: $deal, iteration: 1}) RETURN s.uc AS uc ORDER BY uc',
       { deal: DEAL },

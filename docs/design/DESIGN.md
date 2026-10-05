@@ -370,7 +370,7 @@ Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp
 5. Resource load (`graph/queries/resource-load.cypher`) is `sum(weeks_e)` grouped by `skill` and `wave`, returned with the schedule.
 
 ### 5.3 Other queries
-- **Grounding:** candidate retrieval (UseCase ← SOLVES ← Pattern → APPLIES_TO → Strategy, minus active exclude Overrides); prior-project estimates (avg `Actual.weeks_actual` per Task, with count).
+- **Grounding** (`graph/queries/skill/`, synced into the skill by `npm run skill:sync`): `candidates` (UseCase ← SOLVES ← Pattern, with its strategies and requirements, minus patterns named by an active `exclude_pattern` Override of the deal); `prior_estimates` (per Task, the `Actual.weeks_actual` observed on committed history plans, with mean and count; one row per asked task). At commit, the skill explains each critical-path task's estimate with `estimate_provenance` (§2.4).
 - **Memory:** `recall_memory` (latest iteration plus open Feedback with targets); `iteration_diff` (selections new in iteration *n* vs *n − 1*, each with its `RESOLVED_BY` feedback).
 - **Buy vs build (BB1):** per capability finding, integrate effort from PlanTasks, build effort from BuildOption, and coverage from PlatformCapability → `classify_buy_build`.
 
