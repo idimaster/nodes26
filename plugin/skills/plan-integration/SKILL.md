@@ -113,8 +113,13 @@ subjects `Selection:<uc>` and `Iteration:<n>`, and a summary that has the finish
 p90 band, the critical path with each task's estimate provenance, every derived or repaired selection with the reason, and every `WARN`. When approved, write with `commit_roadmap`, passing the approved
 `gate_id`, the `iteration`, and the `version`.
 
-**11. Report.** Summarize the plan: selections, critical path, finish, PERT band, and every gate
-decision. Name anything you could not do.
+**11. Buy vs build.** After the commit, run `bb1`. Call `mcp__planner-engine__classify_buy_build` with the rows
+that have a `build_effort` (report any without one). Write the `outcomes` with template
+`write_capability_decisions` (each with the returned `rule_version`). Every `unplanned` capability has no
+Selection in this plan: report it, do not guess.
+
+**12. Report.** Summarize the plan: selections, critical path, finish, PERT band, buy-vs-build outcomes with their rule,
+and every gate decision. Name anything you could not do.
 
 ## Named read queries
 
@@ -194,6 +199,34 @@ ORDER BY a.deal_code, a.plan_task_id
 RETURN t.id AS task_id, t.weeks_o AS weeks_o, t.weeks_e AS weeks_e, t.weeks_p AS weeks_p,
        count(a) AS n, avg(a.weeks_actual) AS history_avg, collect(a.weeks_actual) AS observations
 ORDER BY task_id
+```
+
+<!-- query: bb1 -->
+```cypher
+// BB1 buy vs build (DESIGN §5.3, §2.6): one row per capability type the deal has a capability finding for
+// (classified as capability, so weak evidence is excluded). integrate_effort = sum of weeks_e of the
+// PlanTasks of every Selection framed from those findings in this iteration (null when none is selected);
+// build_effort = the type's BuildOption; coverage = the acquirer's best PROVIDES coverage (0 if none).
+MATCH (:Deal {code: $deal})-[:HAS_FINDING]->(f:Finding)-[:IS_A]->(c:CapabilityType)
+WHERE coalesce(f.classified_as, f.kind) = 'capability'
+WITH c, collect(DISTINCT f) AS findings
+CALL (findings) {
+  UNWIND findings AS f
+  OPTIONAL MATCH (f)<-[:FRAMED_FROM]-(:FramedUseCase {deal_code: $deal, iteration: $iteration})
+                 <-[:FOR]-(:Selection {deal_code: $deal, iteration: $iteration})-[:HAS_TASK]->(pt:PlanTask)
+  WITH DISTINCT pt
+  RETURN CASE WHEN count(pt) = 0 THEN null ELSE sum(pt.weeks_e) END AS integrate_effort
+}
+CALL (c) {
+  OPTIONAL MATCH (b:BuildOption)-[:DELIVERS]->(c)
+  RETURN min(b.weeks_e) AS build_effort
+}
+CALL (c) {
+  OPTIONAL MATCH (:PlatformCapability)-[p:PROVIDES]->(c)
+  RETURN coalesce(max(p.coverage), 0.0) AS coverage
+}
+RETURN c.id AS capability_id, [f IN findings | f.id] AS finding_ids, integrate_effort, build_effort, coverage
+ORDER BY capability_id
 ```
 
 <!-- query: near_miss -->

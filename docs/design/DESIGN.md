@@ -372,7 +372,7 @@ Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp
 ### 5.3 Other queries
 - **Grounding** (`graph/queries/skill/`, synced into the skill by `npm run skill:sync`): `candidates` (UseCase ← SOLVES ← Pattern, with its strategies and requirements, minus patterns named by an active `exclude_pattern` Override of the deal); `prior_estimates` (per Task, the `Actual.weeks_actual` observed on committed history plans, with mean and count; one row per asked task). At commit, the skill explains each critical-path task's estimate with `estimate_provenance` (§2.4).
 - **Memory:** `recall_memory` (latest iteration plus open Feedback with targets); `iteration_diff` (selections new in iteration *n* vs *n − 1*, each with its `RESOLVED_BY` feedback).
-- **Buy vs build (BB1):** per capability finding, integrate effort from PlanTasks, build effort from BuildOption, and coverage from PlatformCapability → `classify_buy_build`.
+- **Buy vs build (BB1, `graph/queries/skill/bb1.cypher`):** one row per capability type with a finding *classified* as `capability`: integrate effort = sum of `weeks_e` of the PlanTasks of the Selections framed from those findings in this iteration (null when none, which `classify_buy_build` reports as `unplanned`); build effort from BuildOption; coverage = the best PlatformCapability `PROVIDES`, 0 if none → `classify_buy_build` (§2.6) → `write_capability_decisions` (step 11, after the commit; `iteration` is part of the key).
 
 ---
 

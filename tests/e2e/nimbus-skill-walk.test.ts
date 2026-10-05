@@ -110,7 +110,7 @@ afterAll(async () => {
 
 describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
   it('has every named query the steps refer to', () => {
-    for (const q of ['findings', 'coverage', 'next_iteration', 'use_cases', 'candidates', 'pattern_tasks', 'prior_estimates', 'near_miss', 'derive_prerequisite', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v6b', 'next_roadmap_version']) {
+    for (const q of ['findings', 'coverage', 'next_iteration', 'use_cases', 'candidates', 'pattern_tasks', 'prior_estimates', 'bb1', 'near_miss', 'derive_prerequisite', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v6b', 'next_roadmap_version']) {
       expect(QUERIES[q], q).toBeTruthy();
       expect(SKILL).toContain(`\`${q}\``);
     }
@@ -297,6 +297,33 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
     );
     const committed = await write('commit_roadmap', { deal: DEAL, iteration, version, gate_id: commitGate });
     expect(Number(committed.included)).toBe(finalSelections.length);
+
+    // 11. Buy vs build (T3.6): SSO and audit logging are planned, the billing ledger is not.
+    type BB1Row = { capability_id: string; integrate_effort: number | null; build_effort: number | null; coverage: number };
+    const rows = (await read<BB1Row>('bb1', { iteration })).filter((r) => r.build_effort !== null);
+    const bb = (await call('planner-engine', 'classify_buy_build', { rows })) as {
+      rule_version: string;
+      outcomes: { capability_id: string; outcome: string; integrate_effort: number; build_effort: number; coverage: number }[];
+      unplanned: string[];
+    };
+    expect(bb.outcomes.map((o) => [o.capability_id, o.outcome])).toEqual([
+      ['audit-logging', 'retire'],
+      ['sso', 'integrate'],
+    ]);
+    expect(bb.unplanned).toEqual(['billing-ledger']);
+    const decided = await write('write_capability_decisions', {
+      deal: DEAL,
+      iteration,
+      rows: bb.outcomes.map((o) => ({
+        capability_id: o.capability_id,
+        outcome: o.outcome,
+        integrate_effort: o.integrate_effort,
+        build_effort: o.build_effort,
+        coverage: o.coverage,
+        rule_version: bb.rule_version,
+      })),
+    });
+    expect(Number(decided.decisions)).toBe(2);
 
     // The record: a committed roadmap backed by an approved commit gate, and nothing left in draft.
     const { records } = await driver.executeQuery(
