@@ -22,6 +22,7 @@
     "load": "tsx graph/load/index.ts",
     "mcp:engine": "tsx packages/engine-mcp/src/server.ts",
     "mcp:gate": "tsx packages/gate/bin/gate-mcp.ts",
+    "console": "tsx packages/gate/bin/console.ts",
     "mcp:neo4j:install": "scripts/install-neo4j-mcp.sh",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down"

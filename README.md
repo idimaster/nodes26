@@ -38,6 +38,8 @@ claude plugin marketplace add ./       # this repo is its own marketplace (the .
 claude plugin install planner@nodes26
 ```
 
-Then, in Claude Code inside this repo: `/agents` → **planner** → "Plan the Nimbus integration". Approve each gate in the console at http://127.0.0.1:4646/. The write guard runs on every `write-cypher` call, and its decisions are logged to `.logs/guard.jsonl`.
+Start the gate console in a terminal and keep it open: `npm run console` → http://127.0.0.1:4646/. (The `gate` MCP server also serves it while a Claude Code session runs, but the standalone console works before and without one.)
+
+Then, in Claude Code inside this repo: `/agents` → **planner** → "Plan the Nimbus integration". Approve each gate in the console. The write guard runs on every `write-cypher` call, and its decisions are logged to `.logs/guard.jsonl`.
 
 `npm run check:tools` checks that the skill, the agent's tool allowlist, and the served tools agree.
