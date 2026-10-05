@@ -196,7 +196,7 @@ For one framed use case, each candidate pattern scores the sum of five signals (
 - **Ranking:** score descending, then pattern id ascending.
 
 ### 2.3 Tasks and schedule
-- **`instantiate_tasks`**: one PlanTask per catalog Task of each selected pattern (id per §1.3), copying `weeks_o/e/p` and `skill`. `depends_on` contains:
+- **`instantiate_tasks`**: one PlanTask per catalog Task of each selected pattern (id per §1.3), copying `weeks_o/e/p` and `skill`. **The graph is authoritative:** the `write_plan_tasks` template derives the same PlanTasks and edges in Cypher from the catalog and takes none from the caller. A parity test holds the two equal. The engine function serves the history generator and tests; the agent is not granted it. (In a live run, the agent passed a `depends_on` with two edges reversed. That turned the planted P5 cycle into a DAG, which then scheduled and committed. Nothing in the old design could see it.) `depends_on` contains:
   - the catalog `DEPENDS_ON` edges, within the same Selection;
   - for every `REQUIRES` from the Selection's pattern to a pattern selected in the same iteration: an edge from each of the Selection's root tasks (no prerequisites) to each final task (no dependents) of every such Selection.
 - **`compute_schedule`**: durations are `weeks_e`. `weeks_o`, `weeks_e`, `weeks_p` are the optimistic, **most likely**, and pessimistic estimates. Output per task: `earliest_start`, `wave`, `on_critical_path` (definitions in §5.2), plus the plan's finish and one critical path (ties broken by PlanTask id). The PERT band sums over that critical path: mean = Σ (o + 4e + p) ÷ 6, σ = √Σ ((p − o) ÷ 6)², reported as `{mean, sigma, p10: mean − 1.2816σ, p90: mean + 1.2816σ}`.
@@ -221,7 +221,7 @@ For one framed use case, each candidate pattern scores the sum of five signals (
 | `write_candidates` | `Candidate` + `IN_ITERATION`, `FOR`, `OF` |
 | `write_selections` | `Selection` (draft) + `IN_ITERATION`, `FOR`, `SELECTS`; other candidates `ALTERNATIVE_TO` it |
 | `replace_selection` | **destructive.** Repairs a *draft* Selection: deletes its `SELECTS`, its PlanTasks, and its `ALTERNATIVE_TO` edges, then re-points it. The agent then re-runs `instantiate_tasks` + `write_plan_tasks` |
-| `write_plan_tasks` | `PlanTask` + `IN_ITERATION`, `HAS_TASK`, `INSTANTIATES`, `DEPENDS_ON` |
+| `write_plan_tasks` | `PlanTask` + `IN_ITERATION`, `HAS_TASK`, `INSTANTIATES`, `DEPENDS_ON`, all derived from the catalog for the iteration's draft Selections; params are only `{deal, iteration}` |
 | `write_schedule` | `earliest_start`, `wave`, `on_critical_path` |
 | `commit_roadmap` | `Roadmap` (committed) + `INCLUDES`; promotes the iteration's plan nodes (needs G8) |
 | `write_capability_decisions` | `CapabilityDecision` + `HAS_DECISION` (allowed after commit: buy vs build is step 11) |
@@ -381,11 +381,11 @@ Rules:
 4. **Frame.** The LLM drafts framings and writes FramedUseCase nodes as draft. If it needs a concept missing from the ontology, it calls `propose_term`, which triggers `request_approval(gate: ontology_term)`.
 5. **Retrieve and score.** Use read-cypher for retrieval, then `analyze_pattern_fit`. Write the top 3 as Candidates.
 6. **Select.** The LLM chooses among candidates and writes draft Selections. Then call `request_approval(gate: select)`.
-7. **Instantiate.** Run `instantiate_tasks` and write PlanTasks and their dependencies.
+7. **Instantiate.** `write_plan_tasks` derives PlanTasks and dependencies from the catalog in the graph.
 8. **Validate.** Run V1–V6.
    - Derive V1 fixes automatically.
    - Repair V2 and others against the witness, at most 2 loops, then escalate.
-9. **Schedule** (§5.2).
+9. **Schedule** (§5.2) what is stored: the skill reads `plan_graph` and passes it to `compute_schedule` unchanged. A cycle stops the run before any schedule or commit. (`write_schedule` still trusts the values it is given; T3.2 moves scheduling server-side.)
 10. **Commit.** Call `request_approval(gate: commit)`, then promote with `$gate_id` (G8).
 11. **Buy vs build.** Run BB1 and write CapabilityDecision nodes.
 12. **On feedback.** Start `Iteration n+1`, call `recall_memory`, replan, call `resolve_feedback` for each Feedback the new plan addresses, then call `iteration_diff`.

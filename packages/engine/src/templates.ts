@@ -16,7 +16,6 @@ import { z } from 'zod';
 const deal = z.string().min(1);
 const iteration = z.number().int().positive();
 const id = z.string().min(1);
-const weeks = z.number().positive();
 
 interface Template {
   description: string;
@@ -209,50 +208,41 @@ RETURN s.uc AS uc, s.pattern AS pattern, alternatives`,
 
   write_plan_tasks: {
     description:
-      'Write PlanTasks and DEPENDS_ON edges from instantiate_tasks. A task that is not in its ' +
-      "selection's pattern is not written (tasks < input)",
-    params: z
-      .object({
-        deal,
-        iteration,
-        tasks: z.array(
-          z
-            .object({
-              id,
-              uc: id,
-              task_id: id,
-              weeks_o: weeks,
-              weeks_e: weeks,
-              weeks_p: weeks,
-              skill: z.enum(['identity', 'platform', 'data', 'security', 'frontend', 'ops']),
-            })
-            .strict(),
-        ),
-        depends_on: z.array(z.object({ from: id, to: id }).strict()),
-      })
-      .strict(),
+      "Instantiate the plan in the graph: one PlanTask per catalog Task of each draft Selection's pattern " +
+      '(weeks and skill copied from the catalog), DEPENDS_ON from the catalog within a selection, and from ' +
+      'each root task to the final tasks of every selection whose pattern it REQUIRES. Takes no tasks or ' +
+      'edges from the caller. Read the result back with plan_graph before scheduling',
+    params: z.object({ deal, iteration }).strict(),
     query: `MATCH (i:Iteration {deal_code: $deal, n: toInteger($iteration)})
 WHERE i.status = 'draft'
 CALL (i) {
-  UNWIND $tasks AS row
-  MATCH (s:Selection {deal_code: $deal, iteration: toInteger($iteration), uc: row.uc})-[:SELECTS]->(:Pattern)-[:HAS_TASK]->(t:Task {id: row.task_id})
-  MERGE (pt:PlanTask {deal_code: $deal, iteration: toInteger($iteration), id: row.id})
+  MATCH (s:Selection {deal_code: $deal, iteration: toInteger($iteration)})-[:SELECTS]->(p:Pattern)-[:HAS_TASK]->(t:Task)
+  MERGE (pt:PlanTask {deal_code: $deal, iteration: toInteger($iteration), id: s.uc + ':' + t.id})
   ON CREATE SET pt.status = 'draft'
-  SET pt.task_id = row.task_id, pt.weeks_o = row.weeks_o, pt.weeks_e = row.weeks_e, pt.weeks_p = row.weeks_p,
-      pt.skill = row.skill
+  SET pt.task_id = t.id, pt.weeks_o = t.weeks_o, pt.weeks_e = t.weeks_e, pt.weeks_p = t.weeks_p, pt.skill = t.skill
   MERGE (pt)-[:IN_ITERATION]->(i)
   MERGE (s)-[:HAS_TASK]->(pt)
   MERGE (pt)-[:INSTANTIATES]->(t)
   RETURN count(pt) AS tasks
 }
 CALL () {
-  UNWIND $depends_on AS dep
-  MATCH (a:PlanTask {deal_code: $deal, iteration: toInteger($iteration), id: dep.from})
-  MATCH (b:PlanTask {deal_code: $deal, iteration: toInteger($iteration), id: dep.to})
+  MATCH (s:Selection {deal_code: $deal, iteration: toInteger($iteration)})-[:HAS_TASK]->(a:PlanTask)-[:INSTANTIATES]->(ta:Task)
+  MATCH (ta)-[:DEPENDS_ON]->(tb:Task)<-[:INSTANTIATES]-(b:PlanTask)<-[:HAS_TASK]-(s)
   MERGE (a)-[:DEPENDS_ON]->(b)
-  RETURN count(*) AS edges
+  RETURN count(*) AS within
 }
-RETURN tasks, edges`,
+CALL () {
+  MATCH (s:Selection {deal_code: $deal, iteration: toInteger($iteration)})-[:SELECTS]->(:Pattern)-[:REQUIRES]->(q:Pattern)
+  MATCH (q)<-[:SELECTS]-(s2:Selection {deal_code: $deal, iteration: toInteger($iteration)})
+  WHERE s2.uc <> s.uc
+  MATCH (s)-[:HAS_TASK]->(a:PlanTask)-[:INSTANTIATES]->(ta:Task)
+  WHERE NOT EXISTS { (ta)-[:DEPENDS_ON]->(:Task) }
+  MATCH (s2)-[:HAS_TASK]->(b:PlanTask)-[:INSTANTIATES]->(tb:Task)
+  WHERE NOT EXISTS { (tb)<-[:DEPENDS_ON]-(:Task) }
+  MERGE (a)-[:DEPENDS_ON]->(b)
+  RETURN count(*) AS across
+}
+RETURN tasks, within + across AS edges`,
   },
 
   write_schedule: {

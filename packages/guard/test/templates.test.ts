@@ -36,12 +36,7 @@ const SAMPLE: Record<TemplateName, Record<string, unknown>> = {
     fit_score: 84.4,
     rationale: 'Near-miss.',
   },
-  write_plan_tasks: {
-    deal: 'nimbus',
-    iteration: 1,
-    tasks: [{ id: 'u:t', uc: 'u', task_id: 't', weeks_o: 1, weeks_e: 2, weeks_p: 3, skill: 'ops' }],
-    depends_on: [],
-  },
+  write_plan_tasks: { deal: 'nimbus', iteration: 1 },
   write_schedule: { deal: 'nimbus', iteration: 1, rows: [{ id: 'u:t', earliest_start: 0, wave: 1, on_critical_path: true }] },
   commit_roadmap: { deal: 'nimbus', iteration: 1, version: 1, gate_id: 'gd-ok' },
   write_capability_decisions: {

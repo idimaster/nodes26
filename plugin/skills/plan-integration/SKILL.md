@@ -60,13 +60,16 @@ in `rationale` why, especially when you pass over a higher score. Write with `wr
 `mcp__gate__request_approval` with `gate: "select"`, the subjects `Selection:<uc>`, and a summary that
 lists each choice and its score.
 
-**7. Instantiate.** Run `pattern_tasks` with the selected pattern ids. Build one selection entry per
-use case: `uc`, `pattern`, its `requires`, and its `tasks`. Call `mcp__planner-engine__instantiate_tasks`.
-Write the result with `write_plan_tasks`.
+**7. Instantiate.** Write the plan with template `write_plan_tasks` and only `{deal, iteration}`. The
+graph creates every PlanTask and every `DEPENDS_ON` edge from the catalog; you never pass tasks,
+durations, or dependencies. Run `pattern_tasks` with the selected pattern ids. The `tasks` count the
+template returns must equal the total number of tasks it lists (rule 2).
 
-**8. Schedule.** Call `mcp__planner-engine__compute_schedule` with the PlanTasks and `depends_on` from
-step 7.
-- **If it returns a `cycle` error**, do not schedule. Report the witness and stop.
+**8. Schedule.** Run `plan_graph` and pass its `plan_tasks` and `depends_on` to
+`mcp__planner-engine__compute_schedule` exactly as returned. Never add, drop, or reverse an edge.
+- **If it returns a `cycle` error**, the plan cannot be scheduled. Do not write a schedule and do not
+  commit. Report the witness and the selection it came from, and stop. A different selection is the
+  architect's call.
 - **Otherwise**, write the tasks with `write_schedule`, and note the finish and the PERT band for the
   summary.
 
@@ -135,6 +138,17 @@ RETURN p.id AS pattern,
                  depends_on: COLLECT { MATCH (t)-[:DEPENDS_ON]->(d:Task) RETURN d.id ORDER BY d.id }}
          ORDER BY t.id
        } AS tasks
+```
+
+<!-- query: plan_graph -->
+```cypher
+MATCH (pt:PlanTask {deal_code: $deal, iteration: $iteration})
+WITH collect(pt) AS tasks
+RETURN [t IN tasks | {id: t.id, weeks_o: t.weeks_o, weeks_e: t.weeks_e, weeks_p: t.weeks_p}] AS plan_tasks,
+       COLLECT {
+         MATCH (a:PlanTask {deal_code: $deal, iteration: $iteration})-[:DEPENDS_ON]->(b:PlanTask)
+         RETURN {from: a.id, to: b.id}
+       } AS depends_on
 ```
 
 <!-- query: next_roadmap_version -->

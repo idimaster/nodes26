@@ -6,6 +6,7 @@ import {
   analyzePatternFit,
   classifyFinding,
   computeSchedule,
+  CycleError,
   cypherTemplate,
   instantiateTasks,
   templateParams,
@@ -60,25 +61,39 @@ describe('cypher templates against Neo4j (T2.1)', () => {
   const one = async (query: string, params: Record<string, unknown> = {}) =>
     (await driver.executeQuery(query, { deal: DEAL, ...params })).records[0]?.toObject();
 
-  async function writePlan(selections: SelectionInput[]) {
-    const { plan_tasks, depends_on } = instantiateTasks({ deal: DEAL, iteration: IT, selections });
-    const [written] = await run('write_plan_tasks', {
-      deal: DEAL,
-      iteration: IT,
-      tasks: plan_tasks.map(({ id, uc, task_id, weeks_o, weeks_e, weeks_p, skill }) => ({
-        id,
-        uc,
-        task_id,
-        weeks_o,
-        weeks_e,
-        weeks_p,
-        skill,
-      })),
-      depends_on,
-    });
-    const schedule = computeSchedule(plan_tasks, depends_on);
-    await run('write_schedule', { deal: DEAL, iteration: IT, rows: schedule.tasks });
-    return { written, plan_tasks };
+  /** The plan as stored: what the skill's plan_graph query reads back for scheduling. */
+  async function storedPlan(iteration: number) {
+    const { records } = await driver.executeQuery(
+      `MATCH (pt:PlanTask {deal_code: $deal, iteration: $iteration})
+       RETURN pt.id AS id, pt.task_id AS task_id, pt.weeks_o AS weeks_o, pt.weeks_e AS weeks_e, pt.weeks_p AS weeks_p,
+              pt.skill AS skill, COLLECT { MATCH (pt)-[:DEPENDS_ON]->(b:PlanTask) RETURN b.id ORDER BY b.id } AS deps
+       ORDER BY id`,
+      { deal: DEAL, iteration },
+    );
+    const tasks = records.map((r) => r.toObject() as { id: string; task_id: string; weeks_o: number; weeks_e: number; weeks_p: number; skill: string; deps: string[] });
+    return {
+      plan_tasks: tasks.map(({ deps: _d, ...t }) => t),
+      depends_on: tasks.flatMap((t) => t.deps.map((to) => ({ from: t.id, to }))),
+    };
+  }
+
+  /** write_plan_tasks derives tasks and edges from the catalog; they must equal the engine's instantiate_tasks. */
+  async function writePlan(selections: SelectionInput[], iteration = IT) {
+    const [written] = await run('write_plan_tasks', { deal: DEAL, iteration });
+    const expected = instantiateTasks({ deal: DEAL, iteration, selections });
+    const stored = await storedPlan(iteration);
+    const key = (t: { id: string }) => t.id;
+    expect(stored.plan_tasks.sort((a, b) => key(a).localeCompare(key(b)))).toEqual(
+      expected.plan_tasks
+        .map(({ id, task_id, weeks_o, weeks_e, weeks_p, skill }) => ({ id, task_id, weeks_o, weeks_e, weeks_p, skill }))
+        .sort((a, b) => key(a).localeCompare(key(b))),
+    );
+    const edge = (e: { from: string; to: string }) => `${e.from}->${e.to}`;
+    expect(stored.depends_on.map(edge).sort()).toEqual(expected.depends_on.map(edge).sort());
+    expect([Number(written?.tasks), Number(written?.edges)]).toEqual([expected.plan_tasks.length, expected.depends_on.length]);
+    const schedule = computeSchedule(stored.plan_tasks, stored.depends_on);
+    await run('write_schedule', { deal: DEAL, iteration, rows: schedule.tasks });
+    return { written, plan_tasks: expected.plan_tasks };
   }
 
   beforeAll(async () => {
@@ -275,6 +290,54 @@ describe('cypher templates against Neo4j (T2.1)', () => {
     ).toEqual({ status: 'committed', pattern: 'event-bus-bridge', selects: 1, tasks: 3 });
   });
 
+  it('derives dependencies from the catalog, so a planted cycle (P5) reaches the graph and scheduling refuses it', async () => {
+    const it4 = 4;
+    await run('create_iteration', { deal: DEAL, n: it4, started_at: '2026-10-07T09:00:00Z' });
+    await run('write_framed_use_cases', {
+      deal: DEAL,
+      iteration: it4,
+      rows: [{ use_case_id: 'container-platform-migration', framing_rationale: 'VMs by hand.', finding_ids: ['f-vm-hosting'] }],
+    });
+    await run('write_selections', {
+      deal: DEAL,
+      iteration: it4,
+      rows: [{ uc: 'container-platform-migration', pattern: 'container-replatform-fastpath', fit_score: 81.7, rationale: 'Top pick.' }],
+    });
+    const [written] = await run('write_plan_tasks', { deal: DEAL, iteration: it4 });
+    expect([Number(written?.tasks), Number(written?.edges)]).toEqual([4, 4]);
+    const stored = await storedPlan(it4);
+    expect(() => computeSchedule(stored.plan_tasks, stored.depends_on)).toThrow(CycleError);
+    const prefix = 'container-platform-migration:container-replatform-fastpath.';
+    expect(() => computeSchedule(stored.plan_tasks, stored.depends_on)).toThrow(
+      expect.objectContaining({ witness: [`${prefix}cluster-onboarding`, `${prefix}deploy-manifests`, `${prefix}image-build`, `${prefix}cluster-onboarding`] }),
+    );
+  });
+
+  it('matches instantiate_tasks for cross-pattern REQUIRES edges, including a reused pattern', async () => {
+    const it5 = 5;
+    const picks: [string, string][] = [
+      ['identity-federation-trust', 'idp-trust-establishment'],
+      ['workforce-sso', 'oidc-broker'],
+      ['customer-sso', 'oidc-broker'],
+      ['user-provisioning', 'scim-provisioning'],
+    ];
+    await run('create_iteration', { deal: DEAL, n: it5, started_at: '2026-10-08T09:00:00Z' });
+    await run('write_framed_use_cases', {
+      deal: DEAL,
+      iteration: it5,
+      rows: picks.map(([uc]) => ({ use_case_id: uc, framing_rationale: 'Identity work.', finding_ids: ['f-no-scim'] })),
+    });
+    await run('write_selections', {
+      deal: DEAL,
+      iteration: it5,
+      rows: picks.map(([uc, pattern]) => ({ uc, pattern, fit_score: 70, rationale: 'x' })),
+    });
+    const { written } = await writePlan(picks.map(([uc, pattern]) => selection(uc, pattern)), it5);
+    // 3 + 4 + 4 + 3 tasks; 2 + 3 + 3 + 2 within, and the roots of oidc-broker (x2) and scim-provisioning
+    // each depend on the one final task of idp-trust-establishment.
+    expect([Number(written?.tasks), Number(written?.edges)]).toEqual([14, 13]);
+  });
+
   it('refuses to reuse a roadmap version for another iteration', async () => {
     await run('create_iteration', { deal: DEAL, n: 2, started_at: '2026-10-06T09:00:00Z' });
     expect(await run('commit_roadmap', { deal: DEAL, iteration: 2, version: 1, gate_id: 'gd-x' })).toEqual([]);
@@ -313,17 +376,12 @@ describe('cypher templates against Neo4j (T2.1)', () => {
     ).toEqual({ pattern: 'scim-provisioning', selects: ['scim-provisioning'] });
 
     // A PlanTask that a gate decided on, or that has feedback, is never deleted by a repair.
-    const { plan_tasks, depends_on } = instantiateTasks({
+    const { plan_tasks } = instantiateTasks({
       deal: DEAL,
       iteration: it2,
       selections: [selection('user-provisioning', 'scim-provisioning')],
     });
-    await run('write_plan_tasks', {
-      deal: DEAL,
-      iteration: it2,
-      tasks: plan_tasks.map(({ id, uc, task_id, weeks_o, weeks_e, weeks_p, skill }) => ({ id, uc, task_id, weeks_o, weeks_e, weeks_p, skill })),
-      depends_on,
-    });
+    await run('write_plan_tasks', { deal: DEAL, iteration: it2 });
     // Written directly, as the gate server would (agents never write Feedback).
     await driver.executeQuery(
       `MATCH (pt:PlanTask {deal_code: $deal, iteration: 2, id: $id})

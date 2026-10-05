@@ -110,7 +110,7 @@ afterAll(async () => {
 
 describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
   it('has every named query the steps refer to', () => {
-    for (const q of ['findings', 'coverage', 'next_iteration', 'use_cases', 'candidates', 'pattern_tasks', 'next_roadmap_version']) {
+    for (const q of ['findings', 'coverage', 'next_iteration', 'use_cases', 'candidates', 'pattern_tasks', 'plan_graph', 'next_roadmap_version']) {
       expect(QUERIES[q], q).toBeTruthy();
       expect(SKILL).toContain(`\`${q}\``);
     }
@@ -180,32 +180,25 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
     expect(Number((await write('write_selections', { deal: DEAL, iteration, rows: selections })).selections)).toBe(selections.length);
     await gate('select', iteration, selections.map((s) => `Selection:${s.uc}`), selections.map((s) => `${s.uc}: ${s.pattern} (${s.fit_score})`).join('; '));
 
-    // 7. Instantiate
-    const patternTasks = await read<{ pattern: string; requires: string[]; tasks: unknown[] }>('pattern_tasks', { patterns: selections.map((s) => s.pattern) });
-    const instantiated = (await call('planner-engine', 'instantiate_tasks', {
-      deal: DEAL,
-      iteration,
-      selections: selections.map((s) => {
-        const p = patternTasks.find((x) => x.pattern === s.pattern);
-        return { uc: s.uc, pattern: s.pattern, requires: p?.requires ?? [], tasks: p?.tasks ?? [] };
-      }),
-    })) as { plan_tasks: { id: string; uc: string; task_id: string; weeks_o: number; weeks_e: number; weeks_p: number; skill: string }[]; depends_on: { from: string; to: string }[] };
-    const planWrite = await write('write_plan_tasks', {
-      deal: DEAL,
-      iteration,
-      tasks: instantiated.plan_tasks.map(({ id, uc, task_id, weeks_o, weeks_e, weeks_p, skill }) => ({ id, uc, task_id, weeks_o, weeks_e, weeks_p, skill })),
-      depends_on: instantiated.depends_on,
-    });
-    expect([Number(planWrite.tasks), Number(planWrite.edges)]).toEqual([instantiated.plan_tasks.length, instantiated.depends_on.length]);
+    // 7. Instantiate: the graph derives tasks and edges from the catalog
+    const patternTasks = await read<{ pattern: string; tasks: unknown[] }>('pattern_tasks', { patterns: selections.map((s) => s.pattern) });
+    const expectedTasks = selections.reduce((n, s) => n + (patternTasks.find((p) => p.pattern === s.pattern)?.tasks.length ?? 0), 0);
+    const planWrite = await write('write_plan_tasks', { deal: DEAL, iteration });
+    expect(Number(planWrite.tasks)).toBe(expectedTasks);
 
-    // 8. Schedule
-    const schedule = (await call('planner-engine', 'compute_schedule', instantiated)) as {
+    // 8. Schedule what is stored, exactly as stored
+    const [plan] = (await read<{ plan_tasks: { id: string }[]; depends_on: { from: string; to: string }[] }>('plan_graph', { iteration })) as [
+      { plan_tasks: { id: string }[]; depends_on: { from: string; to: string }[] },
+    ];
+    expect(plan.plan_tasks).toHaveLength(expectedTasks);
+    expect(plan.depends_on).toHaveLength(Number(planWrite.edges));
+    const schedule = (await call('planner-engine', 'compute_schedule', plan)) as {
       tasks: unknown[];
       finish: number;
       critical_path: string[];
       pert: { p10: number; p90: number };
     };
-    expect(Number((await write('write_schedule', { deal: DEAL, iteration, rows: schedule.tasks })).scheduled)).toBe(instantiated.plan_tasks.length);
+    expect(Number((await write('write_schedule', { deal: DEAL, iteration, rows: schedule.tasks })).scheduled)).toBe(expectedTasks);
 
     // 9. Commit
     const [{ version }] = (await read<{ version: number }>('next_roadmap_version')) as [{ version: number }];
