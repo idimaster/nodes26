@@ -9,7 +9,7 @@ export {
   type PlanTaskDraft,
   type SelectionInput,
 } from './tasks.js';
-export { computeSchedule, CycleError, type Schedule, type ScheduleTask, type TaskSchedule } from './schedule.js';
+export { completeSchedule, computeSchedule, CycleError, type Schedule, type ScheduleTask, type TaskSchedule } from './schedule.js';
 export { estimateProvenance, type Modifier, type Provenance } from './provenance.js';
 export {
   classifyBuyBuild,

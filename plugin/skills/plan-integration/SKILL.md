@@ -90,13 +90,11 @@ row: `{check, examined, violations, verdict}`. Every violation has a `witness` (
 After any repair, run `write_plan_tasks` again (it rebuilds the plan from the catalog), then validate again. Make
 at most **two** repair rounds. If a check still fails, stop and report it, with its witness, to the architect.
 
-**9. Schedule.** Run `plan_graph` and pass its `plan_tasks` and `depends_on` to
-`mcp__planner-engine__compute_schedule` exactly as returned. Never add, drop, or reverse an edge.
-- **If it returns a `cycle` error**, the plan cannot be scheduled. Do not write a schedule and do not
-  commit. Report the witness and the selection it came from, and stop. A different selection is the
-  architect's call.
-- **Otherwise**, write the tasks with `write_schedule`, and note the finish and the PERT band for the
-  summary.
+**9. Schedule.** Call `mcp__planner-graph__schedule_plan` with `deal` and `iteration`. The graph schedules the
+stored plan itself (V3 first, then GDS or Kahn) and writes the result; you never send start times.
+- **If `status` is `cycle`**, the plan cannot be scheduled. Do not commit. Report the witness and the selection it
+  came from, and stop. A different selection is the architect's call.
+- **Otherwise**, keep `finish`, `critical_path`, `pert`, and `resource_load` for the commit summary.
 
 **10. Commit.** Run `next_roadmap_version`. Call `mcp__gate__request_approval` with `gate: "commit"`, the
 subjects `Selection:<uc>` and `Iteration:<n>`, and a summary that has the finish week, the PERT p10 to
@@ -163,17 +161,6 @@ RETURN p.id AS pattern,
                  depends_on: COLLECT { MATCH (t)-[:DEPENDS_ON]->(d:Task) RETURN d.id ORDER BY d.id }}
          ORDER BY t.id
        } AS tasks
-```
-
-<!-- query: plan_graph -->
-```cypher
-MATCH (pt:PlanTask {deal_code: $deal, iteration: $iteration})
-WITH collect(pt) AS tasks
-RETURN [t IN tasks | {id: t.id, weeks_o: t.weeks_o, weeks_e: t.weeks_e, weeks_p: t.weeks_p}] AS plan_tasks,
-       COLLECT {
-         MATCH (a:PlanTask {deal_code: $deal, iteration: $iteration})-[:DEPENDS_ON]->(b:PlanTask)
-         RETURN {from: a.id, to: b.id}
-       } AS depends_on
 ```
 
 <!-- query: near_miss -->

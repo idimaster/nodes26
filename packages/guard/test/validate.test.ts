@@ -368,3 +368,33 @@ describe('regressions: third adversarial review', () => {
   it('inline WHERE on a labeled node is fine', () =>
     allow("MATCH (s:Selection WHERE s.deal_code = $deal) SET s.rationale = 'x' RETURN s"));
 });
+
+describe('derived properties are written only by templates (T3.2)', () => {
+  const D = { deal: 'nimbus' };
+  it.each([
+    ['weeks_e', "MATCH (pt:PlanTask {deal_code: $deal}) SET pt.weeks_e = 0.1 RETURN pt"],
+    ['earliest_start', "MATCH (pt:PlanTask {deal_code: $deal}) SET pt.earliest_start = 0 RETURN pt"],
+    ['wave', "MATCH (pt:PlanTask {deal_code: $deal}) SET pt.wave = 1 RETURN pt"],
+    ['on_critical_path', "MATCH (pt:PlanTask {deal_code: $deal}) SET pt.on_critical_path = false RETURN pt"],
+    ['skill', "MATCH (pt:PlanTask {deal_code: $deal}) SET pt.skill = 'ops' RETURN pt"],
+    ['task_id', "MATCH (pt:PlanTask {deal_code: $deal}) SET pt.task_id = 'x' RETURN pt"],
+    ['a catalog estimate', "MATCH (t:Task {id: 'x'}) SET t.weeks_p = 1 RETURN t"],
+    ['in a CREATE map', "MATCH (i:Iteration {deal_code: $deal, n: 1}) CREATE (pt:PlanTask {deal_code: $deal, iteration: 1, id: 'x', weeks_e: 0.1}) RETURN pt"],
+    ['in a MERGE map', "MERGE (pt:PlanTask {deal_code: $deal, iteration: 1, id: 'x', wave: 1}) RETURN pt"],
+    ['a backticked name', "MATCH (pt:PlanTask {deal_code: $deal}) SET pt.`weeks_e` = 0.1 RETURN pt"],
+  ])('denies setting %s outside a template', (_n, query) => deny('G7', query, D, /derived/));
+
+  it('still allows ordinary properties', () =>
+    allow("MATCH (s:Selection {deal_code: $deal}) SET s.rationale = 'x' RETURN s"));
+});
+
+describe('plan structure is written only by templates (T3.2 review)', () => {
+  it.each([
+    ['DEPENDS_ON', "MATCH (a:PlanTask {deal_code: $deal, id: 'x'}), (b:PlanTask {deal_code: $deal, id: 'y'}) MERGE (a)-[:DEPENDS_ON]->(b) RETURN a"],
+    ['INSTANTIATES', "MATCH (a:PlanTask {deal_code: $deal, id: 'x'}), (t:Task {id: 'y'}) CREATE (a)-[:INSTANTIATES]->(t) RETURN a"],
+    ['HAS_TASK', "MATCH (s:Selection {deal_code: $deal}), (a:PlanTask {deal_code: $deal, id: 'x'}) MERGE (s)-[:HAS_TASK]->(a) RETURN s"],
+  ])('denies creating %s outside a template', (_n, query) => deny('G7', query, { deal: 'nimbus' }, /plan structure/));
+
+  it('still allows reading those relationships', () =>
+    allow("MATCH (a:PlanTask {deal_code: $deal})-[:DEPENDS_ON]->(b:PlanTask) SET a.note = 'x' RETURN a"));
+});

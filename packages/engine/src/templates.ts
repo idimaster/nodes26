@@ -211,7 +211,7 @@ RETURN s.uc AS uc, s.pattern AS pattern, alternatives`,
       "Instantiate the plan in the graph: one PlanTask per catalog Task of each draft Selection's pattern " +
       '(weeks and skill copied from the catalog), DEPENDS_ON from the catalog within a selection, and from ' +
       'each root task to the final tasks of every selection whose pattern it REQUIRES. Takes no tasks or ' +
-      'edges from the caller. Read the result back with plan_graph before scheduling',
+      'edges from the caller. Then schedule with planner-graph schedule_plan',
     params: z.object({ deal, iteration }).strict(),
     query: `MATCH (i:Iteration {deal_code: $deal, n: toInteger($iteration)})
 WHERE i.status = 'draft'
@@ -219,7 +219,8 @@ CALL (i) {
   MATCH (s:Selection {deal_code: $deal, iteration: toInteger($iteration)})-[:SELECTS]->(p:Pattern)-[:HAS_TASK]->(t:Task)
   MERGE (pt:PlanTask {deal_code: $deal, iteration: toInteger($iteration), id: s.uc + ':' + t.id})
   ON CREATE SET pt.status = 'draft'
-  SET pt.task_id = t.id, pt.weeks_o = t.weeks_o, pt.weeks_e = t.weeks_e, pt.weeks_p = t.weeks_p, pt.skill = t.skill
+  SET pt.task_id = t.id, pt.weeks_o = t.weeks_o, pt.weeks_e = t.weeks_e, pt.weeks_p = t.weeks_p, pt.skill = t.skill,
+      pt.earliest_start = null, pt.wave = null, pt.on_critical_path = null
   MERGE (pt)-[:IN_ITERATION]->(i)
   MERGE (s)-[:HAS_TASK]->(pt)
   MERGE (pt)-[:INSTANTIATES]->(t)
@@ -243,32 +244,6 @@ CALL () {
   RETURN count(*) AS across
 }
 RETURN tasks, within + across AS edges`,
-  },
-
-  write_schedule: {
-    description: 'Write back compute_schedule (or GDS) results.',
-    params: z
-      .object({
-        deal,
-        iteration,
-        rows: z.array(
-          z
-            .object({
-              id,
-              earliest_start: z.number().min(0),
-              wave: z.number().int().positive(),
-              on_critical_path: z.boolean(),
-            })
-            .strict(),
-        ),
-      })
-      .strict(),
-    query: `MATCH (i:Iteration {deal_code: $deal, n: toInteger($iteration)})
-WHERE i.status = 'draft'
-UNWIND $rows AS row
-MATCH (pt:PlanTask {deal_code: $deal, iteration: toInteger($iteration), id: row.id})
-SET pt.earliest_start = row.earliest_start, pt.wave = toInteger(row.wave), pt.on_critical_path = row.on_critical_path
-RETURN count(pt) AS scheduled`,
   },
 
   commit_roadmap: {

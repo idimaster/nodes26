@@ -41,7 +41,14 @@ function get<K, V>(map: Map<K, V>, key: K): V {
 }
 
 /** DESIGN §2.3 and §5.2: Kahn longest path over weeks_e; refuses cyclic input with a witness. */
+function checkDurations(tasks: ScheduleTask[]): void {
+  for (const t of tasks) {
+    if (!(Number.isFinite(t.weeks_e) && t.weeks_e > 0)) throw new Error(`weeks_e of ${t.id} must be a positive number`);
+  }
+}
+
 export function computeSchedule(tasks: ScheduleTask[], dependsOn: Dependency[]): Schedule {
+  checkDurations(tasks);
   const task = new Map(tasks.map((t) => [t.id, t]));
   if (task.size !== tasks.length) {
     const seen = new Set<string>();
@@ -78,6 +85,42 @@ export function computeSchedule(tasks: ScheduleTask[], dependsOn: Dependency[]):
     es.set(id, pre.length ? Math.max(...pre.map((p) => get(es, p) + get(task, p).weeks_e)) : 0);
     wave.set(id, pre.length ? 1 + Math.max(...pre.map((p) => get(wave, p))) : 1);
   }
+  return completeSchedule(tasks, dependsOn, es, wave);
+}
+
+/**
+ * Everything that follows from earliest starts and waves: latest starts, critical flags, finish,
+ * one critical path, and the PERT band. Shared by the Kahn scheduler above and the GDS scheduler
+ * (planner-graph), so both report identical results for identical starts.
+ */
+export function completeSchedule(
+  tasks: ScheduleTask[],
+  dependsOn: Dependency[],
+  es: Map<string, number>,
+  wave: Map<string, number>,
+): Schedule {
+  const task = new Map(tasks.map((t) => [t.id, t]));
+  const prereqs = new Map<string, Set<string>>(tasks.map((t) => [t.id, new Set()]));
+  const dependents = new Map<string, Set<string>>(tasks.map((t) => [t.id, new Set()]));
+  for (const { from, to } of dependsOn) {
+    get(prereqs, from).add(to);
+    get(dependents, to).add(from);
+  }
+  checkDurations(tasks);
+  for (const t of tasks) {
+    if (!es.has(t.id) || !wave.has(t.id)) throw new Error(`no earliest start or wave for task ${t.id}`);
+  }
+  // The given starts and waves must follow from the edges (they may come from GDS).
+  for (const t of tasks) {
+    const pre = [...get(prereqs, t.id)];
+    const expectEs = pre.length ? Math.max(...pre.map((p) => get(es, p) + get(task, p).weeks_e)) : 0;
+    const expectWave = pre.length ? 1 + Math.max(...pre.map((p) => get(wave, p))) : 1;
+    if (Math.abs(get(es, t.id) - expectEs) > 1e-6) throw new Error(`earliest start of ${t.id} is ${get(es, t.id)}, expected ${expectEs}`);
+    if (get(wave, t.id) !== expectWave) throw new Error(`wave of ${t.id} is ${get(wave, t.id)}, expected ${expectWave}`);
+  }
+  // Process in order of earliest start (ties by id): every prerequisite comes before its dependents.
+  const order = tasks.map((t) => t.id).sort((a, b) => get(es, a) - get(es, b) || get(wave, a) - get(wave, b) || byId(a, b));
+
   const finish = order.length ? Math.max(...order.map((id) => get(es, id) + get(task, id).weeks_e)) : 0;
   const ls = new Map<string, number>();
   for (const id of [...order].reverse()) {

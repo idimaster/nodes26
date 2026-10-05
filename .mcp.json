@@ -25,6 +25,12 @@
       "args": [
         "packages/gate/bin/gate-mcp.ts"
       ]
+    },
+    "planner-graph": {
+      "command": "node_modules/.bin/tsx",
+      "args": [
+        "packages/graph-mcp/bin/graph-mcp.ts"
+      ]
     }
   }
 }

@@ -110,7 +110,7 @@ afterAll(async () => {
 
 describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
   it('has every named query the steps refer to', () => {
-    for (const q of ['findings', 'coverage', 'next_iteration', 'use_cases', 'candidates', 'pattern_tasks', 'plan_graph', 'near_miss', 'derive_prerequisite', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v6b', 'next_roadmap_version']) {
+    for (const q of ['findings', 'coverage', 'next_iteration', 'use_cases', 'candidates', 'pattern_tasks', 'near_miss', 'derive_prerequisite', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v6b', 'next_roadmap_version']) {
       expect(QUERIES[q], q).toBeTruthy();
       expect(SKILL).toContain(`\`${q}\``);
     }
@@ -249,17 +249,21 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
     for (const c of ['V1', 'V2', 'V3', 'V4', 'V5', 'V6']) expect(checks[c]?.verdict, c).toBe('PASS');
     expect(['PASS', 'WARN']).toContain(checks.V6b?.verdict);
 
-    // 9. Schedule what is stored, exactly as stored
-    const [plan] = (await read<{ plan_tasks: { id: string }[]; depends_on: { from: string; to: string }[] }>('plan_graph', { iteration })) as [
-      { plan_tasks: { id: string }[]; depends_on: { from: string; to: string }[] },
-    ];
-    const schedule = (await call('planner-engine', 'compute_schedule', plan)) as {
-      tasks: unknown[];
+    // 9. Schedule: the graph does it (planner-graph), the agent only asks
+    const schedule = (await call('planner-graph', 'schedule_plan', { deal: DEAL, iteration })) as {
+      status: string;
+      engine: string;
+      tasks: number;
       finish: number;
       critical_path: string[];
       pert: { p10: number; p90: number };
     };
-    expect(Number((await write('write_schedule', { deal: DEAL, iteration, rows: schedule.tasks })).scheduled)).toBe(plan.plan_tasks.length);
+    expect(schedule).toMatchObject({ status: 'scheduled', engine: 'gds' });
+    const unscheduled = await driver.executeQuery(
+      'MATCH (pt:PlanTask {deal_code: $deal, iteration: 1}) WHERE pt.earliest_start IS NULL OR pt.wave IS NULL RETURN count(pt) AS n',
+      { deal: DEAL },
+    );
+    expect(Number(unscheduled.records[0]?.get('n'))).toBe(0);
 
     // 10. Commit
     const finalSelections = (await driver.executeQuery(

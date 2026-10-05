@@ -37,7 +37,6 @@ const SAMPLE: Record<TemplateName, Record<string, unknown>> = {
     rationale: 'Near-miss.',
   },
   write_plan_tasks: { deal: 'nimbus', iteration: 1 },
-  write_schedule: { deal: 'nimbus', iteration: 1, rows: [{ id: 'u:t', earliest_start: 0, wave: 1, on_critical_path: true }] },
   commit_roadmap: { deal: 'nimbus', iteration: 1, version: 1, gate_id: 'gd-ok' },
   write_capability_decisions: {
     deal: 'nimbus',
@@ -69,6 +68,16 @@ describe('cypher templates pass the guard', () => {
 
   it('the destructive exception needs params that pass the template schema', async () => {
     const d = await validate(cypherTemplate('replace_selection').query, { ...SAMPLE.replace_selection, extra: 1 }, ctx);
+    expect(d.allow).toBe(false);
+  });
+});
+
+describe('write_plan_tasks may set derived properties because it is the template', () => {
+  it('passes as the exact template, and is denied once edited', async () => {
+    const q = cypherTemplate('write_plan_tasks').query;
+    expect(await validate(q, { deal: 'nimbus', iteration: 1 }, ctx)).toEqual({ allow: true });
+    const edited = q.replace('pt.weeks_e = t.weeks_e', 'pt.weeks_e = 0.1');
+    const d = await validate(edited, { deal: 'nimbus', iteration: 1 }, ctx);
     expect(d.allow).toBe(false);
   });
 });

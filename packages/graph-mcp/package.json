@@ -1,0 +1,16 @@
+{
+  "name": "@planner/graph-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "planner-graph MCP server: trusted graph computations the agent asks for but cannot fake (scheduling, DESIGN §5.2).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.0",
+    "@planner/engine": "0.0.0",
+    "neo4j-driver": "6.2.0",
+    "zod": "4.6.5"
+  }
+}

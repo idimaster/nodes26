@@ -1,7 +1,7 @@
 ---
 name: planner
 description: Integration planner for an acquired company. Use to plan, re-plan, or commit a deal's integration roadmap on the Neo4j graph (for example "plan the Nimbus integration"). It frames findings, scores catalog patterns, asks the architect at each gate, and commits a scheduled roadmap.
-tools: mcp__gate__await_approval, mcp__gate__request_approval, mcp__neo4j-read__get-schema, mcp__neo4j-read__read-cypher, mcp__neo4j-write__write-cypher, mcp__planner-engine__analyze_pattern_fit, mcp__planner-engine__classify_finding, mcp__planner-engine__compute_schedule, mcp__planner-engine__cypher_template, mcp__planner-engine__recommend_strategy
+tools: mcp__gate__await_approval, mcp__gate__request_approval, mcp__neo4j-read__get-schema, mcp__neo4j-read__read-cypher, mcp__neo4j-write__write-cypher, mcp__planner-engine__analyze_pattern_fit, mcp__planner-engine__classify_finding, mcp__planner-engine__cypher_template, mcp__planner-engine__recommend_strategy, mcp__planner-graph__schedule_plan
 skills: plan-integration
 model: inherit
 ---

@@ -126,6 +126,7 @@ All statements use `IF NOT EXISTS`, so applying the file is idempotent.
 |---|---|---|---|
 | `neo4j-read` | official Neo4j MCP `v1.6.0`, `--read-only true` | `get-schema`, `read-cypher` | No |
 | `neo4j-write` | official Neo4j MCP `v1.6.0`, `--read-only false` | `write-cypher` (**guarded**, §3) | Yes, via the agent |
+| `planner-graph` | stdio (this repo, `npm run mcp:graph`) | `schedule_plan` (§5.2): trusted graph computations the agent asks for but cannot fake | PlanTask schedule fields only (own driver) |
 | `planner-engine` | stdio (this repo, `npm run mcp:engine`) | see below. Tool errors (including a cycle, with its `witness`) come back as `isError` results | **Never** |
 | `ontology` | stdio (this repo) | `get_ontology`, `propose_term` | Proposed terms only (own driver) |
 | `gate` | stdio (this repo) | `request_approval`, `await_approval`, `resolve_feedback` | Decisions, feedback, overrides, term activation (own driver) |
@@ -222,7 +223,6 @@ For one framed use case, each candidate pattern scores the sum of five signals (
 | `write_selections` | `Selection` (draft) + `IN_ITERATION`, `FOR`, `SELECTS`; other candidates `ALTERNATIVE_TO` it |
 | `replace_selection` | **destructive.** Repairs a *draft* Selection: deletes its `SELECTS`, its PlanTasks, and its `ALTERNATIVE_TO` edges, then re-points it. The agent then re-runs `instantiate_tasks` + `write_plan_tasks` |
 | `write_plan_tasks` | `PlanTask` + `IN_ITERATION`, `HAS_TASK`, `INSTANTIATES`, `DEPENDS_ON`, all derived from the catalog for the iteration's draft Selections; params are only `{deal, iteration}` |
-| `write_schedule` | `earliest_start`, `wave`, `on_critical_path` |
 | `commit_roadmap` | `Roadmap` (committed) + `INCLUDES`; promotes the iteration's plan nodes (needs G8) |
 | `write_capability_decisions` | `CapabilityDecision` + `HAS_DECISION` (allowed after commit: buy vs build is step 11) |
 
@@ -273,6 +273,8 @@ The guard first **tokenizes** the query: string literals (single- and double-quo
 - **Unsupported syntax is denied (G2):** Cypher 25/GQL clauses (`NEXT`, `LET`, `FILTER`, `INSERT`, `WHEN`/`THEN`/`ELSE` outside `CASE`), path selectors and match modes (`ANY`/`ALL` selectors, `SHORTEST`, `REPEATABLE`, `DIFFERENT`, `WALK`, `TRAIL`, `ACYCLIC`), `SHOW`, `CYPHER`, `EXPLAIN`, and `PROFILE`. Variables may not be named like keywords.
 - **SET items** must be `var.prop = value` or `var:Label`/`var IS Label`. `var` must be a labeled node or a relationship variable with exactly one explicit, non-reserved type. Everything else is denied: `SET n[...]`, `SET (expr).x`, `SET n = …`, `SET n += …`.
 - `nodes()`, `relationships()`, `startNode()`, and `endNode()` are denied, as is any relationship type with a reserved endpoint in `CREATE`/`MERGE`.
+- **Derived properties** come from the catalog or the scheduler: `task_id`, `weeks_o`, `weeks_e`, `weeks_p`, `skill`, `earliest_start`, `wave`, and `on_critical_path`. They may be written only by a query that is, token for token, a `cypher_template` (today `write_plan_tasks`), in `SET` items and in `CREATE`/`MERGE` maps alike. Otherwise an agent could shorten an estimate or overwrite a computed start after `schedule_plan`.
+- **Plan-structure relationships** (`DEPENDS_ON`, `INSTANTIATES`, `HAS_TASK`) may be created only by the `write_plan_tasks` template, from the catalog. That closes the reversed-edge incident of §2.3 at the guard as well.
 - Clause context is tracked per bracket, so a `WHERE` inside `[x IN … WHERE …]` or a label named like a clause does not change the enclosing clause.
 
 **Limits.** The guard is lexical; it does not parse Cypher, and it is defense in depth, not proof. It was hardened over three adversarial review rounds (9, then 7, then 1 confirmed bypass class, each closed and kept as a regression test in `packages/guard/test/validate.test.ts`). The deeper guarantees are structural: the agent's standard writes are fixed templates (§2.5), and reserved data is written only through the gate and ontology servers' own drivers.
@@ -354,13 +356,18 @@ Rules:
 | V7 | Knowledge-edge coverage: share of patterns with any `REQUIRES`/`CONFLICTS`/`AUGMENTS` edge | Data | Report; CI fails below the configured floor (demo: 0.6) |
 
 ### 5.2 Scheduling
-1. Run V3 first. If V3 finds a cycle, do **not** schedule; return the witness.
-2. Project with GDS from **prerequisite → dependent**, weighted by the prerequisite's `weeks_e`. Run `gds.dag.longestPath.stream` (present in the pinned GDS 2026.08.1). Verify the procedure exists in the installed GDS version at startup; otherwise fall back to `compute_schedule` (Kahn). A parity test asserts both produce identical results on fixtures.
-3. Write back `on_critical_path`, `earliest_start`, and `wave`, defined over the PlanTask DAG (durations are `weeks_e`):
+Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp`). The agent calls `schedule_plan({deal, iteration})` and never sends start times. (Before this, `write_schedule` wrote whatever values the agent passed.)
+1. Run V3 first. If V3 finds a cycle, do **not** schedule: return `{status: 'cycle', source: 'V3', witness}` and write nothing.
+2. Project the iteration's PlanTasks with GDS from **prerequisite → dependent**, weighted by the prerequisite's `weeks_e` (property `w`) and by 1 per edge (`hop`). `gds.dag.longestPath.stream` (present in the pinned GDS 2026.08.1) gives each task's cost: by `w` it is `earliest_start`, and by `hop` + 1 it is `wave`. The projection is dropped afterwards.
+   - The server probes for the procedure once at startup. If it is missing, or `PLANNER_SCHEDULER=kahn` is set, it logs that and uses the engine's Kahn scheduler; the result reports which `engine` ran. A parity test asserts both produce identical results on three fixtures (the two history plans and a Nimbus plan with cross-pattern `REQUIRES` edges).
+   - A cycle longer than V3 checks leaves tasks out of the DAG result, and the Kahn witness is returned (`source: 'schedule'`).
+3. Critical flags, the critical path, finish, and PERT come from the engine's `completeSchedule` for both engines, so they cannot drift. The definitions:
    - `earliest_start` = 0 for a task with no prerequisites, else max over prerequisites of (`earliest_start` + `weeks_e`);
    - `wave` = 1 for a task with no prerequisites, else 1 + max over prerequisites of `wave`;
    - `on_critical_path` = true when the task has zero slack: its latest start (computed backward from the plan's finish, max of `earliest_start` + `weeks_e`) equals its `earliest_start` (compared with a 1e-9 tolerance).
-4. Compute resource load as `sum(weeks_e)` grouped by `skill` and `wave`.
+4. One transaction re-checks that the plan still has exactly the scheduled tasks, then writes `earliest_start`, `wave` (an integer), and `on_critical_path` on **every** PlanTask; any mismatch rolls it back. `write_plan_tasks` clears these fields, so a re-planned iteration never carries a stale schedule. `completeSchedule` verifies that the starts and waves it is given follow from the edges, and a missing or non-positive `weeks_e` is an error.
+   - The GDS probe treats only "procedure not found" as absent; any other error stops the server.
+5. Resource load (`graph/queries/resource-load.cypher`) is `sum(weeks_e)` grouped by `skill` and `wave`, returned with the schedule.
 
 ### 5.3 Other queries
 - **Grounding:** candidate retrieval (UseCase ← SOLVES ← Pattern → APPLIES_TO → Strategy, minus active exclude Overrides); prior-project estimates (avg `Actual.weeks_actual` per Task, with count).
@@ -389,7 +396,7 @@ Rules:
    - Repair V2 by switching the use case that loses fewer points to its stored near-miss (`replace_selection`). Repair V5 the same way, and V4/V6 by completing the framing, score, or rationale.
    - V3 stops the run.
    - After a repair, `write_plan_tasks` rebuilds the plan and validation runs again, for at most 2 rounds, then escalate. Derived and repaired selections are listed in the commit gate's summary.
-9. **Schedule** (§5.2) what is stored: the skill reads `plan_graph` and passes it to `compute_schedule` unchanged. A cycle stops the run before any schedule or commit. (`write_schedule` still trusts the values it is given; T3.2 moves scheduling server-side.)
+9. **Schedule** (§5.2): the agent calls `planner-graph`'s `schedule_plan`. A cycle stops the run before any commit.
 10. **Commit.** Call `request_approval(gate: commit)`, then promote with `$gate_id` (G8).
 11. **Buy vs build.** Run BB1 and write CapabilityDecision nodes.
 12. **On feedback.** Start `Iteration n+1`, call `recall_memory`, replan, call `resolve_feedback` for each Feedback the new plan addresses, then call `iteration_diff`.

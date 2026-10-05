@@ -14,6 +14,7 @@ import {
   type SelectionInput,
   type TemplateName,
 } from '@planner/engine';
+import { scheduleIteration } from '@planner/graph-mcp';
 import { openDriver } from '../../graph/connection.js';
 import { loadAll } from '../../graph/load/index.js';
 
@@ -61,7 +62,7 @@ describe('cypher templates against Neo4j (T2.1)', () => {
   const one = async (query: string, params: Record<string, unknown> = {}) =>
     (await driver.executeQuery(query, { deal: DEAL, ...params })).records[0]?.toObject();
 
-  /** The plan as stored: what the skill's plan_graph query reads back for scheduling. */
+  /** The plan as stored in the graph. */
   async function storedPlan(iteration: number) {
     const { records } = await driver.executeQuery(
       `MATCH (pt:PlanTask {deal_code: $deal, iteration: $iteration})
@@ -91,8 +92,8 @@ describe('cypher templates against Neo4j (T2.1)', () => {
     const edge = (e: { from: string; to: string }) => `${e.from}->${e.to}`;
     expect(stored.depends_on.map(edge).sort()).toEqual(expected.depends_on.map(edge).sort());
     expect([Number(written?.tasks), Number(written?.edges)]).toEqual([expected.plan_tasks.length, expected.depends_on.length]);
-    const schedule = computeSchedule(stored.plan_tasks, stored.depends_on);
-    await run('write_schedule', { deal: DEAL, iteration, rows: schedule.tasks });
+    // Scheduling is server-side (planner-graph, T3.2), exactly as the agent asks for it.
+    expect(await scheduleIteration(driver, DEAL, iteration)).toMatchObject({ status: 'scheduled' });
     return { written, plan_tasks: expected.plan_tasks };
   }
 

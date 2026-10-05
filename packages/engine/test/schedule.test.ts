@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CycleError, computeSchedule } from '../src/index.js';
+import { CycleError, completeSchedule, computeSchedule } from '../src/index.js';
 
 const t = (id: string, o: number, e: number, p: number) => ({ id, weeks_o: o, weeks_e: e, weeks_p: p });
 
@@ -83,5 +83,22 @@ describe('computeSchedule (DESIGN §2.3, §5.2)', () => {
       critical_path: [],
       pert: { mean: 0, sigma: 0, p10: 0, p90: 0 },
     });
+  });
+});
+
+describe('completeSchedule checks the starts and waves it is given', () => {
+  const tasks = [t('a', 1, 2, 3), t('b', 1, 3, 4)];
+  const deps = [{ from: 'b', to: 'a' }];
+  it('accepts consistent values', () => {
+    expect(completeSchedule(tasks, deps, new Map([['a', 0], ['b', 2]]), new Map([['a', 1], ['b', 2]])).finish).toBe(5);
+  });
+  it('rejects a start that does not follow from its prerequisites', () => {
+    expect(() => completeSchedule(tasks, deps, new Map([['a', 0], ['b', 1]]), new Map([['a', 1], ['b', 2]]))).toThrow(/earliest start of b/);
+  });
+  it('rejects a wrong wave', () => {
+    expect(() => completeSchedule(tasks, deps, new Map([['a', 0], ['b', 2]]), new Map([['a', 1], ['b', 3]]))).toThrow(/wave of b/);
+  });
+  it('rejects a non-positive duration', () => {
+    expect(() => computeSchedule([t('z', 0, 0, 1)], [])).toThrow(/weeks_e of z/);
   });
 });

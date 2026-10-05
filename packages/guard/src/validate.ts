@@ -66,6 +66,10 @@ const KEYWORDS = new Set([
   'REQUIRE', 'UNIQUE', 'KEY', 'NODE', 'RELATIONSHIP', 'OPTIONAL', 'DROP', 'DETACH',
 ]);
 const ARROWS = new Set(['-', '->', '<-']);
+/** Properties derived from the catalog or computed by the scheduler: written only by a cypher template (DESIGN §3, G7). */
+const DERIVED = new Set(['task_id', 'weeks_o', 'weeks_e', 'weeks_p', 'skill', 'earliest_start', 'wave', 'on_critical_path']);
+/** Plan-structure relationships: created only by write_plan_tasks (the graph derives them from the catalog). */
+const PLAN_STRUCTURE = new Set(['DEPENDS_ON', 'INSTANTIATES', 'HAS_TASK']);
 
 type Kind = 'paren' | 'callscope' | 'rel' | 'list' | 'map' | 'block' | 'quant';
 
@@ -108,12 +112,22 @@ function paramsMention(value: unknown, needle: string): boolean {
   return false;
 }
 
+const sameTokens = (a: Token[], b: Token[]) => a.length === b.length && a.every((t, i) => t.type === b[i]?.type && t.value === b[i]?.value);
+let templateTokens: { name: ReturnType<typeof templateNames>[number]; destructive: boolean; tokens: Token[] }[] | undefined;
+const templates = () =>
+  (templateTokens ??= templateNames().map((name) => {
+    const t = cypherTemplate(name);
+    return { name, destructive: t.destructive, tokens: tokenize(t.query) };
+  }));
+
+/** The query is, token for token, one of the engine's cypher templates. */
+const isTemplate = (tokens: Token[]) => templates().some((t) => sameTokens(t.tokens, tokens));
+
 /** The G2 exception: the exact token sequence of a destructive template, with params that pass its schema. */
 function destructiveTemplateMatch(tokens: Token[], params: Record<string, unknown>): boolean {
-  const same = (a: Token[], b: Token[]) => a.length === b.length && a.every((t, i) => t.type === b[i]?.type && t.value === b[i]?.value);
-  for (const name of templateNames()) {
-    const t = cypherTemplate(name);
-    if (!t.destructive || !same(tokenize(t.query), tokens)) continue;
+  for (const t of templates()) {
+    const name = t.name;
+    if (!t.destructive || !sameTokens(t.tokens, tokens)) continue;
     try {
       templateParams(name, params);
       return true;
@@ -413,6 +427,9 @@ export async function validate(query: string, params: Record<string, unknown>, c
   }
 
   // G7 + G8 for writes: scopes, node patterns, relationship variables, SET grammar
+  const trustedTemplate = isWrite && isTemplate(tokens);
+  const derivedMessage = (p: string) =>
+    `${p} is a derived property (from the catalog or the scheduler); only write_plan_tasks and planner-graph schedule_plan write it`;
   if (isWrite) {
     tokens.forEach((t, i) => {
       if (kw(i) && PATH_FUNCTIONS.has(kw(i) as string) && isP(tokens[i + 1], '(')) {
@@ -420,6 +437,9 @@ export async function validate(query: string, params: Record<string, unknown>, c
       }
     });
     for (const l of labels) {
+      if (l.isType && PLAN_STRUCTURE.has(l.name) && ['MERGE', 'CREATE'].includes(clause[l.index] ?? '') && !isTemplate(tokens)) {
+        add('G7', `${l.name} is plan structure; only the write_plan_tasks template creates it, from the catalog`);
+      }
       if (l.isType && reservedTypes.has(l.name) && ['MERGE', 'CREATE'].includes(clause[l.index] ?? '')) {
         add('G7', `relationship type ${l.name} connects reserved nodes; only the gate and ontology servers write it`);
       }
@@ -604,6 +624,7 @@ export async function validate(query: string, params: Record<string, unknown>, c
           if (!isName(a)) {
             add('G7', 'SET may only assign var.property = value or add a label (var:Label)');
           } else if (isP(b, '.') && isName(c) && isP(d, '=')) {
+            if (DERIVED.has((c?.value ?? '').toLowerCase()) && !trustedTemplate) add('G7', derivedMessage(c?.value ?? ''));
             if (!cur().nodes.has(target) && !cur().rels.has(target)) {
               add('G7', `cannot SET properties of ${target}: it is not a node bound with a label (or a relationship with one non-reserved type) in this scope${hint(target)}`);
             }
@@ -620,6 +641,11 @@ export async function validate(query: string, params: Record<string, unknown>, c
         }
       }
 
+      // derived properties inside a MERGE/CREATE property map
+      if ((isName(t) || t.type === 'string') && DERIVED.has(t.value.toLowerCase()) && isKeyColon(i + 1) &&
+          ['MERGE', 'CREATE'].includes(clause[i] ?? '') && !trustedTemplate) {
+        add('G7', derivedMessage(t.value));
+      }
       // status inside a MERGE/CREATE property map: a plain literal only
       if ((isName(t) || t.type === 'string') && t.value.toLowerCase() === 'status' && isKeyColon(i + 1) && ['MERGE', 'CREATE'].includes(clause[i] ?? '')) {
         const value = tokens[i + 2];

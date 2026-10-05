@@ -43,6 +43,6 @@ describe('templateParams', () => {
       strategy: 'bridge',
     });
     expect(() => templateParams('set_deal_strategy', { deal: 'nimbus', strategy: 'absorb' })).toThrow();
-    expect(() => templateParams('write_schedule', { deal: 'nimbus', iteration: 1, rows: [], extra: 1 })).toThrow();
+    expect(() => templateParams('write_plan_tasks', { deal: 'nimbus', iteration: 1, extra: 1 })).toThrow();
   });
 });
