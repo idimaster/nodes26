@@ -353,7 +353,7 @@ Rules:
 | V5 | Active `exclude_pattern` Override violated by a Selection | Coverage | FAIL |
 | V6 | Audit chain: Selection without `fit_score`; FramedUseCase without `framing_rationale` | Audit | FAIL |
 | V6b | No other Candidate of the Selection's use case within 20 points | Audit | WARN |
-| V7 | Knowledge-edge coverage: share of patterns with any `REQUIRES`/`CONFLICTS`/`AUGMENTS` edge | Data | Report; CI fails below the configured floor (demo: 0.6) |
+| V7 | Knowledge-edge coverage: share of patterns with any `REQUIRES`/`CONFLICTS`/`AUGMENTS` edge | Data | Report; CI fails below the configured floor (demo: 0.6). `npm run coverage:edges` writes `reports/edge-coverage.json`, and the `checks` workflow uploads it |
 
 ### 5.2 Scheduling
 Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp`). The agent calls `schedule_plan({deal, iteration})` and never sends start times. (Before this, `write_schedule` wrote whatever values the agent passed.)

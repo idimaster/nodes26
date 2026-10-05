@@ -1,0 +1,51 @@
+name: checks
+
+# Lint, types, tests, and the knowledge-edge coverage floor (V7, gotcha 09) against a real Neo4j
+# with APOC and GDS. The coverage report is uploaded as an artifact.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      neo4j:
+        image: neo4j:2026.08.1-community
+        env:
+          NEO4J_AUTH: neo4j/planner-demo
+          NEO4J_PLUGINS: '["apoc", "graph-data-science"]'
+          NEO4J_dbms_security_procedures_unrestricted: apoc.*,gds.*
+          NEO4J_dbms_security_procedures_allowlist: apoc.*,gds.*
+        ports:
+          - 7687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p planner-demo 'RETURN 1'"
+          --health-interval 5s --health-timeout 10s --health-retries 40 --health-start-period 30s
+    env:
+      NEO4J_URI: neo4j://localhost:7687
+      NEO4J_USERNAME: neo4j
+      NEO4J_PASSWORD: planner-demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run mcp:neo4j:install
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run load
+      - name: Knowledge-edge coverage (V7)
+        run: npm run coverage:edges
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: edge-coverage
+          path: reports/edge-coverage.json
+      - run: npm test
