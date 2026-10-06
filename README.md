@@ -92,7 +92,7 @@ They connect with `NEO4J_URI`, `NEO4J_USERNAME`, and `NEO4J_PASSWORD`, which def
   npm run demo:replay -- data/replays/my-run.jsonl
   ```
   Only MCP tool arguments and results are kept, never prompts or chat.
-- **Reset** with `./scripts/reset-demo.sh`, or `npm run load`.
+- **Reset** with `./scripts/reset-demo.sh`. It wipes the per-deal subgraphs, then loads; `npm run load` alone refuses a graph a run has changed.
 
 ## Architecture
 
@@ -163,6 +163,7 @@ Nine things that went wrong while building this, each reproducible. A test shows
 | `npm run demo:ui` | Builds the page if needed, then serves it with the gate API (port `GATE_PORT`, default 4646) |
 | `npm run demo:replay` | Tier 0 replay (`-- <file> --delay <ms>`) |
 | `npm test` | Unit, graph, e2e, gotcha, and golden tests (needs Neo4j up; reloads the database) |
+| `npm run rehearse` | Release check: 5 timed runs of reset → tests → UI tests → replay, on an isolated Neo4j (`reports/rehearsal.json`) |
 | `npm run test:ui` | Playwright tests of the page (first run: `npx playwright install chromium`) |
 | `npm run load` | Applies the schema, then loads the catalog, deals, and history |
 | `npm run generate` | Regenerates the seeded demo data |

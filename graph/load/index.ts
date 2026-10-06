@@ -5,6 +5,7 @@ import neo4j, { type Driver } from 'neo4j-driver';
 import { DATA_DIR, readDataset, validateDataset, type Manifest } from '@planner/data';
 import { applySchema, SCHEMA_FILE } from '../apply-schema.js';
 import { openDriver } from '../connection.js';
+import { checkPluginVersions } from '../versions.js';
 import { loadCatalog } from './catalog.js';
 import { loadDeal } from './deal.js';
 import { loadHistory } from './history.js';
@@ -54,7 +55,10 @@ export async function loadAll(driver: Driver, dir = DATA_DIR): Promise<Manifest>
   const actual = await graphCounts(driver);
   const mismatches = diff(expected, actual);
   if (mismatches.length > 0) {
-    throw new Error(`graph does not match data/manifest.json:\n- ${mismatches.join('\n- ')}`);
+    throw new Error(
+      `graph does not match data/manifest.json:\n- ${mismatches.join('\n- ')}\n` +
+        'If a planner run or a replay left its plan in the graph, start over with ./scripts/reset-demo.sh (it wipes per-deal subgraphs, then loads).',
+    );
   }
   return actual;
 }
@@ -62,10 +66,11 @@ export async function loadAll(driver: Driver, dir = DATA_DIR): Promise<Manifest>
 async function main(): Promise<void> {
   const driver = openDriver();
   try {
+    const plugins = await checkPluginVersions(driver);
     const counts = await loadAll(driver);
     const n = Object.values(counts.nodes).reduce((s, x) => s + x, 0);
     const r = Object.values(counts.relationships).reduce((s, x) => s + x, 0);
-    console.log(`load: ${n} nodes and ${r} relationships; counts match data/manifest.json`);
+    console.log(`load: ${n} nodes and ${r} relationships; counts match data/manifest.json (APOC ${plugins.apoc}, GDS ${plugins.gds})`);
   } finally {
     await driver.close();
   }

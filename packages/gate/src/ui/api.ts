@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import type { Driver } from 'neo4j-driver';
 import { gdsAvailable } from '@planner/graph-mcp';
+import { checkPluginVersions } from '../../../../graph/versions.js';
 import { tableProviders, validatorWitness, type TableProvider, type WitnessProvider } from './providers.js';
 import { readQuery, toNum } from './read.js';
 import { loadScene, toResponse } from './scenes.js';
@@ -48,17 +49,20 @@ export function uiHandler(ctx: UiContext) {
     if (url.pathname === '/api/health') {
       let neo4jUp = false;
       let gds = false;
+      let plugins: { apoc: string; gds: string } | { error: string } = { error: 'neo4j is down' };
       try {
         await readQuery(ctx.driver, 'RETURN 1 AS ok');
         neo4jUp = true;
         gds = await gdsAvailable(ctx.driver);
-      } catch {
-        // reported as false below
+        plugins = await checkPluginVersions(ctx.driver);
+      } catch (e) {
+        if (neo4jUp) plugins = { error: e instanceof Error ? e.message : String(e) };
       }
       json(res, 200, {
-        ok: neo4jUp,
+        ok: neo4jUp && !('error' in plugins),
         neo4j: neo4jUp,
         gds,
+        plugins,
         providers: { witness: 'validators', tables: Object.fromEntries([...tables.keys()].map((k) => [k, 'available'])) },
       });
       return true;

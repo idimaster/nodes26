@@ -29,6 +29,8 @@ export interface ReplayOptions {
   root: string;
   /** Pause between calls, so the demo UI can be watched (default 0). */
   delayMs?: number;
+  /** A call that takes longer fails the replay with its seq, instead of hanging (default 90 s). */
+  callTimeoutMs?: number;
   log?: (line: string) => void;
 }
 
@@ -43,6 +45,19 @@ export interface ReplayReport {
 
 const GATE_WAITING = new Set(['request_approval', 'await_approval', 'propose_term']);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Rejects with a ReplayError when `work` takes longer than `ms`. */
+async function within<T>(work: Promise<T>, ms: number, seq: number, what: string): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new ReplayError(seq, `${what} did not finish within ${ms / 1000} s`)), ms);
+  });
+  try {
+    return await Promise.race([work, deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 const gateOf = (result: unknown) => {
   const r = result as { gate_id?: unknown; status?: unknown } | null;
   return r && typeof r.gate_id === 'string' ? { id: r.gate_id, status: String(r.status) } : null;
@@ -66,8 +81,8 @@ async function architect(store: GateStore, deal: string, d: Decision, seq: numbe
 export async function replay(rec: Recording, opts: ReplayOptions): Promise<ReplayReport> {
   const { driver, log = () => undefined } = opts;
   const { deal } = rec.header;
-  await driver.executeQuery('MATCH (n) DETACH DELETE n');
-  await loadAll(driver);
+  await within(driver.executeQuery('MATCH (n) DETACH DELETE n'), 60_000, 0, 'wiping the graph (is another session holding a lock?)');
+  await within(loadAll(driver), 120_000, 0, 'loading the demo data');
 
   const used = [...new Set(rec.calls.map((c) => c.server))];
   const servers = await startServers(opts.root, { GATE_HTTP: 'off', GATE_WAIT_SECONDS: '30' }, used);
@@ -112,9 +127,10 @@ export async function replay(rec: Recording, opts: ReplayOptions): Promise<Repla
     log(`${String(c.seq).padStart(3)} ${c.server}.${c.tool}${recordedGate ? ` ${recordedGate.id} ${recordedGate.status}` : ''}`);
   };
 
+  const callTimeoutMs = opts.callTimeoutMs ?? 90_000;
   try {
     for (const c of rec.calls) {
-      await play(c);
+      await within(play(c), callTimeoutMs, c.seq, `${c.server}.${c.tool}`);
       if (opts.delayMs) await sleep(opts.delayMs);
     }
   } finally {

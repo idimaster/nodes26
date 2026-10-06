@@ -1,0 +1,9 @@
+{
+  "$comment": "Pinned versions (T5.2). tests/hygiene/pins.test.ts keeps package.json, .nvmrc, docker-compose.yml, and config/neo4j-mcp.json in line with this file; APOC and GDS are resolved by the Neo4j image at start, so graph/versions.ts checks them at run time.",
+  "node": "24.21.0",
+  "npm": "11.19.0",
+  "neo4j": "2026.08.1",
+  "apoc": "2026.08.1",
+  "gds": "2026.08.1",
+  "neo4j_mcp": "v1.6.0"
+}

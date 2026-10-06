@@ -170,10 +170,22 @@ describe('decisions reach a waiting agent in another process quickly (T4.2)', ()
       env: { ...process.env, GATE_HTTP: 'off', GATE_PORT: String(port + 1) },
     });
     let err = '';
-    p.stderr?.on('data', (d: Buffer) => (err += d.toString()));
-    await new Promise((r) => setTimeout(r, 2500));
-    p.kill('SIGTERM');
-    expect(err).toMatch(/console off \(GATE_HTTP=off\)/);
-    await expect(fetch(`http://127.0.0.1:${port + 1}/`)).rejects.toThrow();
+    // Wait for the startup line itself, not a fixed delay: tsx startup is slow under load (T5.2 rehearsal).
+    await new Promise<void>((resolve, reject) => {
+      const deadline = setTimeout(() => reject(new Error(`no startup line within 20 s; stderr: ${err}`)), 20_000);
+      p.stderr?.on('data', (d: Buffer) => {
+        err += d.toString();
+        if (/console off \(GATE_HTTP=off\)/.test(err)) {
+          clearTimeout(deadline);
+          resolve();
+        }
+      });
+    });
+    try {
+      expect(err).toMatch(/console off \(GATE_HTTP=off\)/);
+      await expect(fetch(`http://127.0.0.1:${port + 1}/`)).rejects.toThrow();
+    } finally {
+      p.kill('SIGTERM');
+    }
   }, 30_000);
 });

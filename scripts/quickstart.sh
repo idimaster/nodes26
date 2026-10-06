@@ -11,8 +11,9 @@ start=$(date +%s)
 
 step "Checking prerequisites"
 command -v node >/dev/null || fail "Node.js is not installed. Install Node $(cat .nvmrc) (for example: nvm install)."
-node_major="$(node -p 'process.versions.node.split(".")[0]')"
-[[ "$node_major" == "$(cat .nvmrc)" ]] || fail "Node $(node -v) found; this repo needs Node $(cat .nvmrc). Run: nvm use"
+pinned_node="$(cat .nvmrc)"
+[[ "$(node -p 'process.versions.node.split(".")[0]')" == "${pinned_node%%.*}" ]] || fail "Node $(node -v) found; this repo needs Node ${pinned_node}. Run: nvm install"
+[[ "$(node -p 'process.versions.node')" == "$pinned_node" ]] || echo "note: Node $(node -v) works, but the pinned version is ${pinned_node} (nvm install)"
 command -v docker >/dev/null || fail "Docker is not installed. Install Docker Desktop or Rancher Desktop."
 docker info >/dev/null 2>&1 || fail "Docker is not running (Rancher Desktop: start it, and check that ~/.rd/docker.sock exists)."
 docker compose version >/dev/null 2>&1 || fail "'docker compose' is not available. Update Docker, or install the compose plugin."
