@@ -12,7 +12,7 @@
 | Asset | Count | Requirements |
 |---|---|---|
 | Patterns | ~25 | Task DAG with three-point estimates and a `skill` ∈ {identity, platform, data, security, frontend, ops}; `solves_use_cases`; `applicable_strategies` ⊆ {bridge, transform}; `reference` to a public standard or practice (e.g. SAML 2.0, OIDC, SCIM, strangler fig, CDC replication, API gateway facade); `not_recommended_when` rules on ≥ 5 patterns; `REQUIRES`/`CONFLICTS`/`AUGMENTS` edges on **≥ 60%** of patterns |
-| Use cases | ~30 | Across 6 tracks |
+| Use cases | ~30 | Across 6 tracks. Two (`service-catalog`, `cost-management`) deliberately have no solving pattern: framing one yields no candidates, and the skill leaves it unselected and says so at the select gate |
 | Build options | ~10 | Three-point build estimates per `CapabilityType` |
 | Platform capabilities | ~8 | Harborline coverage per `CapabilityType` |
 
@@ -28,7 +28,7 @@
 | P2 | Two use cases whose top picks `CONFLICT` | V2 witness, then the agent re-selects the stored near-miss |
 | P3 | An EU data-residency finding with no matching label | Guard G6 denies; `propose_term` → gate approves → write succeeds |
 | P4 | The architect rejects one selection with a comment | Feedback + Override are written; iteration 2 runs; `iteration_diff` explains the change |
-| P5 | One pattern variant has a task cycle | V3 witness; scheduling refuses to run |
+| P5 | One pattern variant has a task cycle (`container-replatform-fastpath`, the top bridge pick for `container-platform-migration` from `f-vm-hosting`) | V3 witness; scheduling refuses to run; the agent switches to the near-miss `container-replatform` (whose prerequisite `landing-zone-onboarding` V1 then derives), and the plan schedules |
 | P6 | Buy vs build | SSO → integrate (~6 wk vs ~20 wk build); audit logging → retire (coverage ≥ 0.8); billing ledger → review |
 
 **Authoring vs generation:**

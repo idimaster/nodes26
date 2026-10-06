@@ -171,7 +171,7 @@ RETURN sum(written) AS selections, sum(alternatives) AS alternatives,
     description:
       'Repair: switch a draft selection in a draft iteration to another pattern. Removes its old SELECTS ' +
       'edge, PlanTasks, and ALTERNATIVE_TO edges, then re-links alternatives. Refuses (no rows) when any of ' +
-      'its PlanTasks carries a gate, feedback, or actual edge. Afterwards re-run instantiate_tasks and write_plan_tasks',
+      'its PlanTasks carries a gate, feedback, or actual edge. Afterwards re-run write_plan_tasks',
     destructive: true,
     params: z
       .object({ deal, iteration, uc: id, pattern: id, fit_score: z.number().min(0).max(100), rationale: z.string().min(1) })

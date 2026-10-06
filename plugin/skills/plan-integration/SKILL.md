@@ -23,9 +23,18 @@ not written there did not happen.
 4. **Gates are the architect's.** `mcp__gate__request_approval` waits up to 50 seconds. While the
    status is `pending`, keep calling `mcp__gate__await_approval` with the `gate_id`. Do not continue
    past a gate until it is `approved`. If it is `rejected`, follow step 13 (re-plan from feedback).
-5. **Repairs are bounded.** Retry a failed step at most twice, then stop and explain what blocks you.
+5. **Repairs are bounded.** Retry a failed step at most twice, then ask the architect (rule 7).
 6. Every per-deal query takes `$deal`. Reads go to `mcp__neo4j-read__read-cypher` with the named
    queries below.
+7. **Ask through a gate, never only in chat.** An answer given in chat is not recorded, so it cannot become
+   Feedback or an Override, and a replay cannot reproduce it. When you need the architect's decision (a step says
+   "ask the architect", or a repair has no safe option), call `mcp__gate__request_approval` with the gate of the
+   current step (`frame` before selections exist, otherwise `select`), the affected nodes as subjects, and a
+   summary that starts with "Needs a decision:" and gives the check, its witness, and the options you see, written
+   in the comment grammar of step 13 (for example `remove <pattern>`, `except <use case>`, `directive: …`).
+   Then treat it like any gate. Rejected, or approved with overrides: re-plan with step 13. Approved without
+   overrides: carry out the option you recommended. Never edit the catalog (Pattern, Task, UseCase); a catalog
+   defect is reported this way too.
 
 ## Steps
 
@@ -63,6 +72,10 @@ If the term is rejected, record the finding in the summary instead.
 
 Write the top three with `write_candidates` (`signal_snapshot` is the JSON of `signals`).
 
+If `candidates` returns no rows, the catalog has no pattern for that use case. Do not select or invent one: leave
+it unselected, and say "no catalog pattern" for it in the select gate's summary. If it was framed from a critical
+gap, ask the architect (rule 7), because V4 cannot pass without it.
+
 **6. Select.** For each use case, choose a pattern from its candidates, normally the top one. Explain
 in `rationale` why, especially when you pass over a higher score. Write with `write_selections`. Call
 `mcp__gate__request_approval` with `gate: "select"`, the subjects `Selection:<uc>`, and a summary that
@@ -77,31 +90,36 @@ template returns must equal the total number of tasks it lists (rule 2).
 row: `{check, examined, violations, verdict}`. Every violation has a `witness` (ids) and a `detail`.
 - `PASS` is fine. `WARN` (only `v6b`) goes into the summary.
 - `FAIL: nothing checked` means the plan is not in the graph. Stop and find out why; never treat it as a pass.
-- **V3 FAIL**, a task cycle: stop. Do not schedule or commit. Report the witness and the selection it came from.
+- **V3 FAIL**, a task cycle. Never schedule or commit while V3 fails. The witness ids are PlanTask ids
+  `<uc>:<task>`, so the use case before the `:` is the selection the cycle came from. A cycle inside one selection
+  comes from its catalog pattern, which can never be scheduled: switch that use case to its near-miss, as for V2
+  (`near_miss`, then `replace_selection` with a rationale such as "Near-miss: <pattern> tasks form a cycle (V3)."),
+  and name the defect in the next gate's summary. If the cycle spans several selections, or `near_miss` returns no
+  row, ask the architect (rule 7).
 - **V1 FAIL**, a missing prerequisite: *derive* it. Handle only violations whose witness has exactly two ids,
   `[required_by, missing]`; longer chains resolve in the next round, once their middle pattern is selected. Run
   `derive_prerequisite` with `required_by` and `missing`. Frame the first of the returned `use_cases` from the
   returned `finding_ids`, with a rationale that says which pattern needs it. Score its candidates (step 5), then
   write the Selection with `pattern` = the missing pattern and `rationale` "Required by <required_by> (V1)", even if
-  it is not the top candidate. If `use_cases` or `finding_ids` is empty, stop and ask the architect. Handle each
+  it is not the top candidate. If `use_cases` or `finding_ids` is empty, ask the architect (rule 7). Handle each
   missing pattern once.
 - **V2 FAIL**, conflicting selections: switch one of the two use cases to its stored near-miss. Run `near_miss` for
   each use case in the detail, and switch the one that loses fewer points. Call template `replace_selection` with
   the near-miss pattern, its `fit_score`, and a rationale naming the conflict. If neither use case returns a row,
-  there is no safe alternative: stop and ask the architect. Never pick a conflicting or excluded pattern yourself.
+  there is no safe alternative: ask the architect (rule 7). Never pick a conflicting or excluded pattern yourself.
 - **V5 FAIL**, an excluded pattern: run `near_miss` for that use case and switch to it with `replace_selection`.
-  If it returns no row, stop and ask the architect.
-- V3 checks cycles of up to 10 tasks. Scheduling refuses longer ones, so a schedule error still means stop.
+  If it returns no row, ask the architect (rule 7).
+- V3 checks cycles of up to 10 tasks. Scheduling refuses longer ones too (step 9).
 - **V4 FAIL**, an uncovered critical gap: frame, score, and select a use case for that finding (steps 4–6 for it).
 - **V6 FAIL**, a missing score or rationale: write the missing value again with the same template.
 
 After any repair, run `write_plan_tasks` again (it rebuilds the plan from the catalog), then validate again. Make
-at most **two** repair rounds. If a check still fails, stop and report it, with its witness, to the architect.
+at most **two** repair rounds. If a check still fails, ask the architect (rule 7) with its witness.
 
 **9. Schedule.** Call `mcp__planner-graph__schedule_plan` with `deal` and `iteration`. The graph schedules the
 stored plan itself (V3 first, then GDS or Kahn) and writes the result; you never send start times.
-- **If `status` is `cycle`**, the plan cannot be scheduled. Do not commit. Report the witness and the selection it
-  came from, and stop. A different selection is the architect's call.
+- **If `status` is `cycle`**, the plan cannot be scheduled (a cycle longer than V3 checks). Do not commit. Apply
+  the V3 repair to the selection the witness came from, once; if that is not possible, ask the architect (rule 7).
 - **Otherwise**, keep `finish`, `critical_path`, `pert`, and `resource_load` for the commit summary.
 
 **10. Commit.** Explain the estimates on the critical path first: run `prior_estimates` with the
@@ -137,7 +155,7 @@ was about, and the active overrides. Then re-plan in a new iteration:
 - Run `iteration_diff` for the new iteration and put each change, with its feedback text, into the next gate's
   summary.
 - Re-plan at most once without new feedback. If the same gate is rejected again with nothing new to act on,
-  stop and ask the architect.
+  ask the architect (rule 7).
 
 ## Named read queries
 

@@ -221,7 +221,7 @@ For one framed use case, each candidate pattern scores the sum of five signals (
 | `write_framed_use_cases` | `FramedUseCase` + `IN_ITERATION`, `INSTANCE_OF`, `FRAMED_FROM` |
 | `write_candidates` | `Candidate` + `IN_ITERATION`, `FOR`, `OF` |
 | `write_selections` | `Selection` (draft) + `IN_ITERATION`, `FOR`, `SELECTS`; other candidates `ALTERNATIVE_TO` it |
-| `replace_selection` | **destructive.** Repairs a *draft* Selection: deletes its `SELECTS`, its PlanTasks, and its `ALTERNATIVE_TO` edges, then re-points it. The agent then re-runs `instantiate_tasks` + `write_plan_tasks` |
+| `replace_selection` | **destructive.** Repairs a *draft* Selection: deletes its `SELECTS`, its PlanTasks, and its `ALTERNATIVE_TO` edges, then re-points it. The agent then re-runs `write_plan_tasks` |
 | `write_plan_tasks` | `PlanTask` + `IN_ITERATION`, `HAS_TASK`, `INSTANTIATES`, `DEPENDS_ON`, all derived from the catalog for the iteration's draft Selections; params are only `{deal, iteration}` |
 | `commit_roadmap` | `Roadmap` (committed) + `INCLUDES`; promotes the iteration's plan nodes (needs G8) |
 | `write_capability_decisions` | `CapabilityDecision` + `HAS_DECISION` (allowed after commit: buy vs build is step 11) |
@@ -390,15 +390,16 @@ Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp
 2. **Ingest.** Run `classify_finding` on each finding, then write Finding and Source nodes.
 3. **Strategy.** Run `recommend_strategy`, then `request_approval(gate: frame)` together with step 4.
 4. **Frame.** The LLM drafts framings and writes FramedUseCase nodes as draft. If it needs a concept missing from the ontology, it calls `propose_term`, which triggers `request_approval(gate: ontology_term)`. After approval it writes one instance of the new label, `MERGE (r:<Label> {deal_code: $deal, id: $id}) SET r.description = $text RETURN r.id AS id`: the only write the skill lets the agent compose, and the guard checks it like any other (P3).
-5. **Retrieve and score.** Use read-cypher for retrieval, then `analyze_pattern_fit`. Write the top 3 as Candidates.
+5. **Retrieve and score.** Use read-cypher for retrieval, then `analyze_pattern_fit`. Write the top 3 as Candidates. A use case with no candidates is left unselected and named in the select gate's summary ("no catalog pattern"); if it carries a critical gap, the agent escalates.
 6. **Select.** The LLM chooses among candidates and writes draft Selections. Then call `request_approval(gate: select)`.
 7. **Instantiate.** `write_plan_tasks` derives PlanTasks and dependencies from the catalog in the graph.
 8. **Validate.** Run V1–V6.
    - Derive V1 fixes automatically: frame a use case the missing pattern solves, from the requiring selection's findings, and select the missing pattern ("Required by X (V1)").
    - Repair V2 by switching the use case that loses fewer points to its stored near-miss (`replace_selection`). Repair V5 the same way, and V4/V6 by completing the framing, score, or rationale.
-   - V3 stops the run.
+   - Repair V3 (P5) like V2: a cycle inside one selection comes from its catalog pattern, which can never be scheduled, so that use case switches to its near-miss (`replace_selection`, "Near-miss: X tasks form a cycle (V3)"). The witness's PlanTask ids (`<uc>:<task>`) name the selection. Scheduling and commit never run while V3 fails, and the catalog is never edited. A cycle across selections, or no near-miss, escalates.
    - After a repair, `write_plan_tasks` rebuilds the plan and validation runs again, for at most 2 rounds, then escalate. Derived and repaired selections are listed in the commit gate's summary.
-9. **Schedule** (§5.2): the agent calls `planner-graph`'s `schedule_plan`. A cycle stops the run before any commit.
+   - **Escalation goes through a gate** (skill rule 7, gotcha 06): `request_approval` at the current step's gate, with the affected subjects and a "Needs a decision:" summary (check, witness, options in the comment grammar). The decision is recorded as a GateDecision with Feedback and Overrides, so it drives the next iteration and replays; an answer given only in chat would be lost.
+9. **Schedule** (§5.2): the agent calls `planner-graph`'s `schedule_plan`. A `cycle` result (longer than V3 checks) gets the V3 repair once, then escalates; nothing is committed while it stands.
 10. **Commit.** Call `request_approval(gate: commit)`, then promote with `$gate_id` (G8).
 11. **Buy vs build.** Run BB1 and write CapabilityDecision nodes.
 12. **On feedback** (skill step 13, when a gate is rejected). Call `recall_memory`, start `Iteration n+1`, and re-plan from framing, honoring every active Override (`exclude_pattern` is already dropped by `candidates`; `exclude_use_case`/`include_use_case` steer framing; `pin_pattern` steers selection; `strategy_for` and `directive` go into rationales and summaries). Call `resolve_feedback` for each Feedback the new plan addresses, then `iteration_diff`, whose changes and feedback text go into the next gate's summary. Re-plan at most once without new feedback (P4).

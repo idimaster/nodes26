@@ -54,7 +54,8 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
     })) as { strategy: string; fit_score: number; rationale: string }[];
     expect(strategy?.strategy).toBe('bridge');
 
-    // 4. Frame (the LLM's choice, fixed here). ledger-data-sync and reporting-consolidation plant P2.
+    // 4. Frame (the LLM's choice, fixed here). ledger-data-sync and reporting-consolidation plant P2;
+    // container-platform-migration (from the VM-hosting finding) plants P5.
     await write('create_iteration', { deal: DEAL, n: iteration, started_at: '2026-10-05T09:00:00Z' });
     const framings = [
       { use_case_id: 'user-provisioning', finding_ids: ['f-no-scim'] },
@@ -62,6 +63,7 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
       { use_case_id: 'reporting-consolidation', finding_ids: ['f-reporting'] },
       { use_case_id: 'customer-sso', finding_ids: ['f-customer-sso'] },
       { use_case_id: 'audit-logging', finding_ids: ['f-audit-store'] },
+      { use_case_id: 'container-platform-migration', finding_ids: ['f-vm-hosting'] },
     ];
     const frame = async (rows: { use_case_id: string; finding_ids: string[]; framing_rationale?: string }[]) => {
       const out = await write('write_framed_use_cases', {
@@ -96,6 +98,7 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
     expect(top.get('user-provisioning')?.pattern).toBe('scim-provisioning');
     expect(top.get('ledger-data-sync')?.pattern).toBe('cdc-replication');
     expect(top.get('reporting-consolidation')?.pattern).toBe('batch-etl-export');
+    expect(top.get('container-platform-migration')?.pattern).toBe('container-replatform-fastpath');
 
     // 6. Select (the LLM takes the top candidate) and the select gate
     const selections = [...top].map(([uc, t]) => ({ uc, pattern: t.pattern, fit_score: t.score, rationale: 'Highest fit score.' }));
@@ -123,8 +126,20 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
       ['scim-provisioning', 'idp-trust-establishment'],
     ]);
     expect(checks.V2?.violations.map((v) => v.witness)).toEqual([['batch-etl-export', 'cdc-replication']]);
+    // P5: the fast path's catalog tasks form a cycle; the witness names the selection before ':'.
+    expect(checks.V3?.verdict).toBe('FAIL');
+    expect(new Set(checks.V3?.violations.flatMap((v) => v.witness.map((id) => id.slice(0, id.indexOf(':')))))).toEqual(new Set(['container-platform-migration']));
     for (let round = 0; round < 2 && Object.values(checks).some((c) => c.verdict.startsWith('FAIL')); round++) {
-      expect(checks.V3?.verdict, 'a cycle stops the run').not.toBe('FAIL');
+      // V3: a cycle inside one selection comes from its catalog pattern; switch that use case to its near-miss.
+      for (const uc of new Set((checks.V3?.violations ?? []).flatMap((v) => v.witness.map((id) => id.slice(0, id.indexOf(':')))))) {
+        const [nm] = await read<{ pattern: string; fit_score: number; current: string }>('near_miss', { iteration, uc });
+        expect(nm, `a near-miss for ${uc}`).toBeDefined();
+        await write('replace_selection', {
+          deal: DEAL, iteration, uc, pattern: nm?.pattern, fit_score: nm?.fit_score,
+          rationale: `Near-miss: ${nm?.current} tasks form a cycle (V3).`,
+        });
+        repairs.push(`V3: ${uc} → ${nm?.pattern}`);
+      }
       // V2: switch the use case that loses fewer points to its stored near-miss.
       for (const v of checks.V2?.violations ?? []) {
         const ucs = [...v.detail.matchAll(/(\S+) selects/g), ...v.detail.matchAll(/selected for (\S+)/g)].map((m) => m[1] as string);
@@ -149,7 +164,7 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
         derived.add(missing);
         const [d] = await read<{ finding_ids: string[]; use_cases: string[] }>('derive_prerequisite', { iteration, required_by: v.witness[0], missing });
         const uc = d?.use_cases[0] as string;
-        expect(uc).toBe('identity-federation-trust');
+        expect(uc, `a use case for ${missing}`).toBeDefined();
         await frame([{ use_case_id: uc, finding_ids: d?.finding_ids ?? [], framing_rationale: `Required by ${v.witness[0]} (V1).` }]);
         const current = (await driver.executeQuery('MATCH (s:Selection {deal_code: $deal, iteration: 1}) RETURN s.pattern AS p', { deal: DEAL })).records.map(
           (r) => r.get('p') as string,
@@ -162,7 +177,13 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
       await write('write_plan_tasks', { deal: DEAL, iteration });
       checks = await validate();
     }
-    expect(repairs).toEqual(['V2: ledger-data-sync → event-bus-bridge', 'V1: derived idp-trust-establishment for identity-federation-trust']);
+    expect(repairs).toEqual([
+      'V3: container-platform-migration → container-replatform',
+      'V2: ledger-data-sync → event-bus-bridge',
+      'V1: derived idp-trust-establishment for identity-federation-trust',
+      // the near-miss needs its own prerequisite, derived in the second round
+      'V1: derived landing-zone-onboarding for cloud-account-consolidation',
+    ]);
     for (const c of ['V1', 'V2', 'V3', 'V4', 'V5', 'V6']) expect(checks[c]?.verdict, c).toBe('PASS');
     expect(['PASS', 'WARN']).toContain(checks.V6b?.verdict);
 
@@ -204,7 +225,7 @@ describe('the plan-integration skill, walked for Nimbus (T2.6)', () => {
       'MATCH (s:Selection {deal_code: $deal, iteration: 1}) RETURN s.uc AS uc ORDER BY uc',
       { deal: DEAL },
     )).records.map((r) => r.get('uc') as string);
-    expect(finalSelections).toHaveLength(6);
+    expect(finalSelections).toHaveLength(8);
     const [{ version }] = (await read<{ version: number }>('next_roadmap_version')) as [{ version: number }];
     const commitGate = await gate(
       'commit',
