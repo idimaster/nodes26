@@ -125,6 +125,43 @@ flowchart LR
 - **Humans decide at gates.** A gate blocks the agent until the architect decides in the page. Rejections become Feedback and Override nodes, and the next iteration re-plans from them.
 - The design contract is [`docs/design/DESIGN.md`](docs/design/DESIGN.md). The fictional data and the planted situations P1–P6 are in [`docs/design/DATA.md`](docs/design/DATA.md).
 
+## Optional: the agent on the AI SDK
+
+`examples/ai-sdk/` runs the same planner without Claude Code, in about 140 lines:
+- an AI SDK `ToolLoopAgent`, with the model from env;
+- instructions from the plugin's agent file and `SKILL.md`;
+- MCP clients for every `.mcp.json` server, filtered to the planner's tool allowlist;
+- `write-cypher` wrapped with `guard.validate`, so a denial goes back to the model as the hook does.
+
+The gate server is unchanged, so you approve in the demo UI.
+
+```bash
+npm run demo:ui                                                         # one terminal
+ANTHROPIC_API_KEY=… npm run example:ai-sdk -- "Plan the Nimbus integration."   # another
+```
+
+`PLANNER_MODEL` picks the model: `anthropic:<model id>` (default `anthropic:claude-sonnet-5-5`; `ANTHROPIC_BASE_URL` is honored), or `openai-compatible:<model id>` with `OPENAI_COMPATIBLE_BASE_URL` and `OPENAI_COMPATIBLE_API_KEY`. `tests/examples/ai-sdk.test.ts` checks the allowlist, the guard wrapper, and the step cap with a mock model, without an LLM.
+
+Check a run against the planted situations (`docs/design/DATA.md`). For P3 and P4 you act at the gates: approve the proposed term, and reject a selection with a comment.
+
+| | Expected |
+|---|---|
+| P1 | V1 fails, and the missing federation pattern is derived and added |
+| P2 | V2 witness, then the stored near-miss is selected |
+| P3 | Guard G6 denies the residency label; `propose_term` → approve → the write succeeds |
+| P4 | Feedback and Override are written; iteration 2 runs; `iteration diff` explains the change |
+| P5 | V3 witness on the cyclic variant; scheduling refuses to run |
+| P6 | SSO → integrate; audit logging → retire; billing ledger → review |
+
+**Recorded runs**
+
+| Model | Result | Date |
+|---|---|---|
+| Claude (`anthropic:claude-sonnet-5-5`) | not run yet | |
+| Non-Claude, **experimental** (`openai-compatible:…`) | not run yet | |
+
+**Experimental.** Non-Claude models are not tested in CI. The skill was written and tuned for Claude, and results vary by model. The guard, gates, and validators hold regardless, because they don't trust the model.
+
 ## Gotchas
 
 Nine things that went wrong while building this, each reproducible. A test shows the failure with the naive version, then that the fix in this repo catches it. They run with `npm test`.
@@ -170,6 +207,7 @@ Nine things that went wrong while building this, each reproducible. A test shows
 | `npm run check:tools` | Skill = agent tools ⊆ served tools, write tools guarded |
 | `npm run coverage:edges` | V7 knowledge-edge coverage report |
 | `npm run record:session` | Turns a Claude Code transcript into a replay recording |
+| `npm run example:ai-sdk` | The planner on the AI SDK (optional; needs a model API key) |
 | `npm run record:golden` | Re-records the committed replays from the scripted walks |
 
 ## Troubleshooting

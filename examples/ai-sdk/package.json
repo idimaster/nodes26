@@ -1,0 +1,16 @@
+{
+  "name": "@planner/example-ai-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Optional (T5.3): the planner agent on the AI SDK instead of Claude Code, over the same MCP servers and write guard.",
+  "dependencies": {
+    "@ai-sdk/anthropic": "4.0.72",
+    "@ai-sdk/mcp": "2.0.67",
+    "@ai-sdk/openai-compatible": "3.0.63",
+    "@ai-sdk/provider": "4.0.22",
+    "@planner/guard": "0.1.0",
+    "ai": "7.0.128",
+    "neo4j-driver": "6.2.0"
+  }
+}

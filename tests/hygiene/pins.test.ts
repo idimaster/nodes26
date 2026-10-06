@@ -9,7 +9,7 @@ import { checkPluginVersions, VERSIONS } from '../../graph/versions.js';
 
 const json = <T>(p: string) => JSON.parse(readFileSync(p, 'utf8')) as T;
 type Pkg = { name: string; version: string; packageManager?: string; engines?: { node?: string } } & Record<string, Record<string, string> | string | undefined>;
-const PACKAGES = ['package.json', ...readdirSync('packages').map((p) => join('packages', p, 'package.json'))];
+const PACKAGES = ['package.json', ...['packages', 'examples'].flatMap((dir) => readdirSync(dir).map((p) => join(dir, p, 'package.json')))];
 const WORKSPACES = new Map(PACKAGES.slice(1).map((p) => [json<Pkg>(p).name, json<Pkg>(p).version]));
 const EXACT = /^\d+\.\d+\.\d+$/;
 
