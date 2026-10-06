@@ -30,6 +30,12 @@ afterAll(async () => {
 });
 
 describe('examples/ai-sdk', () => {
+  it('instructions carry the full skill exactly once', () => {
+    const { instructions } = plannerDefinition(ROOT);
+    expect(instructions.split('Ask through a gate, never only in chat').length - 1).toBe(1);
+    expect(instructions).toContain('<!-- query: bb1 -->');
+  });
+
   it('picks the model from PLANNER_MODEL, and refuses an unknown provider', () => {
     expect(modelFromEnv({ PLANNER_MODEL: 'anthropic:claude-sonnet-5-5', ANTHROPIC_API_KEY: 'x' })).toMatchObject({ modelId: 'claude-sonnet-5-5' });
     expect(modelFromEnv({ PLANNER_MODEL: 'openai-compatible:some-model', OPENAI_COMPATIBLE_BASE_URL: 'http://127.0.0.1:9/v1' })).toMatchObject({ modelId: 'some-model' });

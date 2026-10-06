@@ -60,6 +60,12 @@ npm run demo:ui                           # keep it open: this is where you appr
 claude --agent planner:planner            # from the repo root
 ```
 
+Claude Code runs an **installed copy** of the plugin, not the repo's files. After pulling changes to `plugin/`, refresh it and start a new session; `npm run check:tools` tells you when the copy is stale:
+
+```bash
+claude plugin marketplace update nodes26 && claude plugin update planner@nodes26
+```
+
 Ask it: *"Plan the Nimbus integration."* Approve or reject each gate in the page. Here's what keeps the model honest:
 - `.mcp.json` declares the servers. Claude Code asks you to approve them the first time; `/mcp` shows their status.
 - The write guard runs as a PreToolUse hook on every `write-cypher` call (`.claude/settings.json`). Its decisions are logged to `.logs/guard.jsonl`.

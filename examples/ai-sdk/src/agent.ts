@@ -36,13 +36,15 @@ export function modelFromEnv(env: NodeJS.ProcessEnv = process.env): LanguageMode
 
 const body = (markdown: string) => markdown.replace(/^---\n[\s\S]*?\n---\n/, '').trim();
 
-/** The agent's prompt and tool allowlist, from the Claude Code plugin, so both hosts run the same agent. */
+/**
+ * The agent's prompt and tool allowlist, from the Claude Code plugin, so both hosts run the same agent.
+ * The agent body already embeds the full skill (npm run skill:sync).
+ */
 export function plannerDefinition(root: string) {
   const agent = readFileSync(join(root, 'plugin/agents/planner.md'), 'utf8');
-  const skill = readFileSync(join(root, 'plugin/skills/plan-integration/SKILL.md'), 'utf8');
   const front = /^---\n([\s\S]*?)\n---/.exec(agent)?.[1] ?? '';
   const tools = (/^tools:\s*(.*)$/m.exec(front)?.[1] ?? '').split(',').map((t) => t.trim()).filter(Boolean);
-  return { instructions: `${body(agent)}\n\n${body(skill)}`, tools };
+  return { instructions: body(agent), tools };
 }
 
 /** Runs the write guard before write-cypher, as the PreToolUse hook does in Claude Code. A denial is returned to the model. */

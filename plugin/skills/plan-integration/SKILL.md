@@ -51,6 +51,10 @@ for the frame gate.
 **4. Frame.** Write the iteration with template `create_iteration` (`n` from `next_iteration`,
 `started_at` now in UTC). Run `use_cases`. For each gap, risk, and capability finding that needs
 integration work, choose the use case it belongs to. Several findings may share one framed use case.
+Frame all of them in this iteration: an iteration is the whole plan, and its roadmap replaces the previous one.
+A new iteration starts only after a rejected gate (step 13); never defer use cases to a later iteration yourself.
+If you think something should wait, say so in the frame gate's summary, and the architect can exclude it
+(`except <use case>`).
 Write a one-sentence `framing_rationale` that names the findings. Write all framings with
 `write_framed_use_cases`. Then call `mcp__gate__request_approval` with `gate: "frame"`, the subjects
 `FramedUseCase:<use_case_id>` for every framing, and a summary that states the recommended strategy, its
@@ -141,7 +145,8 @@ and every gate decision. Name anything you could not do.
 
 **13. On feedback** (a gate came back `rejected`). Run `recall_memory`. It has the open feedback, what each
 was about, and the active overrides. Then re-plan in a new iteration:
-- Write iteration `n + 1` with `create_iteration` and continue from step 4 with it.
+- Write iteration `n + 1` with `create_iteration` and continue from step 4 with it. Frame the whole deal again,
+  not only what the feedback was about: the new iteration's roadmap replaces the previous one.
 - Honor every active override:
   - `exclude_pattern`: `candidates` no longer offers it.
   - `exclude_use_case`: do not frame that use case. `include_use_case`: frame it.

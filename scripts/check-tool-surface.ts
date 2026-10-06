@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -79,6 +80,25 @@ export async function servedTools(root = ROOT): Promise<Record<string, string[]>
   return out;
 }
 
+/**
+ * Claude Code runs an installed copy of the plugin (~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/),
+ * not the repo's files. A stale copy silently runs an old agent and skill. Empty when the plugin is not installed.
+ */
+export function installedPluginDrift(root = ROOT, home = homedir()): string[] {
+  const cache = join(home, '.claude/plugins/cache/nodes26/planner');
+  if (!existsSync(cache)) return [];
+  const version = (JSON.parse(readFileSync(join(root, 'plugin/.claude-plugin/plugin.json'), 'utf8')) as { version: string }).version;
+  const fix = 'run: claude plugin marketplace update nodes26 && claude plugin update planner@nodes26 (or uninstall and install), then restart the session';
+  const installed = join(cache, version, 'agents/planner.md');
+  if (!existsSync(installed)) {
+    return [`the installed planner plugin is not version ${version} (found ${readdirSync(cache).join(', ') || 'none'}); ${fix}`];
+  }
+  if (readFileSync(installed, 'utf8') !== readFileSync(join(root, 'plugin/agents/planner.md'), 'utf8')) {
+    return [`the installed planner agent (${installed}) differs from plugin/agents/planner.md; ${fix}`];
+  }
+  return [];
+}
+
 export interface Paths {
   skill: string;
   agent: string;
@@ -106,6 +126,10 @@ export async function runCheck(root = ROOT, paths: Paths = DEFAULT_PATHS): Promi
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   runCheck()
     .then((problems) => {
+      // Not in CI: there is no installed copy there, and a developer's cache is not a property of the commit.
+      const drift = installedPluginDrift();
+      if (drift.length > 0 && process.env.CI) console.warn(`tool surface (warning): ${drift.join('; ')}`);
+      else problems.push(...drift);
       if (problems.length > 0) {
         console.error(`tool surface: ${problems.length} problem(s)\n- ${problems.join('\n- ')}`);
         process.exit(1);

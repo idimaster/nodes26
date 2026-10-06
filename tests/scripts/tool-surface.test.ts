@@ -81,3 +81,25 @@ describe('SKILL.md carries the validator queries from graph/queries/validators',
     expect(skill).toBe(syncedSkill(skill));
   });
 });
+
+describe('installed plugin copy', () => {
+  it('reports a cached plugin that is older than, or differs from, the repo', async () => {
+    const { mkdtempSync, mkdirSync, readFileSync, writeFileSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const { installedPluginDrift } = await import('../../scripts/check-tool-surface.js');
+    const agent = readFileSync('plugin/agents/planner.md', 'utf8');
+    const version = (JSON.parse(readFileSync('plugin/.claude-plugin/plugin.json', 'utf8')) as { version: string }).version;
+    const home = mkdtempSync(join(tmpdir(), 'home-'));
+    expect(installedPluginDrift(process.cwd(), home)).toEqual([]); // not installed: nothing to compare
+    const cached = (v: string) => join(home, '.claude/plugins/cache/nodes26/planner', v, 'agents');
+    mkdirSync(cached('0.0.1'), { recursive: true });
+    writeFileSync(join(cached('0.0.1'), 'planner.md'), 'old');
+    expect(installedPluginDrift(process.cwd(), home)).toEqual([expect.stringMatching(new RegExp(`not version ${version}.*claude plugin update planner@nodes26`))]);
+    mkdirSync(cached(version), { recursive: true });
+    writeFileSync(join(cached(version), 'planner.md'), 'edited');
+    expect(installedPluginDrift(process.cwd(), home)).toEqual([expect.stringMatching(/differs from plugin\/agents\/planner\.md/)]);
+    writeFileSync(join(cached(version), 'planner.md'), agent);
+    expect(installedPluginDrift(process.cwd(), home)).toEqual([]);
+  });
+});

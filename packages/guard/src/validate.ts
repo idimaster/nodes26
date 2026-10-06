@@ -657,9 +657,12 @@ export async function validate(query: string, params: Record<string, unknown>, c
     }
   }
 
-  // G8: 'committed' needs an approved commit gate for this deal and iteration
+  // G8: 'committed' needs an approved commit gate for this deal and iteration. A hand-written write is checked
+  // in its params too (a value can reach status, e.g. via substring($x, …)). An exact template is not: none
+  // routes a param into a status, so free text such as a rationale may say "committed" (a live-run false positive).
   const mentionsCommitted =
-    tokens.some((t) => t.type === 'string' && t.value.toLowerCase().includes('committed')) || paramsMention(params, 'committed');
+    tokens.some((t) => t.type === 'string' && t.value.toLowerCase().includes('committed')) ||
+    (!isTemplate(tokens) && paramsMention(params, 'committed'));
   if (mentionsCommitted) {
     const gateId = params.gate_id;
     const iteration = params.iteration;

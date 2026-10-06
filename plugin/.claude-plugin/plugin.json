@@ -1,7 +1,7 @@
 {
   "name": "planner",
   "displayName": "Integration planner",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An integration-planning agent where the LLM proposes and the Neo4j graph decides. Needs this repo's .mcp.json servers (neo4j-read, neo4j-write, planner-engine, gate) and its write-guard hook in .claude/settings.json.",
   "author": { "name": "NODES 2026 demo" },
   "license": "MIT",

@@ -9,12 +9,18 @@ import { VALIDATOR_FILES } from '../graph/validate.js';
  * - V1–V6b from graph/queries/validators go between <!-- validators:start --> and <!-- validators:end -->
  *   (V7 is a data check for CI, not for the agent);
  * - each graph/queries/skill/<name>.cypher replaces the body of the <!-- query: <name> --> block.
+ * It also embeds the SKILL.md body into the planner agent (plugin/agents/planner.md), between
+ * <!-- skill:start --> and <!-- skill:end -->. The agent must not depend on the `skills:` preload: a live run
+ * showed that a plugin skill named there reached the agent's context empty, and the agent improvised.
  */
 
 const SKILL_QUERIES = fileURLToPath(new URL('../graph/queries/skill', import.meta.url));
 
 export const SKILL_FILE = fileURLToPath(new URL('../plugin/skills/plan-integration/SKILL.md', import.meta.url));
+export const AGENT_FILE = fileURLToPath(new URL('../plugin/agents/planner.md', import.meta.url));
 const START = '<!-- validators:start -->';
+const SKILL_START = '<!-- skill:start -->';
+const SKILL_END = '<!-- skill:end -->';
 const END = '<!-- validators:end -->';
 
 export function validatorSection(): string {
@@ -39,7 +45,21 @@ export function syncedSkill(skill: string): string {
   return out;
 }
 
+/** The skill without its frontmatter: what the agent must have in context. */
+export const skillBody = (skill: string) => skill.replace(/^---\n[\s\S]*?\n---\n/, '').trim();
+
+/** The agent file with the current skill body embedded between the markers (frontmatter and preamble kept). */
+export function syncedAgent(agent: string, skill: string): string {
+  const a = agent.indexOf(SKILL_START);
+  const b = agent.indexOf(SKILL_END);
+  if (a === -1 || b === -1 || b < a) throw new Error(`planner.md needs ${SKILL_START} … ${SKILL_END} markers`);
+  const block = `${SKILL_START}\n<!-- generated from plugin/skills/plan-integration/SKILL.md by npm run skill:sync; do not edit by hand -->\n\n${skillBody(skill)}\n${SKILL_END}`;
+  return agent.slice(0, a) + block + agent.slice(b + SKILL_END.length);
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  writeFileSync(SKILL_FILE, syncedSkill(readFileSync(SKILL_FILE, 'utf8')));
-  console.log('skill:sync: validator and named queries copied into SKILL.md');
+  const skill = syncedSkill(readFileSync(SKILL_FILE, 'utf8'));
+  writeFileSync(SKILL_FILE, skill);
+  writeFileSync(AGENT_FILE, syncedAgent(readFileSync(AGENT_FILE, 'utf8'), skill));
+  console.log('skill:sync: validator and named queries copied into SKILL.md, and SKILL.md embedded in plugin/agents/planner.md');
 }

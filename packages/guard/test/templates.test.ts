@@ -51,6 +51,27 @@ describe('cypher templates pass the guard', () => {
     expect(d, d.allow ? '' : d.reason).toEqual({ allow: true });
   });
 
+  it('a template whose free text mentions "committed" is not a G8 write (live-run false positive)', async () => {
+    const rationale = 'Near-miss: the fast path cannot be committed, its tasks form a cycle (V3).';
+    expect(await validate(cypherTemplate('replace_selection').query, { ...SAMPLE.replace_selection, rationale }, ctx)).toEqual({ allow: true });
+    const rows = [{ uc: 'user-provisioning', pattern: 'scim-provisioning', fit_score: 72.3, rationale: 'Committed to SCIM by the architect.' }];
+    expect(await validate(cypherTemplate('write_selections').query, { ...SAMPLE.write_selections, rows }, ctx)).toEqual({ allow: true });
+  });
+
+  it('commit_roadmap still needs gate_id: its query writes the committed literal', async () => {
+    const noGate = Object.fromEntries(Object.entries(SAMPLE.commit_roadmap).filter(([k]) => k !== 'gate_id'));
+    const d = await validate(cypherTemplate('commit_roadmap').query, noGate, ctx);
+    expect(d.allow).toBe(false);
+    if (!d.allow) expect(d.violations.map((v) => v.rule)).toContain('G8');
+  });
+
+  it('a hand-written write still may not smuggle committed in through a param', async () => {
+    const q = "MATCH (s:Selection {deal_code: $deal, iteration: $iteration}) SET s.status = substring($x, 4, 9) RETURN s.uc AS uc";
+    const d = await validate(q, { deal: 'nimbus', iteration: 1, x: 'abc committed' }, ctx);
+    expect(d.allow).toBe(false);
+    if (!d.allow) expect(d.violations.map((v) => v.rule)).toContain('G8');
+  });
+
   it('commit_roadmap is denied without an approved commit gate', async () => {
     const d = await validate(cypherTemplate('commit_roadmap').query, { ...SAMPLE.commit_roadmap, gate_id: 'gd-none' }, ctx);
     expect(d.allow).toBe(false);

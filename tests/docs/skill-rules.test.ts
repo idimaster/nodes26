@@ -22,4 +22,10 @@ describe('plan-integration skill', () => {
   it('handles a use case with no catalog pattern', () => {
     expect(SKILL).toMatch(/If `candidates` returns no rows[\s\S]{0,300}no catalog pattern/);
   });
+
+  it('plans everything in one iteration; a new iteration only follows a rejection', () => {
+    expect(SKILL).toMatch(/Frame all of them in this iteration: an iteration is the whole plan/);
+    expect(SKILL).toMatch(/A new iteration starts only after a rejected gate \(step 13\)/);
+  });
 });
+
