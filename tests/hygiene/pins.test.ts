@@ -41,6 +41,14 @@ describe('pins', () => {
     expect(uses.filter((u) => !/@[0-9a-f]{40}$/.test(u))).toEqual([]);
   });
 
+  it('every job runs on a pinned runner image, not a moving *-latest label', () => {
+    const runners = readdirSync('.github/workflows').flatMap((f) =>
+      [...readFileSync(join('.github/workflows', f), 'utf8').matchAll(/runs-on:\s*(\S+)/g)].map((m) => `${f}: ${m[1]}`),
+    );
+    expect(runners.length).toBeGreaterThan(0);
+    expect(runners.filter((r) => /-latest$/.test(r))).toEqual([]);
+  });
+
   it('the Neo4j image and the Neo4j MCP server agree with config/versions.json', () => {
     expect(readFileSync('docker-compose.yml', 'utf8')).toMatch(new RegExp(`image: neo4j:${VERSIONS.neo4j.replaceAll('.', '\\.')}-community\\n`));
     expect(json<{ version: string }>('config/neo4j-mcp.json').version).toBe(VERSIONS.neo4j_mcp);
