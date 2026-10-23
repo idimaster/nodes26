@@ -28,6 +28,10 @@ jobs:
           DENYLIST: ${{ secrets.DENYLIST }}
         run: |
           umask 077
+          if [ -z "${DENYLIST//[[:space:]]/}" ]; then
+            echo "::error title=DENYLIST secret is empty or not available::Add a repository secret named DENYLIST (Settings > Secrets and variables > Actions > Repository secrets), one term per line. Environment, Dependabot, and Codespaces secrets are not read here, an organization secret must grant this repo access, and runs from forks or Dependabot receive no secrets."
+            exit 1
+          fi
           printf '%s\n' "$DENYLIST" > "$RUNNER_TEMP/denylist.txt"
       - name: Check
         env:
