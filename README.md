@@ -148,6 +148,8 @@ ANTHROPIC_API_KEY=… npm run example:ai-sdk -- "Plan the Nimbus integration."  
 
 `PLANNER_MODEL` picks the model: `anthropic:<model id>` (default `anthropic:claude-sonnet-5-5`; `ANTHROPIC_BASE_URL` is honored), or `openai-compatible:<model id>` with `OPENAI_COMPATIBLE_BASE_URL` and `OPENAI_COMPATIBLE_API_KEY`. `tests/examples/ai-sdk.test.ts` checks the allowlist, the guard wrapper, and the step cap with a mock model, without an LLM.
 
+Proposed additional hosts: [Pi harness design](docs/design/PI-HARNESS.md) and [OpenAI Agents SDK TypeScript design](docs/design/OPENAI-AGENTS-SDK.md). These documents review the current example and describe the migrations; the new hosts are not implemented yet.
+
 Check a run against the planted situations (`docs/design/DATA.md`). For P3 and P4 you act at the gates: approve the proposed term, and reject a selection with a comment.
 
 | | Expected |
