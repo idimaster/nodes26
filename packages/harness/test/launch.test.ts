@@ -5,11 +5,11 @@ import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
 import { afterEach, expect, it, vi } from 'vitest';
 
-const mocked = vi.hoisted(() => ({ fork: vi.fn(), gateway: vi.fn(), driver: vi.fn(), fresh: vi.fn() }));
+const mocked = vi.hoisted(() => ({ fork: vi.fn(), gateway: vi.fn(), driver: vi.fn(), fresh: vi.fn(), inspect: vi.fn() }));
 vi.mock('node:child_process', () => ({ fork: mocked.fork }));
 vi.mock('../src/gateway.js', async original => ({ ...await original<object>(), createGateway: mocked.gateway }));
 vi.mock('../../../graph/connection.js', async original => ({ ...await original<object>(), openDriver: mocked.driver }));
-vi.mock('../src/recovery.js', () => ({ assertFreshRun: mocked.fresh }));
+vi.mock('../src/recovery.js', () => ({ assertFreshRun: mocked.fresh, inspectPlanningState: mocked.inspect }));
 vi.mock('../../../scripts/build-ui.js', () => ({ buildUiIfStale: async () => false }));
 import { launchPlanner } from '../src/launch.js';
 
@@ -64,4 +64,17 @@ it('rejects a gate HTTP override before forking any process', async () => {
   const f = fixture();
   await expect(launchPlanner({ root: f.root, deal: 'nimbus', port: 4646, env: { GATE_HTTP: 'on' }, run: vi.fn() })).rejects.toThrow('GATE_HTTP=off');
   expect(mocked.fork).not.toHaveBeenCalled();
+});
+
+it('exposes read-only inspection on the owned driver and selected deal even after cancellation', async () => {
+  const f = fixture();
+  mocked.inspect.mockResolvedValue({ deal: 'quarry', gates: [], state: [] });
+  await expect(launchPlanner({ host: 'openai-agents', root: f.root, deal: 'quarry', port: 4646, run: async (_gateway, signal, inspect) => {
+    f.child.emit('disconnect');
+    expect(signal.aborted).toBe(true);
+    expect(await inspect()).toMatchObject({ deal: 'quarry' });
+  } })).rejects.toThrow(/console/);
+  expect(mocked.inspect).toHaveBeenCalledExactlyOnceWith(f.driver, 'quarry');
+  expect(mocked.gateway.mock.calls[0]![0]).toMatchObject({ host: 'openai-agents', deal: 'quarry' });
+  expect(f.driver.close).toHaveBeenCalledTimes(1);
 });

@@ -7,13 +7,13 @@ import { assertGraphEnvironment, graphEnvironment, neo4jConfig, openDriver, type
 import { gatewayDefinition } from './definition.js';
 import { createGateway, cleanupAll } from './gateway.js';
 import { acquireRunLock } from './lock.js';
-import { assertFreshRun } from './recovery.js';
+import { assertFreshRun, inspectPlanningState } from './recovery.js';
 import type { PlannerGateway } from './types.js';
 
 export async function launchPlanner<T>(options: {
-  root: string; deal: string; port: number; env?: NodeJS.ProcessEnv; signal?: AbortSignal;
+  root: string; deal: string; port: number; env?: NodeJS.ProcessEnv; signal?: AbortSignal; host?: 'pi' | 'openai-agents';
   readyTimeoutMs?: number;
-  run: (gateway: PlannerGateway, signal: AbortSignal) => Promise<T>;
+  run: (gateway: PlannerGateway, signal: AbortSignal, inspect: () => ReturnType<typeof inspectPlanningState>) => Promise<T>;
 }): Promise<T> {
   const env = options.env ?? process.env;
   const graph = neo4jConfig(env);
@@ -81,8 +81,9 @@ export async function launchPlanner<T>(options: {
     console.log(`dataset: baseline verified; retained global terms: ${readiness.retainedTerms.join(', ') || 'none'}`);
     signal.throwIfAborted();
     const overrides = Object.fromEntries(Object.entries({ ...options.env, ...managedEnv }).filter((e): e is [string, string] => typeof e[1] === 'string'));
-    gateway = await createGateway({ root: options.root, deal: options.deal, driver, graph, env: overrides, signal, runId: config.token });
-    result = await options.run(gateway, signal);
+    gateway = await createGateway({ root: options.root, deal: options.deal, driver, graph, env: overrides, signal, runId: config.token, host: options.host ?? 'pi' });
+    const ownedDriver = driver;
+    result = await options.run(gateway, signal, () => inspectPlanningState(ownedDriver, options.deal));
     if (fatal) throw fatal;
     signal.throwIfAborted();
   } catch (error) {

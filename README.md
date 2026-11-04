@@ -163,7 +163,19 @@ subgraphs, retaining active global term metadata/DDL while deleting per-deal app
 See the example README for configuration and reset constraints. Live provider rehearsals are
 not run yet, so both Pi provider configurations remain experimental.
 
-Design references: [Pi harness](docs/design/PI-HARNESS.md) and the proposed
+The [OpenAI Agents SDK example](examples/openai-agents/README.md) uses the same managed harness
+with one Agent/Runner and the Responses API. Choose the model explicitly:
+
+```bash
+PLANNER_MODEL='openai:<model-id>' OPENAI_API_KEY=… npm run example:openai-agents -- --deal nimbus "Plan the Nimbus integration."
+```
+
+It owns its console and uses the same readiness and recovery commands above. `--max-turns 200`
+bounds SDK turns. Tool names are mapped explicitly; guard audit events retain canonical names and
+identify the host as `openai-agents`. Tracing is disabled. Live OpenAI rehearsals are pending, so
+this configuration is experimental.
+
+Design references: [Pi harness](docs/design/PI-HARNESS.md) and
 [OpenAI Agents SDK TypeScript host](docs/design/OPENAI-AGENTS-SDK.md).
 
 Check a run against the planted situations (`docs/design/DATA.md`). For P3 and P4 you act at the gates: approve the proposed term, and reject a selection with a comment.
@@ -233,6 +245,7 @@ Nine things that went wrong while building this, each reproducible. A test shows
 | `npm run record:session` | Turns a Claude Code transcript into a replay recording |
 | `npm run example:ai-sdk` | The planner on the AI SDK (optional; needs a model API key) |
 | `npm run example:pi` | The planner on Pi, with an owned console and fresh-run verification |
+| `npm run example:openai-agents` | The planner on OpenAI Agents SDK, with the same managed harness |
 | `npm run planner:recover` | Read-only inspection or explicitly confirmed all-deals demo reset |
 | `npm run record:golden` | Re-records the committed replays from the scripted walks |
 

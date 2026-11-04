@@ -1,0 +1,11 @@
+{
+  "name": "@planner/example-openai-agents",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@openai/agents": "0.21.0",
+    "@planner/harness": "0.1.0",
+    "openai": "7.19.0"
+  }
+}

@@ -19,6 +19,6 @@ export interface Connection {
   close(): Promise<void>;
 }
 export interface GuardAudit {
-  time: string; host: 'pi'; runId: string; canonicalName: string; deal: string;
+  time: string; host: 'pi' | 'openai-agents'; runId: string; canonicalName: string; deal: string;
   allow: boolean; rules: string[]; reason: string;
 }

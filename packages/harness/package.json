@@ -5,6 +5,8 @@
   "type": "module",
   "exports": { ".": "./src/index.ts" },
   "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
     "@modelcontextprotocol/sdk": "1.32.0",
     "@planner/data": "0.0.0",
     "@planner/gate": "0.1.0",

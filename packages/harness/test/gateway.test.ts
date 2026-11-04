@@ -141,16 +141,29 @@ it.each(['missing', 'discovery-failed'])('cleans up when required tool discovery
   expect(f.closes.every(c => c.mock.calls.length === 1)).toBe(true);
 });
 
-it('audits both allow and deny without copying full params', async () => {
+it.each(['pi', 'openai-agents'] as const)('audits both allow and deny for %s without copying full params', async host => {
   const f = fixture();
   const entries: GuardAudit[] = [];
-  const gateway = await createGateway({ ...f.options, runId: 'test-run', audit: async entry => { entries.push(entry); } });
+  const gateway = await createGateway({ ...f.options, host, runId: 'test-run', audit: async entry => { entries.push(entry); } });
   try {
     await gateway.invoke(write, { query: 'MATCH (n) DETACH DELETE n RETURN 1', params: { deal: 'nimbus', sensitive: 'private-value' } });
     await gateway.invoke(write, input);
     expect(entries.map(e => e.allow)).toEqual([false, true]);
-    expect(entries[0]).toMatchObject({ runId: 'test-run', host: 'pi', canonicalName: write, deal: 'nimbus', rules: expect.arrayContaining(['G2']) });
+    expect(entries[0]).toMatchObject({ runId: 'test-run', host, canonicalName: write, deal: 'nimbus', rules: expect.arrayContaining(['G2']) });
     expect(JSON.stringify(entries)).not.toContain('private-value');
     expect(entries.every(e => !('params' in e))).toBe(true);
   } finally { await gateway.close(); }
+});
+
+it('fails startup on unsupported schema keywords and still closes acquired clients', async () => {
+  const f = fixture();
+  const connect = f.options.connect;
+  f.options.connect = async server => {
+    const connection = await connect(server);
+    const list = connection.listTools;
+    connection.listTools = async () => (await list()).map(t => ({ ...t, inputSchema: { ...t.inputSchema, unsupportedConstraint: true } }));
+    return connection;
+  };
+  await expect(createGateway(f.options)).rejects.toThrow(/unknown keyword/);
+  expect(f.closes.every(c => c.mock.calls.length === 1)).toBe(true);
 });

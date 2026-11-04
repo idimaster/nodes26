@@ -1,6 +1,6 @@
 # Design proposal: planner on OpenAI Agents SDK for TypeScript
 
-Status: proposed, documentation only. Reviewed 2026-11-02. Follow [repository instructions](../../CLAUDE.md), including design approval before implementation and deterministic tests derived from acceptance criteria. This adds `examples/openai-agents`; update [the implementation contract](DESIGN.md) §§1.4, 4, 6, and 7 for dataset verification, managed console launch, and restart handling before implementation in the same change. The parallel [Pi design](PI-HARNESS.md) contains the implementation review and full shared MCP gateway, managed-launch, loader/readiness, and operator-recovery requirements; those requirements also apply here.
+Status: initial implementation with deterministic SDK/MCP integration coverage; live OpenAI rehearsals pending. Design approved 2026-11-03. Follow [repository instructions](../../CLAUDE.md) and deterministic tests derived from acceptance criteria. `examples/openai-agents` pins `@openai/agents` 0.21.0 and the OpenAI client 7.19.0. [The implementation contract](DESIGN.md) §§1.4, 4, 6, and 7 covers dataset verification, managed console launch, and restart handling. The parallel [Pi design](PI-HARNESS.md) contains the implementation review and full shared MCP gateway, managed-launch, loader/readiness, and operator-recovery requirements; those requirements also apply here. See [the runnable example](../../examples/openai-agents/README.md) and [verification evidence](../../examples/openai-agents/VERIFICATION.md).
 
 ## Recommendation
 
@@ -144,7 +144,7 @@ The CLI owns an AbortController and the Neo4j driver; the gateway owns MCP clien
 | `examples/openai-agents/{package.json,README.md}` | SDK dependencies and run configuration |
 | `examples/openai-agents/src/agent.ts` | Agent/Runner construction and bounded execution |
 | `examples/openai-agents/src/tools.ts` | Name mapping, schema/result conversion, canonical invocation closures |
-| `examples/openai-agents/src/main.ts` | Credentials/config validation, console progress, cancellation, cleanup |
+| `examples/openai-agents/src/{main,cli,model}.ts` | Credentials/config validation, console progress, graph state reporting, cancellation, cleanup |
 | `tests/examples/openai-agents.test.ts` | Fake SDK model and real disposable MCP tests |
 | `tests/gate/console.test.ts`, `tests/examples/recovery.test.ts` | Console graph mismatch and gate-created/response-lost recovery cases |
 | root `package.json`, `package-lock.json`, `README.md`, `docs/design/DESIGN.md` | `example:openai-agents`, `planner:recover`, managed launch/recovery contract and instructions |
@@ -158,7 +158,7 @@ The CLI owns an AbortController and the Neo4j driver; the gateway owns MCP clien
 Proposed invocation after implementation:
 
 ```bash
-PLANNER_MODEL=openai:<model-id> npm run example:openai-agents -- --deal nimbus "Plan the Nimbus integration."
+PLANNER_MODEL='openai:<model-id>' npm run example:openai-agents -- --deal nimbus "Plan the Nimbus integration."
 ```
 
 The example owns its console; do not start `demo:ui` separately for managed mode. The model ID is a placeholder to resolve explicitly during implementation. The `brew upgrade --cask codex` fragment in the request is unrelated to either dependency path and is excluded from these designs pending clarification.

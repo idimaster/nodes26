@@ -3,6 +3,8 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport, type StdioServerParameters } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv';
+import { Ajv } from 'ajv';
+import addFormats from 'ajv-formats';
 import type { Driver } from 'neo4j-driver';
 import { loadContext, validate, type GuardContext } from '@planner/guard';
 import { assertGraphEnvironment, graphEnvironment, neo4jConfig, type Neo4jConfig } from '../../../graph/connection.js';
@@ -35,7 +37,7 @@ function freeze<T>(value: T): T {
 
 export async function createGateway(options: {
   root: string; driver: Driver; deal: string; graph?: Neo4jConfig; env?: Record<string, string>;
-  signal?: AbortSignal; runId?: string;
+  signal?: AbortSignal; runId?: string; host?: GuardAudit['host'];
   connect?: (server: string, parameters: StdioServerParameters) => Promise<Connection>;
   context?: (driver: Driver, deal: string) => Promise<GuardContext>;
   audit?: (decision: GuardAudit) => Promise<void>;
@@ -43,6 +45,7 @@ export async function createGateway(options: {
   const { instructions, tools: allowlist, servers } = gatewayDefinition(options.root);
   const graph = options.graph ?? neo4jConfig();
   const runId = options.runId ?? randomUUID();
+  const host = options.host ?? 'pi';
   const audit = options.audit ?? auditLogger(options.root, { ...process.env, ...options.env });
   assertGraphEnvironment(graph, process.env, options.env ?? {}, ...Object.values(servers).map(s => s.env));
   for (const source of [process.env, options.env ?? {}, ...Object.values(servers).map(s => s.env)]) {
@@ -79,7 +82,7 @@ export async function createGateway(options: {
         // Diagnostics are outside the model transcript; do not print inherited credentials.
         let diagnostics = '';
         transport.stderr?.on('data', (chunk: Buffer) => { diagnostics = (diagnostics + chunk.toString()).slice(-8192); });
-        const client = new Client({ name: 'planner-pi', version: '0.1.0' });
+        const client = new Client({ name: `planner-${host}`, version: '0.1.0' });
         closers.push(() => client.close());
         try { await client.connect(transport, { timeout: MCP_TIMEOUT_MS, signal }); }
         catch (error) { throw new Error(`MCP connection failed for ${serverName} (stderr retained: ${diagnostics.length} bytes)`, { cause: error }); }
@@ -97,7 +100,10 @@ export async function createGateway(options: {
           close: () => client.close(),
         };
       }
-      const validator = new AjvJsonSchemaValidator();
+      // Validate schemas as well as data; never coerce, remove properties or insert defaults.
+      const ajv = new Ajv({ strictSchema: true, strictTypes: false, allErrors: true });
+      addFormats.default(ajv);
+      const validator = new AjvJsonSchemaValidator(ajv);
       for (const tool of await connection.listTools()) {
         const canonicalName = `mcp__${serverName}__${tool.name}`;
         if (!allowlist.includes(canonicalName)) continue;
@@ -124,7 +130,7 @@ export async function createGateway(options: {
     else if ('deal' in input && input.deal !== options.deal) reason = `deal must match selected deal ${options.deal}`;
     else if (object(input.params) && 'deal' in input.params && input.params.deal !== options.deal) reason = `params.deal must match selected deal ${options.deal}`;
     else if (name === WRITE_TOOL && (typeof input.query !== 'string' || !object(input.params) || input.params.deal !== options.deal)) reason = `write requires string query and object params with deal ${options.deal}`;
-    const log = async (allow: boolean, why: string, rules: string[] = []) => audit({ time: new Date().toISOString(), host: 'pi', runId, canonicalName: name, deal: options.deal, allow, rules, reason: why });
+    const log = async (allow: boolean, why: string, rules: string[] = []) => audit({ time: new Date().toISOString(), host, runId, canonicalName: name, deal: options.deal, allow, rules, reason: why });
     if (reason) { if (name === WRITE_TOOL) await log(false, reason); return deny(reason); }
     // Local validation establishes an object; preserve the original argument values unchanged.
     const args = input as Record<string, unknown>;
