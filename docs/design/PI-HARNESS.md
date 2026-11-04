@@ -137,6 +137,19 @@ Implement a host-owned request budget around `streamFn`: before each provider re
 
 Subscribe to text and tool events for terminal progress. Keep canonical names in logs. `SIGINT` aborts the agent and propagates cancellation to MCP calls; queued invocations must not execute afterward. After `prompt()` settles, inspect terminal error/abort state before reporting success. Emit a nonzero exit for failure or cap exhaustion, even if partial assistant text exists. [Source: agent lifecycle implementation](https://github.com/earendil-works/pi/blob/main/packages/agent/src/agent.ts).
 
+**Provider resilience (approved implementation extension).** Use the SDK's native HTTP
+`maxRetries: 2`/`maxRetryDelayMs: 60000` and exported `retryAssistantCall`/`isRetryableAssistantError`
+for interrupted responses. A guarded fetch boundary shares four attempts per model turn across
+both layers and counts native retries against the run budget. Honor the final HTTP Retry-After
+across assistant retries too; do not shorten a server wait through an outer retry. Quota/billing,
+authentication/invalid requests, provider retry refusal, cancellation, and delays over the cap
+are terminal. Three consecutive transient failures open a run-local circuit for 30 seconds (or a
+longer permitted provider delay), then allow one probe. Failure stops; a completed response closes
+the circuit. Consume provider responses before delivering text/tool calls to the agent, discarding
+failed partial content. Retain completed tool results in the same conversation and never retry MCP
+calls or the whole planner. Log provider/model, attempt counts, retry waits and circuit states,
+without payloads or credentials. Retry and circuit waits must obey cancellation.
+
 Start with in-memory conversation state and one CLI prompt per run. Neo4j remains the durable planning record, but restart enters the reconciliation/operator procedure above before any model request. It does not resume by running the skill from step 1 against a partial plan. Session persistence, compaction, interactive TUI, and CLI extensions are separate work. The higher-level coding SDK discovers resources/settings and has persistent sessions by default, so adopting it would also require controlling ambient tools and resource loading. [Source: coding SDK lifecycle](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/sdk.md).
 
 ## Files and delivery sequence

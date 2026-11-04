@@ -7,6 +7,7 @@ export interface ToolDescriptor {
   readonly inputSchema: Tool['inputSchema'];
 }
 export interface PlannerGateway {
+  readonly runId?: string;
   readonly instructions: string;
   readonly tools: readonly ToolDescriptor[];
   invoke(name: string, input: unknown, signal?: AbortSignal): Promise<ToolOutcome>;

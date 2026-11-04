@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createMCPClient, type MCPClient } from '@ai-sdk/mcp';
 import { Experimental_StdioMCPTransport as StdioMCPTransport } from '@ai-sdk/mcp/mcp-stdio';
+import { createOpenAI } from '@ai-sdk/openai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { stepCountIs, ToolLoopAgent, type LanguageModel, type Tool, type ToolSet } from 'ai';
 import type { Driver } from 'neo4j-driver';
@@ -17,7 +18,7 @@ import { loadContext, validate } from '@planner/guard';
 
 const WRITE_TOOL = 'mcp__neo4j-write__write-cypher';
 
-/** PLANNER_MODEL=anthropic:<model id> | openai-compatible:<model id> (experimental). */
+/** OpenAI uses Responses; other OpenAI-compatible servers use Chat Completions (experimental). */
 export function modelFromEnv(env: NodeJS.ProcessEnv = process.env): LanguageModel {
   const spec = env.PLANNER_MODEL ?? 'anthropic:claude-sonnet-5-5';
   const [provider, ...rest] = spec.split(':');
@@ -26,12 +27,22 @@ export function modelFromEnv(env: NodeJS.ProcessEnv = process.env): LanguageMode
   if (provider === 'anthropic') {
     return createAnthropic({ ...(env.ANTHROPIC_BASE_URL ? { baseURL: env.ANTHROPIC_BASE_URL } : {}) })(id);
   }
+  if (provider === 'openai') {
+    return createOpenAI({
+      ...(env.OPENAI_API_KEY ? { apiKey: env.OPENAI_API_KEY } : {}),
+      ...(env.OPENAI_BASE_URL ? { baseURL: env.OPENAI_BASE_URL } : {}),
+    }).responses(id);
+  }
   if (provider === 'openai-compatible') {
     const baseURL = env.OPENAI_COMPATIBLE_BASE_URL;
     if (!baseURL) throw new Error('openai-compatible models need OPENAI_COMPATIBLE_BASE_URL (and usually OPENAI_COMPATIBLE_API_KEY)');
+    // Preserve existing OpenAI configurations while supporting function tools with reasoning.
+    if (new URL(baseURL).origin === 'https://api.openai.com') {
+      return createOpenAI({ baseURL, ...(env.OPENAI_COMPATIBLE_API_KEY ? { apiKey: env.OPENAI_COMPATIBLE_API_KEY } : {}) }).responses(id);
+    }
     return createOpenAICompatible({ name: 'openai-compatible', baseURL, ...(env.OPENAI_COMPATIBLE_API_KEY ? { apiKey: env.OPENAI_COMPATIBLE_API_KEY } : {}) })(id);
   }
-  throw new Error(`unknown provider ${provider ?? ''} in PLANNER_MODEL (use anthropic or openai-compatible)`);
+  throw new Error(`unknown provider ${provider ?? ''} in PLANNER_MODEL (use anthropic, openai, or openai-compatible)`);
 }
 
 const body = (markdown: string) => markdown.replace(/^---\n[\s\S]*?\n---\n/, '').trim();

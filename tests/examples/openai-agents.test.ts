@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { OpenAIProvider } from '@openai/agents';
-import { expect, it, vi } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import { createOpenAIPlanner } from '../../examples/openai-agents/src/agent.js';
 import { modelFromEnv } from '../../examples/openai-agents/src/model.js';
 import { mapPlannerTools } from '../../examples/openai-agents/src/tools.js';
@@ -11,6 +11,7 @@ const canonical = 'mcp__neo4j-write__write-cypher';
 const mapped = 'mcp__neo4j_write__write_cypher';
 const schema = { type: 'object' as const, properties: { query: { type: 'string' }, params: { type: 'object', additionalProperties: true } }, required: ['query'], additionalProperties: false };
 const input = { query: 'RETURN $nested AS value', params: { deal: 'nimbus', nested: [{ values: [1, null, { enabled: true }] }] } };
+afterEach(() => { vi.useRealTimers(); });
 function fixture(): { -readonly [K in keyof PlannerGateway]: PlannerGateway[K] } {
   return {
     instructions: `Use \`${canonical}\` and preserve its parameters.`,
@@ -129,6 +130,34 @@ it('returns incomplete on a provider failure and validates its turn cap', async 
   const fake = scriptedModel(() => { throw new Error('provider failed'); });
   expect(await createOpenAIPlanner({ gateway, model: fake.model }).run('Plan')).toMatchObject({ complete: false, requests: 1, text: '', error: expect.stringContaining('provider failed') });
   for (const maxTurns of [0, -1, 1.5, NaN]) expect(() => createOpenAIPlanner({ gateway, model: fake.model, maxTurns })).toThrow(/positive integer/);
+});
+
+it('retains transport cause codes without printing nested messages, headers or credentials', async () => {
+  vi.useFakeTimers();
+  const gateway = fixture();
+  const transport = Object.assign(new Error('proxy https://user:secret@example.invalid'), { code: 'ECONNRESET', headers: { authorization: 'secret' } });
+  const connection = Object.assign(new Error('Connection error.', { cause: new TypeError('fetch failed', { cause: transport }) }), { name: 'APIConnectionError' });
+  const fake = scriptedModel(() => { throw connection; });
+  const run = createOpenAIPlanner({ gateway, model: fake.model }).run('Plan');
+  await vi.runAllTimersAsync();
+  const result = await run;
+  expect(result).toMatchObject({ complete: false, requests: 4, text: '', error: expect.stringMatching(/Connection error\..*APIConnectionError.*ECONNRESET/) });
+  expect(result.error).not.toMatch(/secret|example\.invalid|authorization/);
+  expect(gateway.invoke).not.toHaveBeenCalled();
+});
+
+it('handles cyclic transport causes and AggregateError connection codes without hanging', async () => {
+  vi.useFakeTimers();
+  const gateway = fixture();
+  const connection = Object.assign(new Error('Connection error.'), { cause: undefined as unknown });
+  connection.cause = new AggregateError([Object.assign(new Error('private'), { code: 'ETIMEDOUT' }), Object.assign(new Error('private'), { code: 'ENETUNREACH' }), connection]);
+  const fake = scriptedModel(() => { throw connection; });
+  const run = createOpenAIPlanner({ gateway, model: fake.model }).run('Plan');
+  await vi.runAllTimersAsync();
+  const result = await run;
+  expect(result.error).toContain('ETIMEDOUT');
+  expect(result.error).toContain('ENETUNREACH');
+  expect(result.error).not.toContain('private');
 });
 
 it('validates explicit OpenAI credentials and model before launching children', () => {

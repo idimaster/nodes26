@@ -62,7 +62,7 @@ it('passes only explicit caller/managed overrides to the gateway', async () => {
 
 it('rejects a gate HTTP override before forking any process', async () => {
   const f = fixture();
-  await expect(launchPlanner({ root: f.root, deal: 'nimbus', port: 4646, env: { GATE_HTTP: 'on' }, run: vi.fn() })).rejects.toThrow('GATE_HTTP=off');
+  await expect(launchPlanner({ root: f.root, deal: 'nimbus', port: 4646, env: { ...process.env, GATE_HTTP: 'on' }, run: vi.fn() })).rejects.toThrow('GATE_HTTP=off');
   expect(mocked.fork).not.toHaveBeenCalled();
 });
 

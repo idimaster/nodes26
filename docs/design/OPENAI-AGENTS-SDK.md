@@ -128,9 +128,47 @@ The operator uses proposed `npm run planner:recover -- inspect --deal nimbus` to
 
 Change loader verification explicitly for retained terms: `graph/load/index.ts` keeps strict exact-manifest mode by default; reset opts into `retain-active-global-terms`, shared with the startup's read-only verifier in proposed `graph/load/verify.ts`. Verify the baseline projection against the **unchanged** manifest and keyed fixture content, and separately validate extra terms as single-label, unique, well-formed active/global `OntologyTerm` nodes with no `deal_code` and required label constraints. Reject other extras and any surviving term edges after reset. Snapshot term metadata before deletion and verify it unchanged afterward. Per-deal approval/evidence links disappear by reset design and are not recreated; retained metadata is structurally verified, not historical approval provenance reconstructed. Keep `graphCounts`/returned physical counts honest and report retained terms separately. Do not ignore all ontology nodes, loosen baseline counts, or regenerate the manifest to fit runtime state. A valid promoted term therefore survives repeated reset/reload without the current `OntologyTerm: expected 0, found 1` failure.
 
-Disable SDK tracing by default and retain local guard/run events. This avoids adding automatic trace exports to the baseline's data flow. An opt-in tracing mode must deliberately choose payload inclusion; tracing is observability, not the graph's decision record. Current SDK configuration exposes `tracingDisabled` and `traceIncludeSensitiveData`. [Source: Runner configuration](https://github.com/openai/openai-agents-js/blob/main/packages/agents-core/src/run.ts).
+Disable SDK tracing by default and retain local guard/run events. Explicit `--trace` enables payload-free
+SDK exports to OpenAI with `traceIncludeSensitiveData: false`. Replace the default processor with a
+redacting batch processor: pinned SDK 0.21 can otherwise include raw unexpected tool exceptions even
+with that flag off. Remove function/generation/response payload fields and raw span-error messages/data
+at the export boundary. Metadata is limited to host/model/deal/runtime versions and guard-run correlation;
+custom spans contain timing, byte counts, canonical tool names, retry/circuit state, error classifications,
+codes/status and validated request IDs. Print the trace ID, dashboard URL and gateway `runId` in the CLI.
+The tracing exporter uses `maxRetries: 1` because this pinned exporter counts total attempts; the model
+client separately retains `maxRetries: 0`. Drain trace batches through SDK shutdown with a five-second
+abort deadline and bounded caller wait after planner cleanup, including failures and SIGINT. Host
+signal listeners remain installed through final flush, which drains the owned batch processor directly
+instead of depending on the global provider's cached signal shutdown. Trace
+failures must neither change completion status nor repeat model/tools. Conflicting global tracing-disable
+configuration is rejected before child launch. Tracing is observability; graph decisions remain authoritative.
+[Source: Runner configuration](https://github.com/openai/openai-agents-js/blob/main/packages/agents-core/src/run.ts).
 
 The CLI owns an AbortController and the Neo4j driver; the gateway owns MCP clients. On `SIGINT`, abort model and queued/in-flight MCP work, wait for settlement, attempt every client close, then attempt driver close regardless of client errors. Cover model/agent construction inside the same cleanup scope. Forwarding cancellation does not roll back a write already committed remotely.
+
+## Provider retries and circuit handling
+
+Approved after repeated live connection failures, including `ERR_HTTP2_INVALID_SESSION`: use the
+pinned Agents SDK's `modelSettings.retry` and `retryPolicies` instead of restarting the planner.
+The CLI supplies an explicit OpenAI client with `maxRetries: 0`, so the Runner is the only retry
+owner. The model wrapper forwards provider retry advice and recognizes nested HTTP/2/transport
+codes. The SDK handles exponential jitter/backoff (1-second initial, 8-second cap), Retry-After
+parsing and abortable waits. Permit at most four attempts per logical SDK turn; the displayed
+request count includes retries, and the run limit is at most four times `maxTurns` attempts.
+
+Eligible failures are transient transport errors, HTTP 408/409/429 and 5xx. Authentication, malformed
+requests, quota/billing, certificate errors, cancellation, provider retry vetoes, unsafe replay,
+response-start evidence and stateful requests stop immediately. Respect server delay hints up to
+60 seconds; reject longer delays and defer the run rather than retrying early. After three
+consecutive eligible failures, open a run-local circuit for 30 seconds or a longer permitted server
+delay, then admit one probe. Success closes the circuit/reset count; failure stops incomplete.
+The SDK owns the circuit cooldown timer through the retry-policy delay; the adapter only owns state.
+Retry/circuit events expose the chosen model, total physical attempt, status and optional server or
+circuit delay, without prompts/tool parameters/headers/credentials.
+
+These retries repeat only the current non-streaming function-tool model request. Existing tool
+results remain in context. No tool, graph write, gate request or full workflow is replayed. Partial
+response bodies never reach executors. Persisted resume and automatic restart remain unsupported.
 
 ## Files and delivery sequence
 

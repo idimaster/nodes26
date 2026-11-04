@@ -19,10 +19,29 @@ validated before children launch. Generic OpenAI-compatible gateways are outside
 The command builds and owns its console, prints its URL, and waits for your gate decisions there.
 Do not run `demo:ui` separately. An occupied console port is fatal; select another explicitly with
 `--port 4647`. The console, guard and MCP children share one verified graph configuration.
-`--max-steps 200` bounds **provider requests**, including tool follow-ups. Exhaustion or Ctrl-C
+`--max-steps 200` bounds **provider attempts**, including tool follow-ups and HTTP/stream retries. Exhaustion or Ctrl-C
 exits nonzero, preserves graph state, closes children and never retries an uncertain mutation.
 Use `--help` for CLI syntax. `GUARD_LOG` overrides the default `.logs/guard.jsonl` audit path;
 records include host/run/tool/deal/rules, without full tool parameters or credentials.
+
+## Provider connection errors and throttling
+
+Retries are enabled by default for both providers. Pi's SDK handles transient HTTP failures with
+two retries, exponential backoff/jitter, and `Retry-After`. Its `retryAssistantCall` helper handles
+failed assistant streams. Both layers share a **four-attempt limit per model turn**, and every
+native HTTP attempt counts toward `--max-steps`. Quota/billing, authentication, invalid requests,
+explicit provider retry refusals, and server-requested waits above 60 seconds stop immediately.
+
+After three consecutive transient failures, the circuit opens for 30 seconds, or the remaining
+permitted `Retry-After` if longer. One probe follows; success closes the circuit, and a failed
+probe stops the run. Ctrl-C interrupts retry/circuit waits. The terminal prints the selected
+provider/model, retry attempts, backoff, and circuit transitions without request data or credentials.
+
+Each provider response is consumed before its text/tool calls are delivered to Pi, so text appears
+after that response completes. Failed partial responses are discarded. A retry uses the same
+conversation containing already completed tool results; it never reruns a tool, gate request, or
+the whole planner. If recovery ultimately fails, the graph is preserved for the inspection/reset
+procedure below; a new process still cannot automatically resume the interrupted plan.
 
 ## Interrupted or previously completed runs
 
@@ -56,7 +75,7 @@ not distributed locking. Guard validation and remote writes remain separate oper
 ## Verification and provider status
 
 ```bash
-npm test -- packages/harness/test tests/examples/pi.test.ts tests/examples/pi-integration.test.ts tests/examples/recovery.test.ts tests/graph/readiness.test.ts
+npm test -- packages/harness/test tests/examples/pi.test.ts tests/examples/pi-reliability.test.ts tests/examples/pi-integration.test.ts tests/examples/recovery.test.ts tests/graph/readiness.test.ts
 ```
 
 Tests use a scripted provider with the real MCP servers and owned console, including the recorded

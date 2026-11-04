@@ -146,7 +146,13 @@ npm run demo:ui                                                         # one te
 ANTHROPIC_API_KEY=… npm run example:ai-sdk -- "Plan the Nimbus integration."   # another
 ```
 
-`PLANNER_MODEL` picks the model: `anthropic:<model id>` (default `anthropic:claude-sonnet-5-5`; `ANTHROPIC_BASE_URL` is honored), or `openai-compatible:<model id>` with `OPENAI_COMPATIBLE_BASE_URL` and `OPENAI_COMPATIBLE_API_KEY`. `tests/examples/ai-sdk.test.ts` checks the allowlist, the guard wrapper, and the step cap with a mock model, without an LLM.
+`PLANNER_MODEL` picks the model: `anthropic:<model id>` (default `anthropic:claude-sonnet-5-5`; `ANTHROPIC_BASE_URL` is honored), `openai:<model id>` with `OPENAI_API_KEY` and optional `OPENAI_BASE_URL`, or `openai-compatible:<model id>` with `OPENAI_COMPATIBLE_BASE_URL` and `OPENAI_COMPATIBLE_API_KEY`. OpenAI uses the Responses API so function tools work with reasoning models. Existing `openai-compatible:` configurations pointing at `https://api.openai.com/v1` also use Responses; other compatible servers use Chat Completions. For example:
+
+```sh
+PLANNER_MODEL=openai:gpt-6-luna npm run example:ai-sdk -- "Plan the Nimbus integration."
+```
+
+Set `OPENAI_API_KEY` in the shell first. `tests/examples/ai-sdk.test.ts` checks the allowlist, the guard wrapper, and the step cap with a mock model, without an LLM; `tests/examples/ai-sdk-model.test.ts` verifies endpoint selection and function-call round trips with mocked HTTP responses. See the [AI SDK example README](examples/ai-sdk/README.md) and [verification record](examples/ai-sdk/VERIFICATION.md) for setup, behavior and recorded checks.
 
 The [Pi example](examples/pi/README.md) runs the same planner with Pi agent-core, a managed
 architect console, guarded MCP tools, dataset readiness checks, and explicit recovery:
@@ -172,7 +178,8 @@ PLANNER_MODEL='openai:<model-id>' OPENAI_API_KEY=… npm run example:openai-agen
 
 It owns its console and uses the same readiness and recovery commands above. `--max-turns 200`
 bounds SDK turns. Tool names are mapped explicitly; guard audit events retain canonical names and
-identify the host as `openai-agents`. Tracing is disabled. Live OpenAI rehearsals are pending, so
+identify the host as `openai-agents`. Add `--trace` for SDK traces with payload capture disabled;
+the CLI prints the trace ID/dashboard and actual Node/undici versions. Live OpenAI rehearsals are pending, so
 this configuration is experimental.
 
 Design references: [Pi harness](docs/design/PI-HARNESS.md) and

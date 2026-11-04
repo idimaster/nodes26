@@ -1,8 +1,9 @@
 import { tool, type JsonSchemaDefinition } from '@openai/agents';
 import type { PlannerGateway } from '@planner/harness';
+import type { PlannerTracing } from './tracing.js';
 
 /** Keep canonical routing independent of the SDK's lossy name normalization. */
-export function mapPlannerTools(gateway: PlannerGateway) {
+export function mapPlannerTools(gateway: PlannerGateway, tracing?: PlannerTracing) {
   const canonicalToProvider = new Map<string, string>();
   const providerToCanonical = new Map<string, string>();
   for (const descriptor of gateway.tools) {
@@ -29,7 +30,15 @@ export function mapPlannerTools(gateway: PlannerGateway) {
       parameters: structuredClone(descriptor.inputSchema) as Extract<JsonSchemaDefinition['schema'], { additionalProperties: true }>,
       strict: false,
       errorFunction: null,
-      execute: async (input, _context, details) => JSON.stringify(await gateway.invoke(descriptor.canonicalName, input, details?.signal)),
+      execute: async (input, _context, details) => {
+        const invoke = async () => {
+          const result = await gateway.invoke(descriptor.canonicalName, input, details?.signal);
+          tracing?.event('planner.tool_result', { canonical_name: descriptor.canonicalName, is_error: result.isError === true, denied: result.denied === true });
+          return JSON.stringify(result);
+        };
+        const gate = ['mcp__gate__request_approval', 'mcp__gate__await_approval', 'mcp__ontology__propose_term'].includes(descriptor.canonicalName);
+        return tracing ? tracing.span(gate ? 'planner.gate_wait' : 'planner.tool', { canonical_name: descriptor.canonicalName }, invoke) : invoke();
+      },
     });
   });
   return { instructions, tools, canonicalToProvider, providerToCanonical };

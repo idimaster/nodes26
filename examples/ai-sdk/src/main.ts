@@ -4,7 +4,8 @@ import { createPlanner, modelFromEnv } from './agent.js';
 
 /**
  * npm run example:ai-sdk -- "Plan the Nimbus integration."
- * Needs ANTHROPIC_API_KEY (or PLANNER_MODEL=openai-compatible:<id> with OPENAI_COMPATIBLE_BASE_URL).
+ * Needs ANTHROPIC_API_KEY, or PLANNER_MODEL=openai:<id> with OPENAI_API_KEY (Responses API).
+ * Other compatible servers use PLANNER_MODEL=openai-compatible:<id> with OPENAI_COMPATIBLE_BASE_URL.
  * Approve the gates in the demo UI (npm run demo:ui).
  */
 

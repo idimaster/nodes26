@@ -155,6 +155,7 @@ export async function createGateway(options: {
     }
   }
   return {
+    runId,
     instructions: `${instructions}\n\nThis run is bound to deal ${JSON.stringify(options.deal)}. Every deal argument must match it.`,
     tools: Object.freeze(descriptors.sort((a, b) => a.canonicalName.localeCompare(b.canonicalName))),
     invoke(name, input, callerSignal) {

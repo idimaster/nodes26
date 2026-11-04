@@ -7,6 +7,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.72",
     "@ai-sdk/mcp": "2.0.67",
+    "@ai-sdk/openai": "4.0.84",
     "@ai-sdk/openai-compatible": "3.0.63",
     "@ai-sdk/provider": "4.0.22",
     "@planner/guard": "0.1.0",

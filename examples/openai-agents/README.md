@@ -3,7 +3,7 @@
 An experimental TypeScript host using `@openai/agents` **0.21.0** and the OpenAI client **7.19.0**.
 One Agent/Runner uses the full embedded planner skill and the existing fifteen MCP tools through
 `@planner/harness`. The harness serializes calls, validates inputs and guards writes with fresh graph
-context. The browser console remains authoritative for architect decisions. SDK tracing is disabled.
+context. The browser console remains authoritative for architect decisions. SDK tracing is disabled by default.
 
 After `npm run quickstart`, choose an OpenAI model explicitly and use a clean disposable graph:
 
@@ -20,6 +20,20 @@ An occupied port is fatal, including a console using the same graph; choose anot
 Console loss aborts the run. Console, MCP children and guard share one verified graph configuration.
 
 `--max-turns 200` bounds SDK turns; these are distinct from Pi provider requests or AI SDK steps.
+Model requests use the Agents SDK's retry policies with up to **four attempts per turn**; the printed
+request total includes those attempts. Native HTTP-client retries are disabled to keep one retry
+owner. Transient network/HTTP2 session errors, HTTP 408/409/429 and 5xx use SDK exponential backoff
+with jitter (1-second initial, 8-second cap). Valid Retry-After hints are honored up to 60 seconds;
+longer hints stop the run rather than retrying early.
+
+Three consecutive eligible failures open a circuit for **30 seconds**, or a longer permitted
+server delay. One probe follows: success resets the circuit, failure exits incomplete. CLI messages
+show `retry`, `circuit_open`, `circuit_probe`, `circuit_closed` and `circuit_failed` with the selected
+model and total attempt count. Cancellation interrupts SDK backoff/cooldown. Authentication, invalid
+requests, quota/billing, certificate failures, provider vetoes and unsafe/stateful replay are terminal.
+Only the current model request is retried with prior tool results intact; MCP calls and workflows
+are never replayed. The circuit is local to one CLI invocation.
+
 Exhaustion, cancellation and infrastructure errors exit nonzero and suppress partial final text.
 After the SDK run, the CLI prints read-only graph state, including gate IDs/statuses and roadmaps;
 if that read fails it reports state as unavailable and supplies the selected-deal inspect command.
@@ -28,6 +42,39 @@ A remotely committed write is not rolled back by cancellation; uncertain mutatio
 automatically. Successful SDK completion alone is not evidence that a roadmap was committed: use the
 console/graph to verify the actual plan. Progress and `GUARD_LOG` (default `.logs/guard.jsonl`) use
 canonical tool names; provider function names use collision-checked underscores.
+
+Connection failures include bounded error-class and nested transport-code diagnostics (for example
+`APIConnectionError`, `ECONNRESET` or `ETIMEDOUT`). Nested messages, URLs, headers and credentials are
+not printed. A connection failure does not identify its cause without those transport details;
+the retry policy handles eligible failures in the current conversation and never restarts the workflow automatically.
+
+## Optional SDK tracing
+
+Use the same model/key configuration and add `--trace` to export diagnostic traces to OpenAI:
+
+```bash
+npm run example:openai-agents -- --trace --deal nimbus "Plan the Nimbus integration."
+```
+
+The CLI prints a trace ID, the [Traces dashboard](https://platform.openai.com/traces), the guard audit
+run ID and the actual Node/undici versions. Node 26.8.2 is recorded as such; enabling tracing does not
+change your runtime. The repository's standard verification runtime remains Node 24.21.0.
+
+SDK model/tool spans are supplemented by physical-attempt, canonical-tool/gate-wait, retry, backoff,
+circuit and completion spans. Byte counts help identify growing model inputs without recording their
+contents. Errors retain classifications, transport codes, HTTP status and request IDs when available.
+Default tracing remains off. `--trace` conflicts with `OPENAI_AGENTS_DISABLE_TRACING=1`/`true` and fails
+before launch in that case.
+
+`traceIncludeSensitiveData` always stays **false**. A processor redacts payload fields and raw SDK
+exception messages before export; prompts, instructions, Cypher parameters, tool results and API keys
+are excluded. Custom span data contains only diagnostic metadata. The CLI owns one redacting export
+route, with one SDK ingest attempt per batch. It gives SDK shutdown up to **five seconds** to drain
+the queue/abort active exports after planner resources close, including failure and Ctrl-C. Export
+failure does not change the planner result or replay a model/tool call. Dashboard delivery is best effort.
+
+Tracing helps locate failures and compare runtimes; it does not repair a broken connection or resume
+an interrupted plan. Graph gates and local guard audit remain the decision record.
 
 ## Existing or interrupted planning state
 
@@ -54,7 +101,7 @@ Exclusive use of the disposable graph is required; the local run lock is not dis
 ## Verification
 
 ```bash
-npm test -- tests/examples/openai-agents.test.ts tests/examples/openai-agents-cli.test.ts tests/examples/openai-agents-integration.test.ts packages/harness/test tests/examples/recovery.test.ts tests/graph/readiness.test.ts
+npm test -- tests/examples/openai-agents.test.ts tests/examples/openai-agents-cli.test.ts tests/examples/openai-agents-reliability.test.ts tests/examples/openai-agents-tracing.test.ts tests/examples/openai-agents-integration.test.ts packages/harness/test tests/examples/recovery.test.ts tests/graph/readiness.test.ts
 ```
 
 Tests use scripted SDK models and a fake Responses HTTP transport, plus real disposable MCP/Neo4j

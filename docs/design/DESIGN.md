@@ -396,15 +396,58 @@ gateway. Pi caps provider requests; OpenAI caps SDK turns (both default 200). Be
 deal and positive dataset readiness. Interrupted/completed state requires read-only operator
 inspection and explicit demo reset; it is never resumed by replaying workflow step 1. Managed
 launch, immutable deal binding, and recovery/reset details are specified in §7 and PI-HARNESS.md.
+
+Pi provider resilience uses the pinned SDK's HTTP retry options (two retries, capped Retry-After,
+exponential backoff/jitter) and `retryAssistantCall` for failed assistant responses. Both share
+a four-attempt limit per model turn and the run's provider-attempt budget, including native HTTP
+retries. Authentication, invalid requests, quota/billing, cancellation, and waits above the 60-second
+server-delay cap are terminal. Three consecutive transient failures open a run-local circuit for
+30 seconds (or a longer permitted provider delay), followed by one probe. A failed probe stops the
+run; a completed response closes the circuit. Backoff/cooldown obey cancellation. Provider responses
+are consumed before being delivered to the agent so failed partial text/tool calls cannot enter
+the conversation or execute. Previously completed MCP results remain in the same conversation;
+no MCP call, gate request or whole planner run is retried. CLI diagnostics report model, attempts,
+backoff and circuit state without request payloads or credentials.
+
 OpenAI's single Agent/Runner maps canonical names bijectively to provider function names and replaces
 whole prompt tokens once. Collisions, names over 64 characters and undeclared references fail startup.
 Non-strict tools preserve discovered schemas, including arbitrary nested Cypher params; the gateway
 validates schemas and inputs using pinned Ajv without coercion/defaults/property removal. Unknown
 schema keywords fail startup. Every executor closes over canonical identity and returns JSON containing
 MCP content, structured witnesses, errors and guard denials. Unexpected executor failures stop the run.
-There are no handoffs, direct SDK MCP routes, ambient tools or second approval system. Tracing is disabled.
+There are no handoffs, direct SDK MCP routes, ambient tools or second approval system. Tracing is disabled by default.
 `PLANNER_MODEL=openai:<model-id>` and `OPENAI_API_KEY` are required before managed launch; custom
 endpoints are unsupported. See [OPENAI-AGENTS-SDK.md](OPENAI-AGENTS-SDK.md) for the adapter contract.
+
+OpenAI provider resilience uses Agents SDK `modelSettings.retry`, `retryPolicies` and its abortable
+exponential backoff/jitter (1-second initial, 8-second cap); the HTTP client has `maxRetries: 0`
+so attempts cannot multiply. There are at most four model attempts per SDK turn, counted in the
+reported request total, and at most four times `maxTurns` attempts per run. Provider retry advice
+is forwarded; HTTP/2 session failures and transient network errors, 408/409/429 and 5xx are eligible.
+Authentication, invalid requests, quota/billing, certificate failures, cancellation, provider vetoes,
+unsafe replay, response-start evidence and stateful requests are terminal. SDK-parsed Retry-After
+is honored; a delay above 60 seconds stops the run instead of retrying early. Three consecutive
+eligible failures open a run-local circuit for 30 seconds (or a longer permitted server delay),
+followed by one probe. Success closes the circuit and resets consecutive failures; probe failure
+stops the run. The SDK owns all retry/cooldown waits and cancellation. Only the current non-streaming
+model request is repeated with its existing tool results; no MCP call or complete workflow is retried.
+CLI events report the selected model, physical attempts, backoff and circuit transitions.
+
+`example:openai-agents -- --trace` explicitly enables SDK tracing to OpenAI. Payload capture stays
+disabled (`traceIncludeSensitiveData: false`); the CLI replaces the default processor with a redacting
+batch processor so SDK tool-error messages and generation/function/response payload fields cannot
+bypass that choice. Trace metadata includes host/model/deal and actual Node/undici versions. The CLI
+prints a trace ID/dashboard URL and the gateway's read-only `runId` to correlate guard audit records.
+Custom spans measure physical model attempts, input/instruction byte counts, canonical tool/gate waits,
+retry decisions/backoff/circuit intervals and final completion state. Errors export only classifications,
+transport codes, HTTP status and validated request IDs, never raw exception messages or headers.
+The SDK exporter gets one total export attempt per batch; export failures never replay planner work.
+SDK shutdown drains the queue with a five-second abort deadline and a bounded caller wait after all
+planner resources close, on success/failure/cancellation. Export failure does not replace the planner
+result. Host signal listeners stay registered until cleanup/flush ends; the CLI drains its owned SDK
+batch processor directly so the SDK's earlier cached signal shutdown cannot skip final spans.
+The global SDK tracing-disable environment setting is respected; conflicting `--trace` fails
+before managed launch. Tracing observes the workflow; graph decisions remain authoritative.
 
 **Packaging.** The plugin lives in `plugin/` (`plugin/.claude-plugin/plugin.json`, `plugin/agents/planner.md`, `plugin/skills/plan-integration/SKILL.md`), and `.claude-plugin/marketplace.json` at the repo root lets `claude plugin marketplace add ./` install it.
 - It is a subdirectory on purpose: a plugin root's `.mcp.json` and `hooks/hooks.json` are auto-loaded. The repo root's servers would be registered a second time under `mcp__plugin_…` names, and the guard would run twice.

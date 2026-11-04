@@ -30,8 +30,29 @@ verification uses Node 24.21.0 and npm 11.19.0. Pi agent-core and pi-ai are both
 | Deal binding | Met: writer/top-level scheduler/ontology/feedback mismatches and trusted gate-only lookup denial before downstream calls |
 | Deadline, queue and tool results | Covered: explicit 60-second MCP requests, pending gate identity retained by existing server, cancelled queued write denied, structured error witnesses retained; exhaustive timeout matrix remains untested |
 | Provider budget | Met: endless fake-provider tool loop makes exactly three provider requests at a budget of three and returns incomplete |
+| Provider retries/circuit | Met in deterministic tests against Pi's real OpenAI HTTP adapter with mocked fetch: Retry-After, SDK connection backoff, quota/auth refusal, long-delay refusal, four-attempt shared cap, circuit probe success/failure, cancellation, retry budget and no completed/partial tool replay |
 | Planner behavior through Pi | Met for scripted Nimbus and feedback recordings: real MCP/HTTP architect decisions, committed roadmap/iteration two and exact graph/validator parity |
 | Live Anthropic/OpenAI P1–P6 rehearsals | **Not met**: no provider API keys configured; both remain experimental until five successful rehearsals per provider |
 
 The initial implementation is runnable with a provider API key. Passing deterministic checks does
 not establish live model quality or complete the live-provider rehearsal acceptance criteria.
+
+## Provider resilience follow-up
+
+Verified on Node 24.21.0/npm 11.19.0 using a separate Compose database on port 37687, with its
+database identity checked against the demo database. The interrupted demo graph was preserved.
+
+| Check | Result |
+|---|---|
+| Lint/typecheck | Pass |
+| Full suite | Pass: 769 tests across 80 files |
+| Focused retry/adapter checks | Pass: 24 tests, including the real Pi OpenAI HTTP adapter with mocked fetch |
+| Independent resilience spec review | Pass |
+| Denylist | Skipped: `DENYLIST_FILE` unset |
+
+Covered SDK backoff, Retry-After (including broken error bodies), 408/409 classification, quota/auth
+refusal, cancellation during SDK and circuit waits, one circuit probe, shared native/assistant retry
+budgets, and preservation of completed tool results without exposing/replaying failed partial calls.
+Live provider rehearsals remain pending. Existing OpenAI Agents example/test changes were outside
+this task's edits. The launch test now inherits graph settings so its HTTP override assertion also
+works against an isolated database.
