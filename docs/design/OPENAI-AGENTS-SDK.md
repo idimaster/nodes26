@@ -135,6 +135,8 @@ with that flag off. Remove function/generation/response payload fields and raw s
 at the export boundary. Metadata is limited to host/model/deal/runtime versions and guard-run correlation;
 custom spans contain timing, byte counts, canonical tool names, retry/circuit state, error classifications,
 codes/status and validated request IDs. Print the trace ID, dashboard URL and gateway `runId` in the CLI.
+This describes current behavior; the [proposed local diagnostics replacement](OPENAI-LOCAL-DIAGNOSTICS.md)
+removes remote export and `--trace` in a later implementation change.
 The tracing exporter uses `maxRetries: 1` because this pinned exporter counts total attempts; the model
 client separately retains `maxRetries: 0`. Drain trace batches through SDK shutdown with a five-second
 abort deadline and bounded caller wait after planner cleanup, including failures and SIGINT. Host

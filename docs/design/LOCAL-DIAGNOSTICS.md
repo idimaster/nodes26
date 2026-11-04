@@ -1,8 +1,10 @@
 # Design specification: local diagnostics for the Pi planner
 
-Status: **proposed; documentation and contract artifacts only**. Created 2026-11-04.
-Implementation requires a separate approved task. No command, package, or capture behavior below
-is available merely because this specification exists.
+Status: **partially implemented**. Created 2026-11-04. `@planner/diagnostics` now provides the
+local writer, schema validator, bounded error projection, and basic reader; the Pi CLI uses it.
+The SDK telemetry adapter, complete gateway/graph observation, triage report, and terminal
+renderer remain proposed. Sections below describe the target contract, not a claim that every
+capture point or command is available.
 
 Related contracts: [DESIGN](DESIGN.md), [Pi harness](PI-HARNESS.md),
 [wire schema](diagnostics-v1.schema.json), and [example records](diagnostics-v1.example.jsonl).
@@ -33,15 +35,16 @@ replaying a mutation, contacting a tracing service, or making a model request fo
 
 ## 2. Scope and decisions
 
-The first implementation covers the embedded **Pi** host and host-side MCP gateway/launcher.
-The observer interface is reusable by other hosts, but OpenAI Agents/Claude Code adapters,
-child-process instrumentation, distributed trace propagation, conversation persistence, automatic
-resume, full-content capture, Langfuse export, and diagnostic uploads are later work.
+The initial implementation covers the embedded **Pi** host. The observer interface is reusable
+by other hosts; an [OpenAI Agents adapter is specified separately](OPENAI-LOCAL-DIAGNOSTICS.md).
+Claude Code adapters, child-process instrumentation, distributed trace propagation, conversation
+persistence, automatic resume, full-content capture, Langfuse export, and diagnostic uploads are
+later work.
 
 Decisions:
 
 - Reuse `@earendil-works/pi-telemetry` **1.5.0**, matching the installed Pi packages, as a direct
-  exact dependency of the proposed diagnostics package. Never rely on its transitive installation.
+  exact dependency of `@planner/diagnostics` (already pinned). Never rely on its transitive installation.
 - Reuse Pi's `TelemetryContext`, `TelemetrySpan`, typed schema helpers, no-op context, conformance
   suite, `StoredSpan`/`TelemetryStore` shapes, and terminal renderer.
 - Pass an explicit parent span to `pi-ai` through its `telemetry` request option. This enables its
@@ -50,9 +53,9 @@ Decisions:
   export the telemetry schemas suggested by some upstream examples; do not assume those exports.
 - Use provider hooks and the existing guarded fetch boundary for the missing HTTP/stream evidence.
   Built-in logical-request telemetry does not expose every native HTTP retry.
-- Use **Pino as a synchronous local JSONL writer**, behind a small Pi telemetry adapter. Select and
-  pin a published compatible Pino version during implementation; no unverified version is specified
-  here. App-owned sanitization runs before Pino; arbitrary SDK errors must never be passed directly
+- Use **Pino as a synchronous local JSONL writer**, behind a small Pi telemetry adapter. The
+  writer and exact Pino dependency are implemented; the telemetry adapter remains proposed.
+  App-owned sanitization runs before Pino; arbitrary SDK errors must never be passed directly
   to its default serializers.
 - Use `InMemoryTelemetryContext` as a test oracle, not as the production buffer. It is unbounded,
   and an exit-only dump loses in-flight evidence on a crash.
@@ -130,7 +133,7 @@ does not authorize broadening provider retries or altering payloads, except the 
 
 ## 4. Capture configuration, storage, and durability
 
-Proposed CLI/configuration (not implemented): `--diagnostics metadata|off`, with precedence CLI >
+Implemented Pi CLI/configuration: `--diagnostics metadata|off`, with precedence CLI >
 `PLANNER_DIAGNOSTICS` > `metadata`. Version 1 has no full-content capture mode. Local metadata
 capture is enabled by default for the Pi CLI, requiring no tracing account or network exporter.
 
@@ -406,8 +409,9 @@ invocation, SDK and HTTP spans, request preparation, terminal evidence and norma
 
 ## 7. Acceptance criteria and deterministic oracles
 
-All implementation acceptance below is **pending**. Tests use fake providers/timers and a disposable
-graph; no LLM, external tracing service, real credentials, or reset of an operator's run is required.
+The table is the target acceptance contract; only the initial package and Pi CLI subset is
+implemented. Tests use fake providers/timers and a disposable graph; no LLM, external tracing
+service, real credentials, or reset of an operator's run is required.
 
 | ID | Acceptance | Test oracle |
 |---|---|---|

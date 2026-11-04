@@ -442,6 +442,8 @@ disabled (`traceIncludeSensitiveData: false`); the CLI replaces the default proc
 batch processor so SDK tool-error messages and generation/function/response payload fields cannot
 bypass that choice. Trace metadata includes host/model/deal and actual Node/undici versions. The CLI
 prints a trace ID/dashboard URL and the gateway's read-only `runId` to correlate guard audit records.
+The [proposed local diagnostics replacement](OPENAI-LOCAL-DIAGNOSTICS.md) will remove this remote
+export path when implemented.
 Custom spans measure physical model attempts, input/instruction byte counts, canonical tool/gate waits,
 retry decisions/backoff/circuit intervals and final completion state. Errors export only classifications,
 transport codes, HTTP status and validated request IDs, never raw exception messages or headers.
