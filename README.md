@@ -148,7 +148,23 @@ ANTHROPIC_API_KEY=… npm run example:ai-sdk -- "Plan the Nimbus integration."  
 
 `PLANNER_MODEL` picks the model: `anthropic:<model id>` (default `anthropic:claude-sonnet-5-5`; `ANTHROPIC_BASE_URL` is honored), or `openai-compatible:<model id>` with `OPENAI_COMPATIBLE_BASE_URL` and `OPENAI_COMPATIBLE_API_KEY`. `tests/examples/ai-sdk.test.ts` checks the allowlist, the guard wrapper, and the step cap with a mock model, without an LLM.
 
-Proposed additional hosts: [Pi harness design](docs/design/PI-HARNESS.md) and [OpenAI Agents SDK TypeScript design](docs/design/OPENAI-AGENTS-SDK.md). These documents review the current example and describe the migrations; the new hosts are not implemented yet.
+The [Pi example](examples/pi/README.md) runs the same planner with Pi agent-core, a managed
+architect console, guarded MCP tools, dataset readiness checks, and explicit recovery:
+
+```bash
+ANTHROPIC_API_KEY=… npm run example:pi -- --deal nimbus "Plan the Nimbus integration."
+```
+
+This command owns its console; run it without a separate `demo:ui`. It requires a clean deal and
+complete demo dataset. After an interrupted or completed run, use
+`npm run planner:recover -- inspect --deal nimbus` to inspect state. Explicit
+`npm run planner:recover -- reset --deal nimbus --confirm-reset-demo` resets **all** per-deal
+subgraphs, retaining active global term metadata/DDL while deleting per-deal approval history.
+See the example README for configuration and reset constraints. Live provider rehearsals are
+not run yet, so both Pi provider configurations remain experimental.
+
+Design references: [Pi harness](docs/design/PI-HARNESS.md) and the proposed
+[OpenAI Agents SDK TypeScript host](docs/design/OPENAI-AGENTS-SDK.md).
 
 Check a run against the planted situations (`docs/design/DATA.md`). For P3 and P4 you act at the gates: approve the proposed term, and reject a selection with a comment.
 
@@ -216,6 +232,8 @@ Nine things that went wrong while building this, each reproducible. A test shows
 | `npm run coverage:edges` | V7 knowledge-edge coverage report |
 | `npm run record:session` | Turns a Claude Code transcript into a replay recording |
 | `npm run example:ai-sdk` | The planner on the AI SDK (optional; needs a model API key) |
+| `npm run example:pi` | The planner on Pi, with an owned console and fresh-run verification |
+| `npm run planner:recover` | Read-only inspection or explicitly confirmed all-deals demo reset |
 | `npm run record:golden` | Re-records the committed replays from the scripted walks |
 
 ## Troubleshooting

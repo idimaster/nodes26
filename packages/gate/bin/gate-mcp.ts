@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import neo4j from 'neo4j-driver';
+import { managedConfig, neo4jConfig, openDriver } from '../../../graph/connection.js';
 import { createConsoleServer, createGateMcpServer } from '../src/server.js';
 import { GateStore } from '../src/store.js';
 
@@ -11,6 +11,8 @@ import { GateStore } from '../src/store.js';
  */
 
 const port = Number(process.env.GATE_PORT ?? 4646);
+const managed = managedConfig();
+if (managed && process.env.GATE_HTTP !== 'off') throw new Error('managed gate requires GATE_HTTP=off');
 const waitSeconds = Number(process.env.GATE_WAIT_SECONDS ?? 50);
 if (!Number.isInteger(waitSeconds) || waitSeconds < 1 || waitSeconds > 55) {
   console.error('gate: GATE_WAIT_SECONDS must be an integer from 1 to 55 (below the 60 s MCP tool timeout)');
@@ -22,10 +24,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
 }
 const vizDist = fileURLToPath(new URL('../../../viz/dist', import.meta.url));
 
-const driver = neo4j.driver(
-  process.env.NEO4J_URI ?? 'neo4j://localhost:7687',
-  neo4j.auth.basic(process.env.NEO4J_USERNAME ?? 'neo4j', process.env.NEO4J_PASSWORD ?? 'planner-demo'),
-);
+const driver = openDriver(managed?.graph ?? neo4jConfig());
 const store = new GateStore(driver);
 
 // Mode A (agent run): GATE_HTTP=off, the console is served by `npm run demo:ui` (mode B).

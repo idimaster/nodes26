@@ -1,0 +1,16 @@
+{
+  "name": "@planner/harness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.0",
+    "@planner/data": "0.0.0",
+    "@planner/gate": "0.1.0",
+    "@planner/guard": "0.1.0",
+    "@planner/ontology": "0.0.0",
+    "neo4j-driver": "6.2.0",
+    "zod": "4.6.5"
+  }
+}

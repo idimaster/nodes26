@@ -1,6 +1,6 @@
 # Design proposal: planner on Pi
 
-Status: proposed, documentation only. Reviewed 2026-11-02. Follow [repository instructions](../../CLAUDE.md), including design approval before implementation and deterministic tests derived from acceptance criteria. This proposal preserves the ontology, planning procedure, and gate decisions, and adds managed console launch and explicit restart handling. Before implementation, update [the implementation contract](DESIGN.md) §§1.4, 4, 6, and 7 for dataset verification, launch, and recovery in the same change. The alternative is [OpenAI Agents SDK for TypeScript](OPENAI-AGENTS-SDK.md).
+Status: initial implementation with deterministic integration coverage; live provider rehearsals pending. Reviewed 2026-11-02. Follow [repository instructions](../../CLAUDE.md), including deterministic tests derived from acceptance criteria. This design preserves the ontology, planning procedure, and gate decisions, and adds managed console launch and explicit restart handling. [The implementation contract](DESIGN.md) covers dataset verification, launch, and recovery. The alternative is [OpenAI Agents SDK for TypeScript](OPENAI-AGENTS-SDK.md).
 
 ## Recommendation
 

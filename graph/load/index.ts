@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import neo4j, { type Driver } from 'neo4j-driver';
 import { DATA_DIR, readDataset, validateDataset, type Manifest } from '@planner/data';
@@ -9,6 +8,7 @@ import { checkPluginVersions } from '../versions.js';
 import { loadCatalog } from './catalog.js';
 import { loadDeal } from './deal.js';
 import { loadHistory } from './history.js';
+import { verifyLoadedDataset, type VerificationMode } from './verify.js';
 
 const sorted = (rows: [string, number][]): Record<string, number> =>
   Object.fromEntries(rows.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
@@ -23,25 +23,12 @@ export async function graphCounts(driver: Driver): Promise<Manifest> {
   };
 }
 
-function diff(expected: Manifest, actual: Manifest): string[] {
-  const out: string[] = [];
-  for (const kind of ['nodes', 'relationships'] as const) {
-    const names = new Set([...Object.keys(expected[kind]), ...Object.keys(actual[kind])]);
-    for (const name of [...names].sort()) {
-      const e = expected[kind][name] ?? 0;
-      const a = actual[kind][name] ?? 0;
-      if (e !== a) out.push(`${kind} ${name}: expected ${e}, found ${a}`);
-    }
-  }
-  return out;
-}
-
 /**
  * Applies the schema, validates the full dataset against the ontology, loads catalog, deal, and
  * history (each nodes first, then relationships), and verifies the graph against data/manifest.json.
  * Expects a database without other per-deal data (a fresh one, or one wiped by reset-demo.sh).
  */
-export async function loadAll(driver: Driver, dir = DATA_DIR): Promise<Manifest> {
+export async function loadAll(driver: Driver, dir = DATA_DIR, mode: VerificationMode = 'strict'): Promise<Manifest> {
   await applySchema(driver, readFileSync(SCHEMA_FILE, 'utf8'));
 
   const problems = validateDataset(readDataset(dir));
@@ -51,26 +38,18 @@ export async function loadAll(driver: Driver, dir = DATA_DIR): Promise<Manifest>
   await loadDeal(driver, dir);
   await loadHistory(driver, dir);
 
-  const expected = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8')) as Manifest;
-  const actual = await graphCounts(driver);
-  const mismatches = diff(expected, actual);
-  if (mismatches.length > 0) {
-    throw new Error(
-      `graph does not match data/manifest.json:\n- ${mismatches.join('\n- ')}\n` +
-        'If a planner run or a replay left its plan in the graph, start over with ./scripts/reset-demo.sh (it wipes per-deal subgraphs, then loads).',
-    );
-  }
-  return actual;
+  return (await verifyLoadedDataset(driver, { dir, mode })).physicalCounts;
 }
 
 async function main(): Promise<void> {
   const driver = openDriver();
   try {
     const plugins = await checkPluginVersions(driver);
-    const counts = await loadAll(driver);
+    const retained = process.argv.includes('--retain-active-global-terms');
+    const counts = await loadAll(driver, DATA_DIR, retained ? 'retain-active-global-terms' : 'strict');
     const n = Object.values(counts.nodes).reduce((s, x) => s + x, 0);
     const r = Object.values(counts.relationships).reduce((s, x) => s + x, 0);
-    console.log(`load: ${n} nodes and ${r} relationships; counts match data/manifest.json (APOC ${plugins.apoc}, GDS ${plugins.gds})`);
+    console.log(`load: ${n} physical nodes and ${r} relationships; baseline verified against data/manifest.json; retained terms: ${counts.nodes.OntologyTerm ?? 0} (APOC ${plugins.apoc}, GDS ${plugins.gds})`);
   } finally {
     await driver.close();
   }

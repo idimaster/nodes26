@@ -1,0 +1,12 @@
+{
+  "name": "@planner/example-pi",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@earendil-works/pi-agent-core": "1.5.0",
+    "@earendil-works/pi-ai": "1.5.0",
+    "@planner/harness": "0.1.0",
+    "neo4j-driver": "6.2.0"
+  }
+}

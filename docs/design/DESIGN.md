@@ -110,6 +110,12 @@ Everything else is deterministic code or Cypher.
 
 A change to §1.1 or §1.2 must change `config/ontology.json` in the same commit; a test asserts they agree.
 
+**Pi host readiness.** `graph/load/verify.ts` verifies the validated fixture dataset by ontology keys,
+properties/types, keyed relationship endpoints and manifest counts, and checks uniqueness constraints
+without writing. Strict loading remains the default. The explicit `retain-active-global-terms` mode
+permits only structurally valid active global OntologyTerms, with approved label constraints and no
+remaining edges; these are reported separately from the unchanged baseline manifest.
+
 **Generated DDL.** `graph/schema.cypher` is generated from `config/ontology.json` (`npm run schema:gen`) and committed; a test asserts the file matches. It contains:
 - one uniqueness constraint per label key, named `<label_snake>_key` (23);
 - one range index on `deal_code`, named `<label_snake>_deal_code`, for every per-deal label that carries a `deal_code` property (13: every Evidence, Plan, and Decisions label except `Deal`, whose `code` constraint already indexes it).
@@ -291,6 +297,11 @@ When unsure, the guard denies. Every decision, allow or deny, is logged with its
 
 ## 4. Gates (`packages/gate` + console)
 
+Managed Pi runs own a separate console with token-bearing IPC readiness after connectivity and bind;
+an occupied port or lost console is fatal. The gate child requires matching managed graph/port settings
+and `GATE_HTTP=off`. The host uses 60-second tool deadlines, preserves pending gate IDs, binds waits
+to the selected deal through a trusted read, and never retries a timed-out mutation automatically.
+
 - **Subjects** are typed references, resolved within the deal and iteration: `Selection:<uc>`, `FramedUseCase:<id>`, `PlanTask:<id>`, `Candidate:<uc>/<pattern>`, `Iteration:<n>`, `Roadmap:<version>`, `CapabilityDecision:<capability_id>`, `OntologyTerm:<label|relationship>/<Name>`. An unknown subject is an error, and no gate is written.
 - **Ids are deterministic**, so a replay reproduces them: GateDecision `gd-<deal>-<iteration>-<gate>-<n>`, Feedback `fb-<gate_id>`, Override `ov-<gate_id>-<n>`. `GateDecision.summary` stores the summary shown in the console.
 - **`request_approval({deal, iteration, gate, subject_ids[], summary})`**
@@ -380,6 +391,12 @@ Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp
 
 ## 6. Agent workflow (`plugin/skills/plan-integration/SKILL.md`)
 
+The optional Pi host runs this same prompt/tool surface with sequential tools and a host-owned
+provider-request budget (default 200). Before tools/provider requests it requires a clean selected
+deal and positive dataset readiness. Interrupted/completed state requires read-only operator
+inspection and explicit demo reset; it is never resumed by replaying workflow step 1. Managed
+launch, immutable deal binding, and recovery/reset details are specified in §7 and PI-HARNESS.md.
+
 **Packaging.** The plugin lives in `plugin/` (`plugin/.claude-plugin/plugin.json`, `plugin/agents/planner.md`, `plugin/skills/plan-integration/SKILL.md`), and `.claude-plugin/marketplace.json` at the repo root lets `claude plugin marketplace add ./` install it.
 - It is a subdirectory on purpose: a plugin root's `.mcp.json` and `hooks/hooks.json` are auto-loaded. The repo root's servers would be registered a second time under `mcp__plugin_…` names, and the guard would run twice.
 - The plugin carries the agent and the skill only. Servers, the guard hook, and `MCP_TOOL_TIMEOUT` (which a plugin cannot set) come from the project settings.
@@ -409,6 +426,28 @@ Scheduling runs in the graph, in the `planner-graph` server (`packages/graph-mcp
 Loop safety: `maxTurns`/`stopWhen` must be set by the host, and the repair loop is bounded at 2.
 
 ## 7. Demo UI (`viz/`, served by `packages/gate`)
+
+**Managed Pi launch and recovery (§§4, 6).** The optional Pi host follows
+[PI-HARNESS.md](PI-HARNESS.md): one immutable selected deal and resolved graph configuration,
+the existing fifteen tools through a serialized guarded gateway, fresh context before each write,
+local guard audit, 60-second MCP deadlines, and no automatic retries of uncertain mutations.
+It owns a separate console child over IPC; token-bearing readiness follows graph connectivity
+and HTTP bind. Occupied ports, console loss, conflicting graph settings, and gate HTTP overrides
+fail the run. Existing standalone hosts retain their launch behavior.
+
+Before any model request or MCP startup, read-only reconciliation lists all selected-deal gates
+(including decided ones), iterations, roadmaps, scoped terms, open feedback and active overrides.
+Existing state yields `RECOVERY_REQUIRED`; missing/invalid fixture content yields `DATASET_NOT_READY`.
+Only a clean selected deal with positive dataset verification starts a fresh Pi conversation.
+`planner:recover inspect` reports graph state without a transcript or mutation. Explicit
+`reset --confirm-reset-demo` verifies the repository Compose endpoint and credentials before
+resetting **all** per-deal subgraphs and reloading. Reset preserves active global term metadata/DDL,
+but removes per-deal evidence/approval history; it snapshots metadata before deletion and verifies
+it after reload. Startup never repairs or resets implicitly, and automatic resume is unsupported.
+The provider request budget defaults to 200; exhaustion, cancellation and infrastructure failures
+exit nonzero even if partial text exists. The lexical guard and remote write remain separate
+operations, not a database isolation or distributed locking guarantee. Exclusive use of the demo
+graph during managed runs/reset is an operator prerequisite.
 
 Built per `docs/milestones/T4.2-ADDENDUM.md`, with the deviations listed below. The page is a Vite app (`viz/` → `viz/dist`), served statically by the gate's HTTP server next to the gate API. It reads the graph only through read-only endpoints; it never talks to Neo4j and carries no credentials (a test greps `viz/dist`).
 
