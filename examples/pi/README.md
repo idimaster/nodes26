@@ -24,6 +24,15 @@ exits nonzero, preserves graph state, closes children and never retries an uncer
 Use `--help` for CLI syntax. `GUARD_LOG` overrides the default `.logs/guard.jsonl` audit path;
 records include host/run/tool/deal/rules, without full tool parameters or credentials.
 
+Local metadata capture is enabled by default. The CLI prints one path under
+`.logs/diagnostics/<run-id>.jsonl` on stderr; `--diagnostics off` or
+`PLANNER_DIAGNOSTICS=off` disables it, with the CLI option taking precedence.
+The file is created privately and records run boundaries and guarded HTTP attempt
+metadata. This is an initial implementation of the
+[local diagnostics specification](../../docs/design/LOCAL-DIAGNOSTICS.md); the Pi
+span adapter, full MCP/graph observations, and offline triage command are still pending.
+No automatic rotation or deletion runs, so operators manage old files in that directory.
+
 ## Provider connection errors and throttling
 
 Retries are enabled by default for both providers. Pi's SDK handles transient HTTP failures with

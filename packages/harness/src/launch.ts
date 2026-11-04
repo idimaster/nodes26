@@ -12,7 +12,7 @@ import type { PlannerGateway } from './types.js';
 
 export async function launchPlanner<T>(options: {
   root: string; deal: string; port: number; env?: NodeJS.ProcessEnv; signal?: AbortSignal; host?: 'pi' | 'openai-agents';
-  readyTimeoutMs?: number;
+  readyTimeoutMs?: number; runId?: string;
   run: (gateway: PlannerGateway, signal: AbortSignal, inspect: () => ReturnType<typeof inspectPlanningState>) => Promise<T>;
 }): Promise<T> {
   const env = options.env ?? process.env;
@@ -81,7 +81,7 @@ export async function launchPlanner<T>(options: {
     console.log(`dataset: baseline verified; retained global terms: ${readiness.retainedTerms.join(', ') || 'none'}`);
     signal.throwIfAborted();
     const overrides = Object.fromEntries(Object.entries({ ...options.env, ...managedEnv }).filter((e): e is [string, string] => typeof e[1] === 'string'));
-    gateway = await createGateway({ root: options.root, deal: options.deal, driver, graph, env: overrides, signal, runId: config.token, host: options.host ?? 'pi' });
+    gateway = await createGateway({ root: options.root, deal: options.deal, driver, graph, env: overrides, signal, runId: options.runId ?? randomUUID(), host: options.host ?? 'pi' });
     const ownedDriver = driver;
     result = await options.run(gateway, signal, () => inspectPlanningState(ownedDriver, options.deal));
     if (fatal) throw fatal;

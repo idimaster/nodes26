@@ -5,6 +5,10 @@ import { createReliableStream, type ProviderStatus } from '../../examples/pi/src
 import { createPiPlanner } from '../../examples/pi/src/agent.js';
 import { modelFromEnv } from '../../examples/pi/src/model.js';
 import type { PlannerGateway } from '../../packages/harness/src/types.js';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createCapture, readCapture } from '../../packages/diagnostics/src/index.js';
 
 const context = normalizeContext({ messages: [{ role: 'user', content: 'Plan Nimbus.', timestamp: 1 }] });
 const fakeModel = fauxProvider().getModel();
@@ -25,6 +29,26 @@ function native(fetch: typeof globalThis.fetch, maxRequests = 200) {
   return { reliable, events, model: provider.model };
 }
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
+
+it('correlates each actual HTTP fetch without recording its body', async () => {
+  const capture = createCapture({ root: mkdtempSync(join(tmpdir(), 'planner-http-')), deal: 'nimbus' })!;
+  const provider = modelFromEnv({ PLANNER_MODEL: 'openai:gpt-5', OPENAI_API_KEY: 'test-key' });
+  const seen: string[] = [];
+  const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(async (_input, init) => {
+    seen.push(new Headers(init?.headers).get('X-Client-Request-Id') ?? '');
+    return completeResponse();
+  });
+  const reliable = createReliableStream({ streamFn: provider.streamFn, maxRequests: 2, fetch, capture });
+  const result = await reliable.streamFn(provider.model, context);
+  expect((await result.result()).stopReason).toBe('stop');
+  capture.finish({ outcome: 'completed', providerAttempts: reliable.requests, httpAttempts: reliable.httpAttempts });
+  const records = (await readCapture(capture.path)).records;
+  expect(seen).toHaveLength(1);
+  expect(seen[0]).toMatch(/^[0-9a-f-]{36}$/);
+  expect(records.find(r => r.event === 'provider.http.started')?.data.client_request_id).toBe(seen[0]);
+  expect(records.find(r => r.event === 'provider.http.received')?.data.status).toBe(200);
+  expect(JSON.stringify(records)).not.toContain('test-key');
+});
 
 it('uses native SDK HTTP retry with Retry-After and counts every network attempt', async () => {
   vi.useFakeTimers();

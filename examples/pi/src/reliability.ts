@@ -1,4 +1,6 @@
 import type { StreamFn } from '@earendil-works/pi-agent-core';
+import { randomUUID } from 'node:crypto';
+import { projectError, type Capture } from '@planner/diagnostics';
 import {
   createAssistantMessageEventStream, isRetryableAssistantError, retryAssistantCall,
   type Api, type AssistantMessage, type Model,
@@ -27,6 +29,24 @@ export interface ProviderStatus {
   delayMs?: number;
 }
 
+const DIAGNOSTIC_HEADERS = [
+  'x-request-id', 'retry-after', 'retry-after-ms',
+  'x-ratelimit-limit-requests', 'x-ratelimit-remaining-requests', 'x-ratelimit-reset-requests',
+  'x-ratelimit-limit-tokens', 'x-ratelimit-remaining-tokens', 'x-ratelimit-reset-tokens',
+  'x-ratelimit-limit-project-tokens', 'x-ratelimit-remaining-project-tokens',
+] as const;
+function headerValue(headers: Headers, name: string): string | null {
+  const value = headers.get(name);
+  return value && value.length <= 256 && /^[!-~]+$/.test(value) ? value : null;
+}
+function endpointOf(input: Parameters<typeof globalThis.fetch>[0]) {
+  try {
+    const url = new URL(input instanceof Request ? input.url : String(input));
+    if (!['http:', 'https:'].includes(url.protocol) || url.pathname.length > 128) return null;
+    return { scheme: url.protocol.slice(0, -1), hostname: url.hostname, port: url.port ? Number(url.port) : null, path: url.pathname };
+  } catch { return null; }
+}
+
 function failureMessage(model: Model<Api>, message: string, aborted = false): AssistantMessage {
   return {
     role: 'assistant', content: [], api: model.api, provider: model.provider, model: model.id,
@@ -38,10 +58,11 @@ function failureMessage(model: Model<Api>, message: string, aborted = false): As
 /** Retry only a provider response. This layer has no reference to tools or the gateway. */
 export function createReliableStream(options: {
   streamFn: StreamFn; maxRequests: number; signal?: AbortSignal;
-  fetch?: typeof globalThis.fetch; onStatus?: (event: ProviderStatus) => void;
+  fetch?: typeof globalThis.fetch; onStatus?: (event: ProviderStatus) => void; capture?: Capture;
 }) {
   if (!Number.isSafeInteger(options.maxRequests) || options.maxRequests < 1) throw new Error('maxRequests must be a positive integer');
   let requests = 0;
+  let httpAttempts = 0;
   let failures = 0;
   let circuit: 'closed' | 'open' | 'probe' = 'closed';
   let openUntil = 0;
@@ -97,12 +118,30 @@ export function createReliableStream(options: {
           if (!firstFetch) { await reserve(); emit('retry', { kind: 'transport' }); }
           firstFetch = false;
           const fetchSignal = init?.signal ? AbortSignal.any([callSignal, init.signal]) : callSignal;
+          const httpAttemptId = randomUUID();
+          const clientRequestId = randomUUID();
+          const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+          if (!headers.has('X-Client-Request-Id') && options.capture) headers.set('X-Client-Request-Id', clientRequestId);
+          const sentClientRequestId = headers.get('X-Client-Request-Id') ?? clientRequestId;
+          const endpoint = endpointOf(input);
+          const bodyBytes = typeof init?.body === 'string' ? Buffer.byteLength(init.body) : init?.body instanceof Uint8Array ? init.body.byteLength : null;
+          httpAttempts++;
+          if (options.capture && endpoint) options.capture.emit('provider.http.started', {
+            client_request_id: sentClientRequestId, endpoint, turn_attempt_index: turnAttempts,
+            budget_attempt_index: requests, http_attempt_index: httpAttempts, body_bytes: bodyBytes,
+          }, { context: { http_attempt_id: httpAttemptId } });
+          const started = performance.now();
           let response: Response;
-          try { response = await fetch(input, { ...init, signal: fetchSignal }); }
+          try { response = await fetch(input, { ...init, ...(options.capture ? { headers } : {}), signal: fetchSignal }); }
           catch (error) {
+            options.capture?.emit('provider.failed', { phase: 'fetch', error: projectError(error, 'fetch'), http_status: null, request_id: null, response_id: null, last_event_type: null, raw_completed_seen: false }, { context: { http_attempt_id: httpAttemptId } });
             if (!callSignal.aborted && !terminal) { lastFetchFailed = true; failed(); }
             throw error;
           }
+          options.capture?.emit('provider.http.received', {
+            status: response.status, headers_ms: Math.max(0, performance.now() - started), request_id: headerValue(response.headers, 'x-request-id'),
+            headers: Object.fromEntries(DIAGNOSTIC_HEADERS.map(name => [name, headerValue(response.headers, name)])),
+          }, { context: { http_attempt_id: httpAttemptId } });
           lastFetchFailed = false;
           if (!response.ok) {
             // The SDK handles HTTP statuses, backoff/jitter and Retry-After. Inspect only errors
@@ -125,6 +164,7 @@ export function createReliableStream(options: {
             let text: string;
             try { text = await response.clone().text(); }
             catch (error) {
+              options.capture?.emit('provider.failed', { phase: 'http_error_body', error: projectError(error, 'http_body'), http_status: response.status, request_id: headerValue(response.headers, 'x-request-id'), response_id: null, last_event_type: null, raw_completed_seen: false }, { context: { http_attempt_id: httpAttemptId } });
               if (!callSignal.aborted && !terminal) { lastFetchFailed = true; failed(); }
               throw error;
             }
@@ -195,5 +235,5 @@ export function createReliableStream(options: {
     })();
     return output;
   };
-  return { streamFn, get requests() { return requests; } };
+  return { streamFn, get requests() { return requests; }, get httpAttempts() { return httpAttempts; } };
 }
