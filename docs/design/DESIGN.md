@@ -409,6 +409,10 @@ the conversation or execute. Previously completed MCP results remain in the same
 no MCP call, gate request or whole planner run is retried. CLI diagnostics report model, attempts,
 backoff and circuit state without request payloads or credentials.
 
+The proposed [local diagnostics specification](LOCAL-DIAGNOSTICS.md) defines a future structured
+JSONL contract and offline triage workflow. It is a design artifact, not a claim that structured
+capture or the proposed reader commands are implemented.
+
 OpenAI's single Agent/Runner maps canonical names bijectively to provider function names and replaces
 whole prompt tokens once. Collisions, names over 64 characters and undeclared references fail startup.
 Non-strict tools preserve discovered schemas, including arbitrary nested Cypher params; the gateway

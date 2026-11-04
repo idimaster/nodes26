@@ -129,6 +129,10 @@ For a response lost after a non-gate mutation, the same conservative block appli
 
 ## Pi runtime adapter
 
+The proposed [local diagnostics specification](LOCAL-DIAGNOSTICS.md) defines Pi telemetry reuse,
+the JSONL data contract, offline agent triage, and implementation acceptance criteria. Its capture
+and reader commands are not implemented by that document.
+
 Use `Agent` with `initialState.systemPrompt`, the resolved model, and a list of `AgentTool` wrappers. Each wrapper copies the canonical name, description, and discovered JSON Schema and delegates execution exclusively to `gateway.invoke`. Return model-visible content plus structured details; use `afterToolCall` to preserve `isError` for denials and MCP errors without losing their witnesses. Unexpected infrastructure failures must latch a host failure and abort the agent before surfacing the tool error, because Pi catches ordinary tool exceptions and can continue the loop. Configure `toolExecution: "sequential"`; Pi currently defaults to parallel execution. [Source: agent-core API and tool documentation](https://github.com/earendil-works/pi/blob/main/packages/agent/README.md), [tool hook types](https://github.com/earendil-works/pi/blob/main/packages/agent/src/types.ts).
 
 The provider layer uses `createModels()`, explicit provider factories, model lookup, and a bound `streamSimple`. Resolve `PLANNER_MODEL=anthropic:<id>` first to compare harness behavior with the existing example on the same model. Add `openai:<id>` as the second documented provider. Reject an unknown provider, missing credential, missing model, or a model without tool support before MCP startup. Preserve `ANTHROPIC_BASE_URL` through explicit provider configuration; generic OpenAI-compatible endpoints are a later compatibility test, not assumed equivalent. [Source: Pi provider and auth documentation](https://github.com/earendil-works/pi/blob/main/packages/ai/README.md).
