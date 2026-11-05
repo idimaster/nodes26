@@ -266,37 +266,53 @@ Request bytes are the known serialized body length, not a token estimate. Unknow
 
 ### 5.4 Error normalization and content policy
 
-Retain an allowlisted error name, stable code, approved message (maximum 512 characters), source,
+Retain a bounded error name, code, message, source,
 and bounded cause/aggregate children with parent indexes. Capture codes such as `ECONNRESET`,
 `ETIMEDOUT`, `ENOTFOUND`, TLS codes and `UND_ERR_SOCKET` at their original fetch boundary. Traversal
 is cycle-safe, limited to eight child nodes in addition to the root and four levels including
 the root; truncation is explicit. A child parent index is -1 for the root or an earlier child
 index, never a forward/self reference. Preserve the
 original error object for application control flow; diagnostics serialize a separate projection.
+For fetch failures, the projection may also retain bounded numeric `errno`, a reviewed syscall
+name, and `code_availability: observed|absent|rejected` on the root and each cause. The fetch
+error projection also records a fixed `code_kind` (`absent`, `undici`, `node`, `system`,
+`numeric`, or `other`) when the exact code is rejected. Fetch errors retain the original
+string code (up to 512 characters), name (up to 128), and message (up to 2048), including
+their nested causes. Numeric codes are stringified. Oversized values are omitted and mark
+the projection as truncated. Other error sources retain the stricter token and message rules.
+The fetch failure record captures elapsed fetch time and the run, SDK, call and composed-fetch abort flags
+before circuit logic can abort the call. These fields distinguish a missing code from a rejected
+one and an already-cancelled fetch from a subsequent circuit abort; they do not establish which
+external component caused a network failure. Addresses, paths, ports from arbitrary errors,
+and abort reasons remain excluded.
 
 Pi's diagnostic helpers can normalize the basic error shape, but do not scrub messages or walk
 all nested causes. Sanitize after extraction. Default Pino error serializers can copy enumerable
 SDK fields; pass only the validated projection, never the raw SDK error.
 
-Version 1 excludes prompts/completions, reasoning, Cypher text, params, MCP payloads, findings,
-source URIs, arbitrary stderr, stack traces, full URLs/query strings, credentials, launch tokens,
-environment values and content hashes of sensitive payloads. Only a query matched to an
+Version 1 does not deliberately capture prompts/completions, reasoning, Cypher text, params,
+MCP payloads, findings, source URIs, arbitrary stderr, stack traces, full URLs/query strings,
+credentials, launch tokens, environment values or content hashes of sensitive payloads.
+Unfiltered fetch error strings may nevertheless contain sensitive text. Only a query matched to an
 app-owned trusted template may have its template digest recorded; unknown/arbitrary Cypher
 has `query_sha256: null`. There is no params/body digest. Endpoints contain only
 scheme/hostname/port/path. A hostname is still local operational metadata, not suitable for blind
 publication. The trace stays local; sharing/exporting is explicit future work.
 
-Schema/allowlist validation precedes serialization. Error names/codes are matched to a bounded
-catalog of known SDK/system values; unknown names become `Error` and unknown codes become null.
-Messages come only from a small reviewed catalog of static transport/SDK messages or app-owned
-templates with allowlisted enum/numeric substitutions. Unknown free-form messages become null
-with `message_redacted: true`, even when no credential pattern matches. The fictional fixture's
+Schema validation precedes serialization. Fetch error names, codes, and messages are retained
+as bounded strings without a content allowlist, so an unfamiliar transport failure is visible
+in the next local run. This can include hostnames or local paths from a transport error; the
+private diagnostics file should be reviewed before sharing. The projection still excludes
+arbitrary error properties, stacks, HTTP headers other than the reviewed set, and request and
+response bodies. For non-fetch errors, names use a reviewed catalog and unknown names become
+`Error`; codes are 1–128 character ASCII tokens with credential prefixes, URLs, paths,
+whitespace, and control characters rejected. Non-fetch messages come only from a small reviewed
+catalog of static transport/SDK messages or app-owned templates. Unknown free-form messages
+become null with `message_redacted: true`. The fictional fixture's
 `FixtureParseError`/`FIXTURE_PARSE` and static message are test-only catalog entries.
-Pattern scrubbing alone cannot prevent a provider/tool error from echoing a prompt or params.
-All accepted strings additionally scrub known secret values, bearer/API-key patterns,
-credential-bearing URLs, query strings and local absolute paths.
-Unsafe/unrepresentable fields become null/omitted as specified and generate a bounded capture
-notice. Truncate after scrubbing. Escape control characters in JSON and terminal rendering.
+For this local diagnostic mode, fetch error strings are intentionally not scrubbed; non-fetch
+errors keep the reviewed projection. Oversized/unrepresentable fields become null as specified
+and the error projection marks truncation. JSON serialization escapes control characters.
 All logged strings remain untrusted data, never agent instructions or shell commands.
 Native span attributes are also projected through a per-span key/value allowlist; the generic
 primitive-attribute schema is not permission to log arbitrary SDK attributes. Reject any other

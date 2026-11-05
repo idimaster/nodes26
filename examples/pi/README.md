@@ -46,6 +46,12 @@ permitted `Retry-After` if longer. One probe follows; success closes the circuit
 probe stops the run. Ctrl-C interrupts retry/circuit waits. The terminal prints the selected
 provider/model, retry attempts, backoff, and circuit transitions without request data or credentials.
 
+OpenAI provider requests use a private HTTP/1.1 Undici connection pool. If a fetch fails with
+the observed TLS MAC alert or an invalid/GOAWAY HTTP/2 session code, the wrapper replaces that
+pool before the SDK's next counted retry. The run closes its pool on exit. This does not restart
+the planner or replay any tool call; repeated failures still stop at the existing limits. The
+choice and trace evidence are recorded in [PI-HARNESS.md](../../docs/design/PI-HARNESS.md).
+
 Each provider response is consumed before its text/tool calls are delivered to Pi, so text appears
 after that response completes. Failed partial responses are discarded. A retry uses the same
 conversation containing already completed tool results; it never reruns a tool, gate request, or

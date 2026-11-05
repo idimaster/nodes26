@@ -2,6 +2,7 @@ import { createAssistantMessageEventStream, fauxAssistantMessage, fauxProvider, 
 import type { StreamFn } from '@earendil-works/pi-agent-core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createReliableStream, type ProviderStatus } from '../../examples/pi/src/reliability.js';
+import type { ProviderTransport } from '../../examples/pi/src/provider-transport.js';
 import { createPiPlanner } from '../../examples/pi/src/agent.js';
 import { modelFromEnv } from '../../examples/pi/src/model.js';
 import type { PlannerGateway } from '../../packages/harness/src/types.js';
@@ -48,6 +49,59 @@ it('correlates each actual HTTP fetch without recording its body', async () => {
   expect(records.find(r => r.event === 'provider.http.started')?.data.client_request_id).toBe(seen[0]);
   expect(records.find(r => r.event === 'provider.http.received')?.data.status).toBe(200);
   expect(JSON.stringify(records)).not.toContain('test-key');
+});
+
+it('records fetch abort state before the circuit changes it', async () => {
+  const capture = createCapture({ root: mkdtempSync(join(tmpdir(), 'planner-fetch-error-')), deal: 'nimbus' })!;
+  const provider = modelFromEnv({ PLANNER_MODEL: 'openai:gpt-5', OPENAI_API_KEY: 'test-key' });
+  const cause = Object.assign(new Error('private host'), { code: 'ENETUNREACH', errno: -51, syscall: 'connect', address: 'private.example' });
+  const fetch = vi.fn<typeof globalThis.fetch>().mockRejectedValue(Object.assign(new TypeError('fetch failed'), { cause }));
+  const reliable = createReliableStream({ streamFn: provider.streamFn, maxRequests: 1, fetch, capture });
+  const response = await reliable.streamFn(provider.model, context);
+  await response.result();
+  capture.finish({ outcome: 'failed', providerAttempts: reliable.requests, httpAttempts: reliable.httpAttempts });
+  const records = (await readCapture(capture.path)).records;
+  const failure = records.find(r => r.event === 'provider.failed')!;
+  expect(failure.data.error).toMatchObject({ causes: [expect.objectContaining({ code: 'ENETUNREACH', errno: -51, syscall: 'connect' })] });
+  expect(failure.data.fetch_state).toMatchObject({ run_signal_aborted: false, sdk_signal_aborted: false, call_signal_aborted: false, fetch_signal_aborted: false });
+  expect(JSON.stringify(records)).not.toContain('private.example');
+});
+
+it.each(['ERR_SSL_SSL/TLS_ALERT_BAD_RECORD_MAC', 'ERR_HTTP2_INVALID_SESSION', 'ERR_HTTP2_GOAWAY_SESSION'])('rotates a private provider connection after %s before the counted retry', async code => {
+  const cause = Object.assign(new Error('The session has been destroyed'), { code });
+  const fetch = vi.fn<typeof globalThis.fetch>().mockRejectedValueOnce(new TypeError('fetch failed', { cause })).mockImplementationOnce(async () => completeResponse());
+  const rotate = vi.fn();
+  const close = vi.fn(async () => {});
+  const transport: ProviderTransport = { fetch, rotate, close };
+  const provider = modelFromEnv({ PLANNER_MODEL: 'openai:gpt-5', OPENAI_API_KEY: 'test-key' });
+  const capture = createCapture({ root: mkdtempSync(join(tmpdir(), 'planner-transport-')), deal: 'nimbus' })!;
+  const reliable = createReliableStream({ streamFn: provider.streamFn, maxRequests: 3, transport, capture });
+  const response = await reliable.streamFn(provider.model, context);
+  expect((await response.result()).stopReason).toBe('stop');
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(rotate).toHaveBeenCalledOnce();
+  expect(rotate.mock.invocationCallOrder[0]).toBeLessThan(fetch.mock.invocationCallOrder[1]!);
+  expect(reliable.requests).toBe(2);
+  expect(reliable.httpAttempts).toBe(2);
+  await reliable.close();
+  expect(close).toHaveBeenCalledOnce();
+  capture.finish({ outcome: 'completed', providerAttempts: reliable.requests, httpAttempts: reliable.httpAttempts });
+  const records = (await readCapture(capture.path)).records;
+  expect(records.filter(r => r.event === 'provider.http.started')).toHaveLength(2);
+  expect(records.find(r => r.event === 'provider.failed')?.data.error).toMatchObject({ causes: [expect.objectContaining({ code })] });
+});
+
+it('does not rotate the provider connection for unrelated fetch errors', async () => {
+  const cause = Object.assign(new Error('connection reset'), { code: 'ECONNRESET' });
+  const fetch = vi.fn<typeof globalThis.fetch>().mockRejectedValueOnce(new TypeError('fetch failed', { cause })).mockImplementationOnce(async () => completeResponse());
+  const rotate = vi.fn();
+  const transport: ProviderTransport = { fetch, rotate, close: async () => {} };
+  const provider = modelFromEnv({ PLANNER_MODEL: 'openai:gpt-5', OPENAI_API_KEY: 'test-key' });
+  const reliable = createReliableStream({ streamFn: provider.streamFn, maxRequests: 3, transport });
+  const response = await reliable.streamFn(provider.model, context);
+  expect((await response.result()).stopReason).toBe('stop');
+  expect(rotate).not.toHaveBeenCalled();
+  await reliable.close();
 });
 
 it('uses native SDK HTTP retry with Retry-After and counts every network attempt', async () => {

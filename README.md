@@ -15,7 +15,7 @@ A human architect approves each step at a gate. All companies, deals, people and
 | **Tier 1** | Run the live planner agent in Claude Code against your local graph. |
 | **Tier 2** | Make it yours: reject a gate, propose a term, explore in Neo4j Browser, record your own run. |
 
-Requirements: **Docker** (Docker Desktop or Rancher Desktop), **Node 24** (`.nvmrc`), macOS or Linux.
+Requirements: **Docker** (Docker Desktop or Rancher Desktop), **Node 26** (`.nvmrc`), macOS or Linux.
 
 ## Tier 0: replay, no LLM
 

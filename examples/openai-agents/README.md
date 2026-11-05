@@ -58,7 +58,7 @@ npm run example:openai-agents -- --trace --deal nimbus "Plan the Nimbus integrat
 
 The CLI prints a trace ID, the [Traces dashboard](https://platform.openai.com/traces), the guard audit
 run ID and the actual Node/undici versions. Node 26.8.2 is recorded as such; enabling tracing does not
-change your runtime. The repository's standard verification runtime remains Node 24.21.0.
+change your runtime. The repository's pinned runtime is Node 26.8.2.
 
 SDK model/tool spans are supplemented by physical-attempt, canonical-tool/gate-wait, retry, backoff,
 circuit and completion spans. Byte counts help identify growing model inputs without recording their

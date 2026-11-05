@@ -8,7 +8,7 @@
     "examples/*"
   ],
   "engines": {
-    "node": "24.21.0"
+    "node": "26.8.2"
   },
   "packageManager": "npm@11.19.0",
   "scripts": {
@@ -50,7 +50,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.63.0",
-    "@types/node": "24.19.1",
+    "@types/node": "26.6.6",
     "@vitest/coverage-v8": "5.0.3",
     "cytoscape": "3.34.3",
     "cytoscape-dagre": "4.0.1",

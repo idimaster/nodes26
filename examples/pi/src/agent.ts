@@ -67,7 +67,11 @@ export function createPiPlanner(options: { gateway: PlannerGateway; model: Model
       try {
         if (options.signal?.aborted) abort(); else await agent.prompt(prompt);
       } catch (error) { failure ??= error instanceof Error ? error.message : String(error); }
-      finally { options.signal?.removeEventListener('abort', abort); }
+      finally {
+        options.signal?.removeEventListener('abort', abort);
+        try { await reliable.close(); }
+        catch { console.error('provider transport cleanup failed'); }
+      }
       const messages = agent.state.messages.filter((m): m is AssistantMessage => m.role === 'assistant');
       const last = messages.at(-1);
       const terminalError = last?.stopReason === 'error' || last?.stopReason === 'aborted';

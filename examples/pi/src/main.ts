@@ -14,9 +14,14 @@ async function main() {
   const policy = values.diagnostics ?? process.env.PLANNER_DIAGNOSTICS ?? 'metadata';
   if (policy !== 'metadata' && policy !== 'off') throw new Error('--diagnostics must be metadata or off');
   const root = fileURLToPath(new URL('../../..', import.meta.url));
+  const requestedModel = process.env.PLANNER_MODEL ?? 'anthropic:claude-sonnet-5-5';
+  const separator = requestedModel.indexOf(':');
+  const providerName = requestedModel.slice(0, separator);
+  const modelName = requestedModel.slice(separator + 1);
+  const safeSelection = ['anthropic', 'openai'].includes(providerName) && /^[A-Za-z0-9._-]{1,128}$/.test(modelName);
   let capture: Capture | undefined;
   try {
-    capture = createCapture({ root, deal: values.deal, policy });
+    capture = createCapture({ root, deal: values.deal, policy, provider: safeSelection ? providerName : null, model: safeSelection ? modelName : null });
     if (capture) console.error(`diagnostics: ${capture.relativePath}`);
   } catch { console.error('diagnostics capture unavailable'); }
   let outcome: 'completed' | 'failed' | 'cancelled' = 'failed';
@@ -27,6 +32,7 @@ async function main() {
   const maxSteps = Number(values['max-steps']);
   if (!Number.isSafeInteger(maxSteps) || maxSteps < 1) throw new Error('--max-steps must be a positive integer');
   const provider = modelFromEnv(); // Fail bad provider/config before launching children.
+  reasonCode = 'launch_failed';
   console.log(`model: ${provider.model.provider}:${provider.model.id}`);
   const controller = new AbortController();
   const abort = () => controller.abort();
@@ -34,22 +40,25 @@ async function main() {
   try {
     const result = await launchPlanner({
       root, deal: values.deal, port: Number(values.port), signal: controller.signal, ...(capture ? { runId: capture.runId } : {}),
-      run: async (gateway, signal) => createPiPlanner({ ...provider, gateway, signal, maxSteps, ...(capture ? { capture } : {}),
+      run: async (gateway, signal) => {
+        reasonCode = 'run_failed';
+        return createPiPlanner({ ...provider, gateway, signal, maxSteps, ...(capture ? { capture } : {}),
         onProviderStatus: event => console.error(`provider ${event.provider}: ${event.type}; attempt ${event.attempt}/4${event.kind ? ` (${event.kind})` : ''}${event.delayMs !== undefined ? `; wait ${event.delayMs} ms` : ''}`),
         onEvent: event => {
         if (event.type === 'message_update' && event.assistantMessageEvent.type === 'text_delta') process.stdout.write(event.assistantMessageEvent.delta);
         if (event.type === 'tool_execution_start') console.log(`\n→ ${event.toolName}`);
         if (event.type === 'tool_execution_end' && event.isError) console.error(`tool error: ${event.toolName}`);
-      } }).run(positionals.join(' ') || `Plan the ${values.deal} integration.`),
+      } }).run(positionals.join(' ') || `Plan the ${values.deal} integration.`);
+      },
     });
     requests = result.requests;
     httpAttempts = result.httpAttempts;
     console.log(`\n${result.requests} provider attempts (including retries); ${result.complete ? 'complete' : 'incomplete'}`);
-    if (!result.complete) throw new Error(result.error ?? 'plan incomplete');
+    if (!result.complete) { reasonCode = 'run_incomplete'; throw new Error(result.error ?? 'plan incomplete'); }
     outcome = 'completed'; reasonCode = null;
   } finally { process.off('SIGINT', abort); process.off('SIGTERM', abort); }
   } catch (error) {
-    capture?.error(error, 'host');
+    if (reasonCode === 'startup_failed' || reasonCode === 'launch_failed') capture?.error(error, 'host');
     throw error;
   } finally {
     capture?.finish({ outcome, reasonCode, providerAttempts: requests, httpAttempts });

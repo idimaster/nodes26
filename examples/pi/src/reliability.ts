@@ -5,6 +5,7 @@ import {
   createAssistantMessageEventStream, isRetryableAssistantError, retryAssistantCall,
   type Api, type AssistantMessage, type Model,
 } from '@earendil-works/pi-ai';
+import { createProviderTransport, shouldRotateProviderTransport, type ProviderTransport } from './provider-transport.js';
 
 const TURN_ATTEMPTS = 4;
 const HTTP_RETRIES = 2;
@@ -58,7 +59,7 @@ function failureMessage(model: Model<Api>, message: string, aborted = false): As
 /** Retry only a provider response. This layer has no reference to tools or the gateway. */
 export function createReliableStream(options: {
   streamFn: StreamFn; maxRequests: number; signal?: AbortSignal;
-  fetch?: typeof globalThis.fetch; onStatus?: (event: ProviderStatus) => void; capture?: Capture;
+  fetch?: typeof globalThis.fetch; transport?: ProviderTransport; onStatus?: (event: ProviderStatus) => void; capture?: Capture;
 }) {
   if (!Number.isSafeInteger(options.maxRequests) || options.maxRequests < 1) throw new Error('maxRequests must be a positive integer');
   let requests = 0;
@@ -68,6 +69,7 @@ export function createReliableStream(options: {
   let openUntil = 0;
   let providerUntil = 0;
   let terminal: string | undefined;
+  let privateTransport: ProviderTransport | undefined;
 
   const streamFn: StreamFn = (model, context, streamOptions) => {
     const output = createAssistantMessageEventStream();
@@ -112,7 +114,9 @@ export function createReliableStream(options: {
       let lastFetchFailed = false;
       try {
         await reserve(); // Also counts synthetic/no-fetch provider attempts in deterministic tests.
-        const fetch = options.fetch ?? streamOptions?.fetch ?? globalThis.fetch;
+        const transport = model.provider === 'openai' && !options.fetch && !streamOptions?.fetch
+          ? (privateTransport ??= options.transport ?? createProviderTransport()) : undefined;
+        const fetch = options.fetch ?? streamOptions?.fetch ?? transport?.fetch ?? globalThis.fetch;
         const guardedFetch: typeof globalThis.fetch = async (input, init) => {
           callSignal.throwIfAborted();
           if (!firstFetch) { await reserve(); emit('retry', { kind: 'transport' }); }
@@ -134,7 +138,18 @@ export function createReliableStream(options: {
           let response: Response;
           try { response = await fetch(input, { ...init, ...(options.capture ? { headers } : {}), signal: fetchSignal }); }
           catch (error) {
-            options.capture?.emit('provider.failed', { phase: 'fetch', error: projectError(error, 'fetch'), http_status: null, request_id: null, response_id: null, last_event_type: null, raw_completed_seen: false }, { context: { http_attempt_id: httpAttemptId } });
+            options.capture?.emit('provider.failed', {
+              phase: 'fetch', error: projectError(error, 'fetch'), http_status: null,
+              request_id: null, response_id: null, last_event_type: null, raw_completed_seen: false,
+              fetch_state: {
+                duration_ms: Math.max(0, performance.now() - started),
+                run_signal_aborted: options.signal?.aborted ?? false,
+                sdk_signal_aborted: init?.signal?.aborted ?? false,
+                call_signal_aborted: callSignal.aborted,
+                fetch_signal_aborted: fetchSignal.aborted,
+              },
+            }, { context: { http_attempt_id: httpAttemptId } });
+            if (!fetchSignal.aborted && transport && shouldRotateProviderTransport(error)) transport.rotate();
             if (!callSignal.aborted && !terminal) { lastFetchFailed = true; failed(); }
             throw error;
           }
@@ -235,5 +250,5 @@ export function createReliableStream(options: {
     })();
     return output;
   };
-  return { streamFn, get requests() { return requests; }, get httpAttempts() { return httpAttempts; } };
+  return { streamFn, close: async () => privateTransport?.close(), get requests() { return requests; }, get httpAttempts() { return httpAttempts; } };
 }

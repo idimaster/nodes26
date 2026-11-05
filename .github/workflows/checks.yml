@@ -13,19 +13,6 @@ permissions:
 jobs:
   checks:
     runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to Ubuntu 26 on 2026-10-19
-    services:
-      neo4j:
-        image: neo4j:2026.08.1-community
-        env:
-          NEO4J_AUTH: neo4j/planner-demo
-          NEO4J_PLUGINS: '["apoc", "graph-data-science"]'
-          NEO4J_dbms_security_procedures_unrestricted: apoc.*,gds.*
-          NEO4J_dbms_security_procedures_allowlist: apoc.*,gds.*
-        ports:
-          - 7687:7687
-        options: >-
-          --health-cmd "cypher-shell -u neo4j -p planner-demo 'RETURN 1'"
-          --health-interval 5s --health-timeout 10s --health-retries 40 --health-start-period 30s
     env:
       NEO4J_URI: neo4j://localhost:7687
       NEO4J_USERNAME: neo4j
@@ -37,6 +24,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # Recovery tests verify the repository Compose container before any reset.
+      - run: docker compose up -d --wait
       - run: npm run mcp:neo4j:install
       - run: npm run lint
       - run: npm run typecheck
@@ -51,3 +40,5 @@ jobs:
           name: edge-coverage
           path: reports/edge-coverage.json
       - run: npm test
+      - if: always()
+        run: docker compose down --volumes

@@ -154,6 +154,20 @@ failed partial content. Retain completed tool results in the same conversation a
 calls or the whole planner. Log provider/model, attempt counts, retry waits and circuit states,
 without payloads or credentials. Retry and circuit waits must obey cancellation.
 
+**OpenAI transport recovery decision (2026-11-04).** Local Pi diagnostics observed a
+pre-header `ERR_SSL_SSL/TLS_ALERT_BAD_RECORD_MAC` failure followed by three near-immediate
+`ERR_HTTP2_INVALID_SESSION` failures, including after a 30-second circuit wait. Waiting did not
+retire the HTTP/2 session. Give only the OpenAI provider's fetch path a run-owned, private
+Undici `Agent({ allowH2: false })`, using the same exact Undici package for fetch and agent.
+HTTP/1.1 removes the observed persistent HTTP/2 session failure mode. On the TLS MAC alert,
+`ERR_HTTP2_INVALID_SESSION`, or `ERR_HTTP2_GOAWAY_SESSION`, replace the agent before the SDK's
+next bounded retry; close the retired agent and close the current agent when the run ends.
+Match bounded nested error codes rather than message text. Do not add a second inner retry loop:
+the existing fetch boundary must continue to count and diagnose every physical attempt, honor
+abort and Retry-After, and preserve the planner's completed graph/tool work. This is a
+recovery measure for this local demo, not a diagnosis of what produced the initial TLS alert.
+If fresh connections continue to fail, let the existing circuit stop the run for inspection.
+
 Start with in-memory conversation state and one CLI prompt per run. Neo4j remains the durable planning record, but restart enters the reconciliation/operator procedure above before any model request. It does not resume by running the skill from step 1 against a partial plan. Session persistence, compaction, interactive TUI, and CLI extensions are separate work. The higher-level coding SDK discovers resources/settings and has persistent sessions by default, so adopting it would also require controlling ambient tools and resource loading. [Source: coding SDK lifecycle](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/sdk.md).
 
 ## Files and delivery sequence
