@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: master
-      - uses: actions/download-artifact@018cc2cf09e8dbf4b2d45b1160f7653501398f56 # v6.0.0
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: coverage-summary
           path: coverage
