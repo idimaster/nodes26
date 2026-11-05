@@ -1,7 +1,8 @@
 # neurosymbolic-planner-neo4j
 
 [![Checks](https://github.com/idimaster/nodes26/actions/workflows/checks.yml/badge.svg)](https://github.com/idimaster/nodes26/actions/workflows/checks.yml)
-[![Code coverage](https://github.com/idimaster/nodes26/actions/workflows/coverage.yml/badge.svg)](https://github.com/idimaster/nodes26/actions/workflows/coverage.yml)
+[![Repository line coverage](badges/coverage-lines.svg)](https://github.com/idimaster/nodes26/actions/workflows/checks.yml)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 An integration-planning agent where **the LLM proposes and the graph decides**. It is built on Neo4j and the official Neo4j MCP server, and is the companion repo for a NODES 2026 talk.
 
@@ -247,6 +248,7 @@ Nine things that went wrong while building this, each reproducible. A test shows
 | `npm run demo:ui` | Builds the page if needed, then serves it with the gate API (port `GATE_PORT`, default 4646) |
 | `npm run demo:replay` | Tier 0 replay (`-- <file> --delay <ms>`) |
 | `npm test` | Unit, graph, e2e, gotcha, and golden tests (needs Neo4j up; reloads the database) |
+| `npm run coverage` | Same Vitest suite with line coverage for runtime TypeScript in packages, examples, graph, scripts, and viz (needs Neo4j up) |
 | `npm run rehearse` | Release check: 5 timed runs of reset → tests → UI tests → replay, on an isolated Neo4j (`reports/rehearsal.json`) |
 | `npm run test:ui` | Playwright tests of the page (first run: `npx playwright install chromium`) |
 | `npm run load` | Applies the schema, then loads the catalog, deals, and history |

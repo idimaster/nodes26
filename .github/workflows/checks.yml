@@ -1,7 +1,7 @@
 name: checks
 
-# Lint, types, tests, and the knowledge-edge coverage floor (V7, gotcha 09) against a real Neo4j
-# with APOC and GDS. The coverage report is uploaded as an artifact.
+# Lint, types, tests, code coverage, and the knowledge-edge coverage floor (V7, gotcha 09)
+# against a real Neo4j with APOC and GDS. Coverage reports are uploaded as artifacts.
 
 on:
   push:
@@ -39,6 +39,31 @@ jobs:
         with:
           name: edge-coverage
           path: reports/edge-coverage.json
-      - run: npm test
+      - run: npm run coverage
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        with:
+          name: coverage-summary
+          path: coverage/coverage-summary.json
       - if: always()
         run: docker compose down --volumes
+
+  publish-badge:
+    needs: checks
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: master
+      - uses: actions/download-artifact@018cc2cf09e8dbf4b2d45b1160f7653501398f56 # v6.0.0
+        with:
+          name: coverage-summary
+          path: coverage
+      - uses: jpb06/coverage-badges-action@6bebba3f008cb03c2be0ff9b148c663df30cde4b # v1.4.11
+        with:
+          branches: master
+          badges-labels-prefix: Repository coverage
+          commit-message: 'Update repository coverage badge'

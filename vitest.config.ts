@@ -9,9 +9,19 @@ export default defineConfig({
     testTimeout: 20_000,
     coverage: {
       provider: 'v8',
-      include: ['packages/engine/src/**'],
-      reporter: ['text-summary', 'text'],
-      thresholds: { lines: 90 },
+      include: [
+        'packages/*/src/**/*.ts',
+        'packages/*/bin/**/*.ts',
+        'examples/*/src/**/*.ts',
+        'graph/**/*.ts',
+        'scripts/**/*.ts',
+        'viz/src/**/*.ts',
+      ],
+      reporter: ['text-summary', 'text', 'json-summary'],
+      thresholds: {
+        lines: 75,
+        'packages/engine/src/**': { lines: 90 },
+      },
     },
     hookTimeout: 60_000,
   },
