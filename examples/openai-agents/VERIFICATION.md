@@ -107,7 +107,10 @@ this change adds the OpenAI-specific implementation, tests and contract.
 Retries make transient failures recoverable; persistent failures still stop incomplete with the saved
 graph intact. Automatic restart/persisted resume and live-provider support acceptance remain pending.
 
-## Optional tracing verification
+## Historical optional tracing verification
+
+This section records the former remote `--trace` implementation. Current behavior uses local
+diagnostics; see the local diagnostics specification and current CLI tests.
 
 `--trace` enables a single redacting SDK batch exporter; the default still exports no traces.
 Metadata records the actual Node/undici runtime, selected model/deal and guard-run correlation.

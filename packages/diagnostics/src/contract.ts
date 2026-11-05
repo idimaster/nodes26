@@ -13,7 +13,7 @@ export interface DiagnosticRecord {
   format: 'planner.diagnostics'; version: 1; event: string; seq: number; event_id: string;
   time: string; elapsed_ms: number; run_id: string; trace_id: string; process_id: string;
   span_id: string | null; parent_span_id: string | null;
-  context: { host: 'pi'; deal: string | null; turn_id: string | null; invocation_id: string | null; http_attempt_id: string | null; tool_call_id: string | null };
+  context: { host: 'pi' | 'openai-agents'; deal: string | null; turn_id: string | null; invocation_id: string | null; http_attempt_id: string | null; tool_call_id: string | null };
   data: Record<string, unknown>;
 }
 

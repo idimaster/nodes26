@@ -1,5 +1,5 @@
 import { retryPolicies, type Model, type ModelRetrySettings } from '@openai/agents';
-import type { PlannerTracing, TraceInterval } from './tracing.js';
+import type { PlannerTracing, TraceInterval } from './local-tracing.js';
 
 export interface ProviderEvent {
   type: 'retry' | 'circuit_open' | 'circuit_probe' | 'circuit_closed' | 'circuit_failed';
@@ -10,7 +10,7 @@ export interface ProviderEvent {
 const ATTEMPTS = 4;
 const COOLDOWN_MS = 30_000;
 const SERVER_DELAY_CAP_MS = 60_000;
-const TRANSIENT_CODES = new Set(['ERR_HTTP2_INVALID_SESSION', 'ERR_HTTP2_STREAM_CANCEL', 'ECONNRESET', 'ECONNREFUSED', 'EPIPE', 'ETIMEDOUT', 'EAI_AGAIN', 'ENETUNREACH', 'EHOSTUNREACH', 'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET']);
+const TRANSIENT_CODES = new Set(['ERR_SSL_SSL/TLS_ALERT_BAD_RECORD_MAC', 'ERR_HTTP2_GOAWAY_SESSION', 'ERR_HTTP2_INVALID_SESSION', 'ERR_HTTP2_STREAM_CANCEL', 'ECONNRESET', 'ECONNREFUSED', 'EPIPE', 'ETIMEDOUT', 'EAI_AGAIN', 'ENETUNREACH', 'EHOSTUNREACH', 'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET']);
 const QUOTA_CODES = new Set(['insufficient_quota', 'billing_hard_limit_reached', 'billing_not_active', 'usage_limit_reached', 'account_deactivated']);
 
 function failureInfo(error: unknown) {
@@ -37,7 +37,7 @@ function failureInfo(error: unknown) {
     if ('error' in value) pending.push(value.error);
     if (value instanceof AggregateError) pending.push(...value.errors.slice(0, 8));
   }
-  const terminal = [...codes].some(code => QUOTA_CODES.has(code) || /^(?:ERR_TLS_|ERR_SSL_|CERT_|DEPTH_ZERO_|SELF_SIGNED_CERT|UNABLE_TO_VERIFY_LEAF)/.test(code)) ||
+  const terminal = [...codes].some(code => QUOTA_CODES.has(code) || (code !== 'ERR_SSL_SSL/TLS_ALERT_BAD_RECORD_MAC' && /^(?:ERR_TLS_|ERR_SSL_|CERT_|DEPTH_ZERO_|SELF_SIGNED_CERT|UNABLE_TO_VERIFY_LEAF)/.test(code))) ||
     (error instanceof Error && /insufficient[_ ]quota|exceeded your current quota|billing[_ ](?:hard|limit|not)/i.test(error.message));
   return { network: [...codes].some(code => TRANSIENT_CODES.has(code)), terminal, veto, responseStarted };
 }

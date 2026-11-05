@@ -1,6 +1,6 @@
 import { tool, type JsonSchemaDefinition } from '@openai/agents';
 import type { PlannerGateway } from '@planner/harness';
-import type { PlannerTracing } from './tracing.js';
+import type { PlannerTracing } from './local-tracing.js';
 
 /** Keep canonical routing independent of the SDK's lossy name normalization. */
 export function mapPlannerTools(gateway: PlannerGateway, tracing?: PlannerTracing) {

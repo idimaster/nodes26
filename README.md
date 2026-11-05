@@ -178,8 +178,9 @@ PLANNER_MODEL='openai:<model-id>' OPENAI_API_KEY=… npm run example:openai-agen
 
 It owns its console and uses the same readiness and recovery commands above. `--max-turns 200`
 bounds SDK turns. Tool names are mapped explicitly; guard audit events retain canonical names and
-identify the host as `openai-agents`. Add `--trace` for SDK traces with payload capture disabled;
-the CLI prints the trace ID/dashboard and actual Node/undici versions. Live OpenAI rehearsals are pending, so
+identify the host as `openai-agents`. Local metadata diagnostics write one private per-run file;
+use `--diagnostics off` to disable them. The OpenAI client uses a private HTTP/1.1 pool that
+rotates after the observed TLS/session failures. Live OpenAI rehearsals are pending, so
 this configuration is experimental.
 
 Design references: [Pi harness](docs/design/PI-HARNESS.md) and

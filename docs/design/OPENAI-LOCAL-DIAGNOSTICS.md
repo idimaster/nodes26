@@ -1,8 +1,8 @@
 # Design specification: local diagnostics for the OpenAI Agents planner
 
-Status: **proposed; specification only**. Created 2026-11-04. The existing OpenAI host still
-implements optional remote SDK tracing. This document specifies its replacement; it does not
-claim that the replacement commands or capture points already work.
+Status: **partially implemented**. Created 2026-11-04. The OpenAI host now writes local metadata
+files, uses a local SDK processor, and has removed the remote trace exporter. Gateway/graph
+observations, semantic triage, and several acceptance cases below remain pending.
 
 Related contracts: [local Pi diagnostics](LOCAL-DIAGNOSTICS.md),
 [diagnostics v1 schema](diagnostics-v1.schema.json), [OpenAI Agents host](OPENAI-AGENTS-SDK.md),

@@ -3,7 +3,7 @@
 An experimental TypeScript host using `@openai/agents` **0.21.0** and the OpenAI client **7.19.0**.
 One Agent/Runner uses the full embedded planner skill and the existing fifteen MCP tools through
 `@planner/harness`. The harness serializes calls, validates inputs and guards writes with fresh graph
-context. The browser console remains authoritative for architect decisions. SDK tracing is disabled by default.
+context. The browser console remains authoritative for architect decisions. Local metadata diagnostics are enabled by default.
 
 After `npm run quickstart`, choose an OpenAI model explicitly and use a clean disposable graph:
 
@@ -48,33 +48,18 @@ Connection failures include bounded error-class and nested transport-code diagno
 not printed. A connection failure does not identify its cause without those transport details;
 the retry policy handles eligible failures in the current conversation and never restarts the workflow automatically.
 
-## Optional SDK tracing
+## Local diagnostics and provider transport
 
-Use the same model/key configuration and add `--trace` to export diagnostic traces to OpenAI:
+The CLI writes a private `.logs/diagnostics/<run-id>.jsonl` file and prints its relative path.
+Set `--diagnostics off` or `PLANNER_DIAGNOSTICS=off` to disable capture. The SDK's export
+processors are replaced with a local processor; no trace is sent to OpenAI's dashboard.
+`traceIncludeSensitiveData` is false, and the local projection excludes prompts, tool inputs,
+tool results, and raw exceptions. The current reader validates the capture; richer triage and
+graph observations remain work described in the [local diagnostics specification](../../docs/design/OPENAI-LOCAL-DIAGNOSTICS.md).
 
-```bash
-npm run example:openai-agents -- --trace --deal nimbus "Plan the Nimbus integration."
-```
-
-The CLI prints a trace ID, the [Traces dashboard](https://platform.openai.com/traces), the guard audit
-run ID and the actual Node/undici versions. Node 26.8.2 is recorded as such; enabling tracing does not
-change your runtime. The repository's pinned runtime is Node 26.8.2.
-
-SDK model/tool spans are supplemented by physical-attempt, canonical-tool/gate-wait, retry, backoff,
-circuit and completion spans. Byte counts help identify growing model inputs without recording their
-contents. Errors retain classifications, transport codes, HTTP status and request IDs when available.
-Default tracing remains off. `--trace` conflicts with `OPENAI_AGENTS_DISABLE_TRACING=1`/`true` and fails
-before launch in that case.
-
-`traceIncludeSensitiveData` always stays **false**. A processor redacts payload fields and raw SDK
-exception messages before export; prompts, instructions, Cypher parameters, tool results and API keys
-are excluded. Custom span data contains only diagnostic metadata. The CLI owns one redacting export
-route, with one SDK ingest attempt per batch. It gives SDK shutdown up to **five seconds** to drain
-the queue/abort active exports after planner resources close, including failure and Ctrl-C. Export
-failure does not change the planner result or replay a model/tool call. Dashboard delivery is best effort.
-
-Tracing helps locate failures and compare runtimes; it does not repair a broken connection or resume
-an interrupted plan. Graph gates and local guard audit remain the decision record.
+The OpenAI client uses a private HTTP/1.1 Undici pool, matching the Pi transport fix. The pool
+rotates after the observed TLS bad-record-MAC and HTTP/2 session errors. The Runner remains the
+only retry owner; the OpenAI client has `maxRetries: 0`.
 
 ## Existing or interrupted planning state
 
@@ -101,7 +86,7 @@ Exclusive use of the disposable graph is required; the local run lock is not dis
 ## Verification
 
 ```bash
-npm test -- tests/examples/openai-agents.test.ts tests/examples/openai-agents-cli.test.ts tests/examples/openai-agents-reliability.test.ts tests/examples/openai-agents-tracing.test.ts tests/examples/openai-agents-integration.test.ts packages/harness/test tests/examples/recovery.test.ts tests/graph/readiness.test.ts
+npm test -- tests/examples/openai-agents.test.ts tests/examples/openai-agents-cli.test.ts tests/examples/openai-agents-reliability.test.ts tests/examples/openai-agents-diagnostics.test.ts tests/examples/openai-agents-integration.test.ts packages/harness/test tests/examples/recovery.test.ts tests/graph/readiness.test.ts
 ```
 
 Tests use scripted SDK models and a fake Responses HTTP transport, plus real disposable MCP/Neo4j

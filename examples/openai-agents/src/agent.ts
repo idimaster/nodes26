@@ -2,7 +2,7 @@ import { Agent, MaxTurnsExceededError, Runner, type Model } from '@openai/agents
 import type { PlannerGateway } from '@planner/harness';
 import { mapPlannerTools } from './tools.js';
 import { reliableModel, type ProviderEvent } from './reliability.js';
-import type { PlannerTracing } from './tracing.js';
+import type { PlannerTracing } from './local-tracing.js';
 
 export interface OpenAIRunResult { complete: boolean; requests: number; text: string; error?: string }
 export interface PlannerEvent { type: 'tool_start' | 'tool_end'; canonicalName: string; providerName: string }

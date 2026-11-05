@@ -20,7 +20,7 @@ export interface Capture {
   finish(options: { outcome: 'completed' | 'failed' | 'cancelled'; reasonCode?: string | null; providerAttempts?: number; httpAttempts?: number; cleanupErrors?: number; generationOutcome?: 'completed' | 'failed' | 'incomplete' | 'unknown'; clientOutcome?: 'completed' | 'failed' | 'cancelled' | 'unknown'; graphOutcome?: 'committed' | 'not_committed' | 'partial' | 'unknown' }): void;
 }
 
-export function createCapture(options: { root: string; deal: string | null; provider?: string | null; model?: string | null; endpoint?: { scheme: string; hostname: string; port: number | null; path: string } | null; runId?: string; policy?: 'metadata' | 'off'; warn?: (message: string) => void }): Capture | undefined {
+export function createCapture(options: { root: string; deal: string | null; host?: 'pi' | 'openai-agents'; provider?: string | null; model?: string | null; endpoint?: { scheme: string; hostname: string; port: number | null; path: string } | null; runId?: string; policy?: 'metadata' | 'off'; warn?: (message: string) => void }): Capture | undefined {
   if (options.policy === 'off') return undefined;
   const runId = options.runId ?? randomUUID();
   const processId = randomUUID();
@@ -39,7 +39,7 @@ export function createCapture(options: { root: string; deal: string | null; prov
   let warned = false;
   const warning = (reason: string) => { degraded = true; if (!warned) { warned = true; try { warn(`diagnostics capture degraded: ${reason}`); } catch { /* diagnostics cannot change application control flow */ } } };
   destination.on('error', () => warning('write failed'));
-  const context: Context = { host: 'pi', deal: options.deal, turn_id: null, invocation_id: null, http_attempt_id: null, tool_call_id: null };
+  const context: Context = { host: options.host ?? 'pi', deal: options.deal, turn_id: null, invocation_id: null, http_attempt_id: null, tool_call_id: null };
   const emit: Capture['emit'] = (event, data, extra = {}) => {
     if (closed || degraded) { dropped++; return; }
     const next = seq + 1;
@@ -83,7 +83,7 @@ export function createCapture(options: { root: string; deal: string | null; prov
   };
   emit('run.started', {
     capture_policy: 'metadata', node_version: process.versions.node, platform: process.platform, arch: process.arch,
-    versions: { pi_agent_core: '1.5.0', pi_ai: '1.5.0', pi_telemetry: '1.5.0', pino: '10.4.0' },
+    versions: { pi_agent_core: options.host === 'openai-agents' ? null : '1.5.0', pi_ai: options.host === 'openai-agents' ? null : '1.5.0', pi_telemetry: options.host === 'openai-agents' ? null : '1.5.0', pino: '10.4.0', ...(options.host === 'openai-agents' ? { openai_agents: '0.21.0', openai_client: '7.19.0' } : {}) },
     release_sha: null, provider: options.provider ?? null, model: options.model ?? null, endpoint: options.endpoint ?? null,
   });
   return capture;

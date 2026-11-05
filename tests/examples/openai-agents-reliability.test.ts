@@ -18,7 +18,8 @@ const gateway = (): PlannerGateway => ({
 beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-01-01T00:00:00Z')); vi.spyOn(Math, 'random').mockReturnValue(0.5); });
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
-it.each([http2, network])('retries an HTTP/2 session failure using the SDK within the same turn', async fail => {
+const badMac = () => new Error('Connection error.', { cause: Object.assign(new Error('TLS record failure'), { code: 'ERR_SSL_SSL/TLS_ALERT_BAD_RECORD_MAC' }) });
+it.each([http2, network, badMac])('retries a session or TLS bad-record-MAC failure using the SDK within the same turn', async fail => {
   const fake = scriptedModel((_request, n) => { if (!n) throw fail(); return answer(); });
   const run = createOpenAIPlanner({ gateway: gateway(), model: fake.model, maxTurns: 1 }).run('Plan');
   await vi.advanceTimersByTimeAsync(0);

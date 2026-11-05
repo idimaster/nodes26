@@ -4,9 +4,8 @@ import type { launchPlanner } from '../../packages/harness/src/index.js';
 import { runCli } from '../../examples/openai-agents/src/cli.js';
 import { answer, scriptedModel, toolCall } from './helpers/openai-model.js';
 
-const mocked = vi.hoisted(() => ({ launch: vi.fn(), getModel: vi.fn<() => Promise<Model>>(), close: vi.fn(), inspect: vi.fn(), flush: vi.fn(), installExporter: vi.fn(), providerOptions: [] as unknown[] }));
+const mocked = vi.hoisted(() => ({ launch: vi.fn(), getModel: vi.fn<() => Promise<Model>>(), close: vi.fn(), inspect: vi.fn(), providerOptions: [] as unknown[] }));
 vi.mock('@planner/harness', () => ({ launchPlanner: mocked.launch }));
-vi.mock('../../examples/openai-agents/src/tracing.js', async original => ({ ...await original<object>(), flushPlannerTracing: mocked.flush, installPlannerTraceExporter: mocked.installExporter }));
 vi.mock('@openai/agents', async original => ({ ...await original<object>(), OpenAIProvider: class {
   constructor(options: unknown) { mocked.providerOptions.push(options); }
   getModel = mocked.getModel;
@@ -20,7 +19,6 @@ beforeEach(() => {
   vi.spyOn(console, 'log').mockImplementation(() => undefined);
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
   mocked.close.mockResolvedValue(undefined);
-  mocked.flush.mockResolvedValue('flushed');
   mocked.inspect.mockResolvedValue({ deal: 'quarry', gates: [{ id: 'gd-quarry-1-frame-1', status: 'pending' }], state: [] });
   mocked.launch.mockImplementation(async (options: Parameters<typeof launchPlanner>[0]) => options.run({
     runId: 'managed-run-1', instructions: 'Use mcp__gate__await_approval.',
@@ -35,34 +33,29 @@ it('disables nested HTTP retries so the Runner owns the physical attempt budget'
   mocked.getModel.mockResolvedValue(scriptedModel(() => answer()).model);
   await runCli(['--deal', 'quarry']);
   expect(mocked.providerOptions).toEqual([expect.objectContaining({ openAIClient: expect.objectContaining({ maxRetries: 0, baseURL: 'https://api.openai.com/v1' }), useResponses: true })]);
-  expect(mocked.flush).not.toHaveBeenCalled();
-  expect(mocked.installExporter).not.toHaveBeenCalled();
+  expect((mocked.providerOptions[0] as { openAIClient: { fetch: unknown } }).openAIClient.fetch).toEqual(expect.any(Function));
 });
 
-it('prints trace/runtime/run correlation and flushes only when --trace is requested', async () => {
+it('prints a local diagnostics file and removes the remote trace option', async () => {
   mocked.getModel.mockResolvedValue(scriptedModel(() => answer()).model);
-  await runCli(['--deal', 'quarry', '--trace']);
-  expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/trace: trace_.*dashboard: https:\/\/platform.openai.com\/traces.*Node/));
-  expect(console.error).toHaveBeenCalledWith(expect.stringContaining('guard run: managed-run-1'));
-  expect(mocked.flush).toHaveBeenCalledTimes(1);
-  expect(mocked.installExporter).toHaveBeenCalledExactlyOnceWith('fake');
+  await runCli(['--deal', 'quarry']);
+  expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/^diagnostics: .logs\/diagnostics\/.*\.jsonl$/));
+  await expect(runCli(['--trace'])).rejects.toThrow(/Unknown option/);
 });
 
-it('still closes the provider and flushes tracing after model construction fails', async () => {
+it('still closes the provider after model construction fails', async () => {
   mocked.getModel.mockRejectedValue(new Error('construction failed'));
-  await expect(runCli(['--trace'])).rejects.toThrow('construction failed');
+  await expect(runCli(['--diagnostics', 'off'])).rejects.toThrow('construction failed');
   expect(mocked.close).toHaveBeenCalledTimes(1);
-  expect(mocked.flush).toHaveBeenCalledTimes(1);
 });
 
-it('preserves successful planner completion when trace export times out', async () => {
+it('runs without a local diagnostics file when off', async () => {
   mocked.getModel.mockResolvedValue(scriptedModel(() => answer()).model);
-  mocked.flush.mockResolvedValue('timeout');
-  await expect(runCli(['--trace'])).resolves.toBeUndefined();
-  expect(console.error).toHaveBeenCalledWith(expect.stringContaining('trace export timeout'));
+  await expect(runCli(['--diagnostics', 'off'])).resolves.toBeUndefined();
+  expect(console.error).not.toHaveBeenCalledWith(expect.stringContaining('diagnostics:'));
 });
 
-it('flushes tracing after the CLI SIGINT handler cancels model work', async () => {
+it('closes the provider after the CLI SIGINT handler cancels model work', async () => {
   const on = vi.spyOn(process, 'on');
   mocked.getModel.mockResolvedValue(scriptedModel(request => {
     const abort = on.mock.calls.find(([event]) => event === 'SIGINT')?.[1];
@@ -71,14 +64,12 @@ it('flushes tracing after the CLI SIGINT handler cancels model work', async () =
     request.signal?.throwIfAborted();
     return answer();
   }).model);
-  await expect(runCli(['--trace'])).rejects.toThrow();
+  await expect(runCli(['--diagnostics', 'off'])).rejects.toThrow();
   expect(mocked.close).toHaveBeenCalledTimes(1);
-  expect(mocked.flush).toHaveBeenCalledTimes(1);
 });
 
-it('rejects conflicting tracing configuration before managed launch', async () => {
-  vi.stubEnv('OPENAI_AGENTS_DISABLE_TRACING', '1');
-  await expect(runCli(['--trace'])).rejects.toThrow(/conflicts/);
+it('rejects invalid diagnostics configuration before managed launch', async () => {
+  await expect(runCli(['--diagnostics', 'full'])).rejects.toThrow(/metadata or off/);
   expect(mocked.launch).not.toHaveBeenCalled();
 });
 

@@ -393,6 +393,14 @@
                   "type": "null"
                 }
               ]
+            },
+            "openai_agents": {
+              "type": "string",
+              "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            },
+            "openai_client": {
+              "type": "string",
+              "pattern": "^\\d+\\.\\d+\\.\\d+$"
             }
           },
           "required": [
@@ -620,7 +628,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "pattern": "^(planner\\.|pi\\.ai\\.)[a-z0-9_.]+$"
+          "pattern": "^(planner\\.|pi\\.ai\\.|openai\\.agents\\.)[a-z0-9_.]+$"
         },
         "attributes": {
           "$ref": "#/$defs/attributes"
@@ -639,7 +647,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "pattern": "^(planner\\.|pi\\.ai\\.)[a-z0-9_.]+$"
+          "pattern": "^(planner\\.|pi\\.ai\\.|openai\\.agents\\.)[a-z0-9_.]+$"
         },
         "attributes": {
           "$ref": "#/$defs/attributes"
@@ -2169,7 +2177,7 @@
           "additionalProperties": false,
           "properties": {
             "host": {
-              "const": "pi"
+              "enum": ["pi", "openai-agents"]
             },
             "deal": {
               "anyOf": [

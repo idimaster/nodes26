@@ -128,23 +128,15 @@ The operator uses proposed `npm run planner:recover -- inspect --deal nimbus` to
 
 Change loader verification explicitly for retained terms: `graph/load/index.ts` keeps strict exact-manifest mode by default; reset opts into `retain-active-global-terms`, shared with the startup's read-only verifier in proposed `graph/load/verify.ts`. Verify the baseline projection against the **unchanged** manifest and keyed fixture content, and separately validate extra terms as single-label, unique, well-formed active/global `OntologyTerm` nodes with no `deal_code` and required label constraints. Reject other extras and any surviving term edges after reset. Snapshot term metadata before deletion and verify it unchanged afterward. Per-deal approval/evidence links disappear by reset design and are not recreated; retained metadata is structurally verified, not historical approval provenance reconstructed. Keep `graphCounts`/returned physical counts honest and report retained terms separately. Do not ignore all ontology nodes, loosen baseline counts, or regenerate the manifest to fit runtime state. A valid promoted term therefore survives repeated reset/reload without the current `OntologyTerm: expected 0, found 1` failure.
 
-Disable SDK tracing by default and retain local guard/run events. Explicit `--trace` enables payload-free
-SDK exports to OpenAI with `traceIncludeSensitiveData: false`. Replace the default processor with a
-redacting batch processor: pinned SDK 0.21 can otherwise include raw unexpected tool exceptions even
-with that flag off. Remove function/generation/response payload fields and raw span-error messages/data
-at the export boundary. Metadata is limited to host/model/deal/runtime versions and guard-run correlation;
-custom spans contain timing, byte counts, canonical tool names, retry/circuit state, error classifications,
-codes/status and validated request IDs. Print the trace ID, dashboard URL and gateway `runId` in the CLI.
-This describes current behavior; the [proposed local diagnostics replacement](OPENAI-LOCAL-DIAGNOSTICS.md)
-removes remote export and `--trace` in a later implementation change.
-The tracing exporter uses `maxRetries: 1` because this pinned exporter counts total attempts; the model
-client separately retains `maxRetries: 0`. Drain trace batches through SDK shutdown with a five-second
-abort deadline and bounded caller wait after planner cleanup, including failures and SIGINT. Host
-signal listeners remain installed through final flush, which drains the owned batch processor directly
-instead of depending on the global provider's cached signal shutdown. Trace
-failures must neither change completion status nor repeat model/tools. Conflicting global tracing-disable
-configuration is rejected before child launch. Tracing is observability; graph decisions remain authoritative.
-[Source: Runner configuration](https://github.com/openai/openai-agents-js/blob/main/packages/agents-core/src/run.ts).
+Local metadata diagnostics are enabled by default and can be disabled with `--diagnostics off`.
+The host replaces SDK export processors with a local processor, keeps
+`traceIncludeSensitiveData: false`, and projects SDK spans through an allowlist. It uses the
+shared `@planner/diagnostics` package; no SDK trace is exported. The OpenAI client retains
+`maxRetries: 0`, so the Runner remains the retry owner. Its private HTTP/1.1 Undici pool follows
+the [Pi transport recovery decision](PI-HARNESS.md#provider-resilience-and-retry-policy).
+The [local diagnostics specification](OPENAI-LOCAL-DIAGNOSTICS.md) tracks remaining capture and
+triage work. Diagnostics failures must not repeat model or tool operations; graph decisions
+remain authoritative.
 
 The CLI owns an AbortController and the Neo4j driver; the gateway owns MCP clients. On `SIGINT`, abort model and queued/in-flight MCP work, wait for settlement, attempt every client close, then attempt driver close regardless of client errors. Cover model/agent construction inside the same cleanup scope. Forwarding cancellation does not roll back a write already committed remotely.
 

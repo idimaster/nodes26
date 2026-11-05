@@ -437,23 +437,14 @@ stops the run. The SDK owns all retry/cooldown waits and cancellation. Only the 
 model request is repeated with its existing tool results; no MCP call or complete workflow is retried.
 CLI events report the selected model, physical attempts, backoff and circuit transitions.
 
-`example:openai-agents -- --trace` explicitly enables SDK tracing to OpenAI. Payload capture stays
-disabled (`traceIncludeSensitiveData: false`); the CLI replaces the default processor with a redacting
-batch processor so SDK tool-error messages and generation/function/response payload fields cannot
-bypass that choice. Trace metadata includes host/model/deal and actual Node/undici versions. The CLI
-prints a trace ID/dashboard URL and the gateway's read-only `runId` to correlate guard audit records.
-The [proposed local diagnostics replacement](OPENAI-LOCAL-DIAGNOSTICS.md) will remove this remote
-export path when implemented.
-Custom spans measure physical model attempts, input/instruction byte counts, canonical tool/gate waits,
-retry decisions/backoff/circuit intervals and final completion state. Errors export only classifications,
-transport codes, HTTP status and validated request IDs, never raw exception messages or headers.
-The SDK exporter gets one total export attempt per batch; export failures never replay planner work.
-SDK shutdown drains the queue with a five-second abort deadline and a bounded caller wait after all
-planner resources close, on success/failure/cancellation. Export failure does not replace the planner
-result. Host signal listeners stay registered until cleanup/flush ends; the CLI drains its owned SDK
-batch processor directly so the SDK's earlier cached signal shutdown cannot skip final spans.
-The global SDK tracing-disable environment setting is respected; conflicting `--trace` fails
-before managed launch. Tracing observes the workflow; graph decisions remain authoritative.
+The OpenAI host writes local metadata diagnostics by default via `@planner/diagnostics` and an
+SDK processor with `traceIncludeSensitiveData: false`; `--diagnostics off` disables capture.
+The default SDK exporter is replaced, so no trace is uploaded. SDK and app-owned spans are
+projected through an allowlist. Physical HTTP attempts record status, request IDs and allowlisted
+headers without consuming response bodies. The OpenAI client uses the Pi host's private HTTP/1.1
+Undici transport and rotates its pool after the observed TLS bad-record-MAC or HTTP/2 session
+errors. The Runner remains the only retry owner. See the [local diagnostics specification](OPENAI-LOCAL-DIAGNOSTICS.md)
+for remaining graph/triage acceptance criteria. Diagnostics do not decide graph outcomes.
 
 **Packaging.** The plugin lives in `plugin/` (`plugin/.claude-plugin/plugin.json`, `plugin/agents/planner.md`, `plugin/skills/plan-integration/SKILL.md`), and `.claude-plugin/marketplace.json` at the repo root lets `claude plugin marketplace add ./` install it.
 - It is a subdirectory on purpose: a plugin root's `.mcp.json` and `hooks/hooks.json` are auto-loaded. The repo root's servers would be registered a second time under `mcp__plugin_…` names, and the guard would run twice.
