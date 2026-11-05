@@ -1,5 +1,8 @@
 # neurosymbolic-planner-neo4j
 
+[![Checks](https://github.com/idimaster/nodes26/actions/workflows/checks.yml/badge.svg)](https://github.com/idimaster/nodes26/actions/workflows/checks.yml)
+[![Code coverage](https://github.com/idimaster/nodes26/actions/workflows/coverage.yml/badge.svg)](https://github.com/idimaster/nodes26/actions/workflows/coverage.yml)
+
 An integration-planning agent where **the LLM proposes and the graph decides**. It is built on Neo4j and the official Neo4j MCP server, and is the companion repo for a NODES 2026 talk.
 
 The agent reads an acquired company's findings, frames use cases, and picks integration patterns from a catalog. Everything that must be right comes from the graph, not the model:

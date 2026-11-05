@@ -16,7 +16,7 @@
     "test": "vitest run",
     "test:ui": "playwright test",
     "rehearse": "scripts/rehearse.sh",
-    "coverage": "vitest run --coverage packages/engine tests/engine",
+    "coverage": "vitest run --coverage packages/engine/test tests/engine",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p viz/tsconfig.json",
     "lint": "eslint .",
     "denylist": "tsx scripts/denylist-check.ts",
